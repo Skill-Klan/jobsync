@@ -20,6 +20,8 @@ const FLOORS: Floor[] = [
   { pkg: "prosemirror-view", min: "1.42.3", advisories: ["GHSA-c8x8-7fp4-3x9w"] },
   // Bundled libheif and librsvg: memory bugs, possible RCE on untrusted images.
   { pkg: "sharp", min: "0.35.5", advisories: ["GHSA-rgj7-g3m4-5g8c", "GHSA-wq5f-xc86-pv6w"] },
+  // Event-loop DoS from huge section offsets in an indexed source map.
+  { pkg: "source-map-js", min: "1.2.2", advisories: ["GHSA-68fv-2mgg-jv7q"] },
 ];
 
 const lock = JSON.parse(
