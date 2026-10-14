@@ -30,7 +30,9 @@ export function ProfileDropdown({
 }: ProfileDropdownProps) {
   const [supportDialogOpen, setSupportDialogOpen] = useState(false);
   const { summary } = useNotifications();
-  const label = user?.email ?? "My Account";
+  // Name first: people signed in from the cabinet carry a placeholder email
+  // (src/skillklan/cabinetUser.ts) that means nothing to them.
+  const label = user?.name || user?.email || "My Account";
 
   return (
     <>

@@ -1,4 +1,6 @@
 import type { NextAuthConfig } from "next-auth";
+import { recheckCabinetAccess } from "@/skillklan/accessRecheck";
+import { isDevPasswordLoginEnabled } from "@/skillklan/devPasswordLogin";
 
 declare module "next-auth" {
   interface Session {
@@ -8,7 +10,21 @@ declare module "next-auth" {
       email?: string | null;
     };
   }
+  interface User {
+    cabinetUserId?: number | null;
+  }
 }
+
+// SkillKlan rules §3.4: an excluded student loses access within 5 minutes.
+// The session asks the backend at least this often and ends on "no", on an
+// error and on a timeout alike (fail closed). The refreshed token goes back
+// into the cookie, so later requests are quiet; the many auth() calls of the
+// one request that reads the stale cookie share one answer
+// (skillklan/accessRecheck.ts).
+export const ACCESS_RECHECK_MS = 5 * 60 * 1000;
+// A working day; the upstream default (30 days) is far too long for a
+// session whose owner can be excluded.
+export const SESSION_MAX_AGE_S = 8 * 60 * 60;
 
 export const authConfig = {
   pages: {
@@ -16,6 +32,7 @@ export const authConfig = {
     error: "/signin",
   },
   secret: process.env.AUTH_SECRET,
+  session: { strategy: "jwt", maxAge: SESSION_MAX_AGE_S },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
@@ -32,8 +49,24 @@ export const authConfig = {
     async jwt({ token, user }) {
       if (user?.id) {
         token.id = user.id;
+        token.cabinetUserId = user.cabinetUserId ?? null;
+        token.accessCheckedAt = Date.now();
+        return token;
       }
-      return token;
+
+      const cabinetUserId = token.cabinetUserId as number | null | undefined;
+      if (cabinetUserId) {
+        const checkedAt = (token.accessCheckedAt as number | undefined) ?? 0;
+        if (Date.now() - checkedAt < ACCESS_RECHECK_MS) return token;
+        const recheck = await recheckCabinetAccess(cabinetUserId);
+        if (!recheck.allowed) return null;
+        token.accessCheckedAt = recheck.checkedAt;
+        return token;
+      }
+
+      // No cabinet person behind the session: only the dev-only password
+      // login makes those. Anywhere else such a token is not a way in.
+      return isDevPasswordLoginEnabled() ? token : null;
     },
     async session({ session, token }) {
       const userId = (token.id as string) || token.sub;

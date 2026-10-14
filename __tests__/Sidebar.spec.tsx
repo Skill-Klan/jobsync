@@ -138,11 +138,23 @@ describe("Sidebar", () => {
     );
   });
 
-  it("shows the user's email and a settings link via the account menu", async () => {
+  it("falls back to the email when the account has no name", () => {
+    render(
+      <SidebarProvider initialExpanded>
+        <Sidebar user={{ ...testUser, name: "" }} signOutAction={() => {}} />
+      </SidebarProvider>
+    );
+    expect(screen.getByText(testUser.email)).toBeInTheDocument();
+  });
+
+  // SkillKlan Job: people signed in from the cabinet carry a placeholder
+  // email (src/skillklan/cabinetUser.ts), so the account menu shows the name.
+  it("shows the user's name and a settings link via the account menu", async () => {
     const user = userEvent.setup();
     renderSidebar();
 
-    expect(screen.getByText(testUser.email)).toBeInTheDocument();
+    expect(screen.getByText(testUser.name)).toBeInTheDocument();
+    expect(screen.queryByText(testUser.email)).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "User menu" }));
 

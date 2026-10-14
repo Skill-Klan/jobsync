@@ -17,6 +17,9 @@ model User {
   name           String
   email          String           @unique
   password       String
+  // auth_users.id in the SkillKlan cabinet — set for people who signed in
+  // from the cabinet (one-time code). Null only for dev-only password accounts.
+  cabinetUserId  Int?             @unique
   createdAt      DateTime         @default(now())
   jobsApplied    Job[]
   JobTitle       JobTitle[]
