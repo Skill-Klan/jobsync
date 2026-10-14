@@ -2,8 +2,8 @@
 # Базовий образ за digest; Prisma CLI в образі (без npx на старті); процес — uid 1001 від самого
 # початку; entrypoint — skillklan/docker-entrypoint.sh (fail closed без справжніх секретів).
 
-# node:20.20.2-alpine (індекс, multi-arch)
-FROM node:20.20.2-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293 AS base
+# node:24.21.0-alpine (індекс, multi-arch). Node 24 — LTS до 2028-04-30; Node 20 без підтримки з 2026-04-30.
+FROM node:24.21.0-alpine@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b53302f905ec1c1 AS base
 
 FROM base AS deps
 RUN apk add --no-cache libc6-compat
