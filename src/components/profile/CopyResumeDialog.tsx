@@ -29,6 +29,7 @@ import {
   copyResume,
   getResumeCopyTitleSuggestion,
 } from "@/actions/profile.actions";
+import { useTranslations } from "@/i18n/client";
 
 type CopyResumeDialogProps = {
   open: boolean;
@@ -45,6 +46,7 @@ function CopyResumeDialog({
 }: CopyResumeDialogProps) {
   const [isPending, startTransition] = useTransition();
   const [loadingTitle, setLoadingTitle] = useState(false);
+  const t = useTranslations("profile");
 
   const form = useForm<z.infer<typeof CopyResumeFormSchema>>({
     resolver: zodResolver(CopyResumeFormSchema),
@@ -95,7 +97,7 @@ function CopyResumeDialog({
       reset({ title: "" });
       setOpen(false);
       onCopied();
-      toastSuccess(`Copy created: "${data.title}"`);
+      toastSuccess(t("copyResume.created", { title: data.title }));
     });
   };
 
@@ -103,10 +105,9 @@ function CopyResumeDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create a copy</DialogTitle>
+          <DialogTitle>{t("copyResume.title")}</DialogTitle>
           <DialogDescription>
-            Copies the sections and contact info of &quot;{sourceDoc?.title}
-            &quot;. The attachment is not copied.
+            {t("copyResume.description", { title: sourceDoc?.title ?? "" })}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -122,7 +123,7 @@ function CopyResumeDialog({
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Resume Title</FormLabel>
+                  <FormLabel>{t("copyResume.titleLabel")}</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -141,13 +142,13 @@ function CopyResumeDialog({
                 className="mt-2 md:mt-0"
                 onClick={() => setOpen(false)}
               >
-                Cancel
+                {t("buttons.cancel")}
               </Button>
               <Button
                 type="submit"
                 disabled={!isValid || isPending || loadingTitle}
               >
-                Create copy
+                {t("copyResume.submit")}
                 {isPending && (
                   <Loader className="h-4 w-4 shrink-0 animate-spin" />
                 )}

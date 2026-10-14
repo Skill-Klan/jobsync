@@ -9,10 +9,12 @@ import {
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { assertResumeOwnership, requireUser } from "./shared";
+import { getTranslations } from "@/i18n/server";
 
 export const addSkillsSection = async (
   data: z.infer<typeof AddSkillsFormSchema>,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("profile");
   try {
     const user = await requireUser();
 
@@ -41,13 +43,14 @@ export const addSkillsSection = async (
     revalidatePath(`/dashboard/profile/resume/${data.resumeId}`);
     return { success: true, data: section };
   } catch (error) {
-    return handleError(error, "Failed to add skills section.");
+    return handleError(error, t("errors.skillsAddFailed"));
   }
 };
 
 export const updateSkillsSection = async (
   data: z.infer<typeof UpdateSkillsFormSchema>,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("profile");
   try {
     const user = await requireUser();
 
@@ -58,7 +61,7 @@ export const updateSkillsSection = async (
       },
       select: { id: true, resumeId: true },
     });
-    if (!section) throw new Error("Section not found or access denied");
+    if (!section) throw new Error(t("errors.sectionNotFoundOrDenied"));
 
     let order = 0;
     const skillRows = data.categories.flatMap((cat) =>
@@ -82,13 +85,14 @@ export const updateSkillsSection = async (
     revalidatePath(`/dashboard/profile/resume/${section.resumeId}`);
     return { success: true };
   } catch (error) {
-    return handleError(error, "Failed to update skills section.");
+    return handleError(error, t("errors.skillsUpdateFailed"));
   }
 };
 
 export const deleteSkillsSection = async (
   sectionId: string,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("profile");
   try {
     const user = await requireUser();
 
@@ -99,7 +103,7 @@ export const deleteSkillsSection = async (
       },
       select: { id: true, resumeId: true },
     });
-    if (!section) throw new Error("Section not found or access denied");
+    if (!section) throw new Error(t("errors.sectionNotFoundOrDenied"));
 
     await prisma.$transaction([
       prisma.skill.deleteMany({ where: { resumeSectionId: section.id } }),
@@ -109,6 +113,6 @@ export const deleteSkillsSection = async (
     revalidatePath(`/dashboard/profile/resume/${section.resumeId}`);
     return { success: true };
   } catch (error) {
-    return handleError(error, "Failed to delete skills section.");
+    return handleError(error, t("errors.skillsDeleteFailed"));
   }
 };

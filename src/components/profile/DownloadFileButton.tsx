@@ -1,11 +1,36 @@
 import { Paperclip } from "lucide-react";
+import { useTranslations } from "@/i18n/client";
 
+// Called as a plain function by its callers (not rendered as <DownloadFileButton>),
+// so the hook lives in the component it returns.
 export function DownloadFileButton(
   resumeId: string,
   filePath: any,
   fileTitle: string,
   fileName: string
 ) {
+  return (
+    <DownloadButton
+      resumeId={resumeId}
+      filePath={filePath}
+      fileTitle={fileTitle}
+      fileName={fileName}
+    />
+  );
+}
+
+function DownloadButton({
+  resumeId,
+  filePath,
+  fileTitle,
+  fileName,
+}: {
+  resumeId: string;
+  filePath: any;
+  fileTitle: string;
+  fileName: string;
+}) {
+  const t = useTranslations("profile");
   const handleDownload = async () => {
     const response = await fetch(
       `/api/profile/resume?resumeId=${encodeURIComponent(resumeId)}`,
@@ -36,7 +61,7 @@ export function DownloadFileButton(
     <button
       className="flex items-center"
       onClick={handleDownload}
-      title={`Download ${fileName}`}
+      title={t("resumePage.download", { fileName: fileName ?? "" })}
     >
       <div>{fileTitle}</div>
       <Paperclip className="h-3.5 w-3.5 ml-1" />

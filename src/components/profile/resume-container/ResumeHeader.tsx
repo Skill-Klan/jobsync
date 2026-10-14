@@ -17,6 +17,7 @@ import {
 } from "../../ui/dropdown-menu";
 import AddResumeSection, { AddResumeSectionRef } from "../AddResumeSection";
 import { DownloadFileButton } from "../DownloadFileButton";
+import { useTranslations } from "@/i18n/client";
 
 export function ResumeHeader({
   resume,
@@ -37,10 +38,16 @@ export function ResumeHeader({
   onExport: () => void;
   onSetDefault: () => void;
 }) {
+  const t = useTranslations("profile");
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-2">
-        <Button title="Go Back" size="sm" variant="outline" onClick={onBack}>
+        <Button
+          title={t("buttons.goBack")}
+          size="sm"
+          variant="outline"
+          onClick={onBack}
+        >
           <ArrowLeft />
         </Button>
         <CardTitle>
@@ -55,7 +62,7 @@ export function ResumeHeader({
         </CardTitle>
         {isDefault && (
           <Badge className="border-transparent bg-green-600 text-white hover:bg-green-600/90">
-            Default
+            {t("badges.default")}
           </Badge>
         )}
       </div>
@@ -69,7 +76,7 @@ export function ResumeHeader({
         >
           <Sparkles className="h-3.5 w-3.5" />
           <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-            Review
+            {t("resumePage.review")}
           </span>
         </Button>
         <DropdownMenu>
@@ -81,7 +88,7 @@ export function ResumeHeader({
           <DropdownMenuContent align="end">
             <DropdownMenuItem className="cursor-pointer" onClick={onExport}>
               <FileDown className="h-4 w-4 mr-2" />
-              Export to PDF
+              {t("buttons.exportToPdf")}
             </DropdownMenuItem>
             {!isDefault && (
               <DropdownMenuItem
@@ -97,7 +104,7 @@ export function ResumeHeader({
                 }}
               >
                 <Star className="h-4 w-4 mr-2" />
-                Set as default
+                {t("buttons.setAsDefault")}
               </DropdownMenuItem>
             )}
           </DropdownMenuContent>

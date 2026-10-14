@@ -6,17 +6,19 @@ import { SectionType } from "@/models/profile.model";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { assertResumeOwnership, requireUser } from "./shared";
+import { getTranslations } from "@/i18n/server";
 
 export const addExperience = async (
   data: z.infer<typeof AddExperienceFormSchema>,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("profile");
   try {
     const user = await requireUser();
 
     await assertResumeOwnership(data.resumeId!, user.id);
 
     if (!data.sectionId && !data.sectionTitle) {
-      throw new Error("SectionTitle is required.");
+      throw new Error(t("errors.sectionTitleRequired"));
     }
 
     const section = !data.sectionId
@@ -50,7 +52,7 @@ export const addExperience = async (
     revalidatePath(`/dashboard/profile/resume/${data.resumeId}`);
     return { data: experience, success: true };
   } catch (error) {
-    const msg = "Failed to create experience.";
+    const msg = t("errors.experienceCreateFailed");
     return handleError(error, msg);
   }
 };
@@ -58,6 +60,7 @@ export const addExperience = async (
 export const updateExperience = async (
   data: z.infer<typeof AddExperienceFormSchema>,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("profile");
   try {
     const user = await requireUser();
 
@@ -78,7 +81,7 @@ export const updateExperience = async (
     revalidatePath(`/dashboard/profile/resume/${data.resumeId}`);
     return { data: summary, success: true };
   } catch (error) {
-    const msg = "Failed to update experience.";
+    const msg = t("errors.experienceUpdateFailed");
     return handleError(error, msg);
   }
 };

@@ -34,6 +34,7 @@ import {
   AddSkillsFormSchema,
   UpdateSkillsFormSchema,
 } from "@/models/skills.schema";
+import { useTranslations } from "@/i18n/client";
 type AddSkillsProps = {
   resumeId: string | undefined;
   dialogOpen: boolean;
@@ -48,6 +49,9 @@ function AddSkills({
   skillsToEdit,
 }: AddSkillsProps) {
   const isEditing = !!skillsToEdit;
+  const t = useTranslations("profile");
+  // A suggestion in the user's language; once saved it is their heading.
+  const defaultSectionTitle = t("skills.defaultTitle");
   const [allTags, setAllTags] = useState<Tag[]>([]);
   const [isPending, startTransition] = useTransition();
 
@@ -55,7 +59,7 @@ function AddSkills({
     resolver: zodResolver(AddSkillsFormSchema),
     defaultValues: {
       resumeId: resumeId ?? "",
-      sectionTitle: "Core Skills",
+      sectionTitle: defaultSectionTitle,
       categories: [{ label: "", tagIds: [] }],
     },
   });
@@ -71,7 +75,7 @@ function AddSkills({
       if (Array.isArray(tags)) {
         setAllTags(tags);
       } else {
-        toastError("Failed to load skills. Please close and reopen the dialog.");
+        toastError(t("skills.loadFailed"));
       }
     });
 
@@ -100,10 +104,13 @@ function AddSkills({
     } else {
       form.reset({
         resumeId: resumeId ?? "",
-        sectionTitle: "Core Skills",
+        sectionTitle: defaultSectionTitle,
         categories: [{ label: "", tagIds: [] }],
       });
     }
+    // t and the default title are read when the dialog opens, not tracked:
+    // re-running on their identity would reset what the person typed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dialogOpen, isEditing, skillsToEdit, resumeId, form]);
 
   const handleTagCreated = (newTag: Tag) => {
@@ -129,7 +136,7 @@ function AddSkills({
       } else {
         form.reset();
         setDialogOpen(false);
-        toastSuccess(`Skills section ${isEditing ? "updated" : "added"} successfully`);
+        toastSuccess(isEditing ? t("skills.updated") : t("skills.added"));
       }
     });
   };
@@ -138,10 +145,11 @@ function AddSkills({
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogContent className="max-h-[85vh] md:max-w-[40rem] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEditing ? "Edit Skills" : "Add Skills"}</DialogTitle>
+          <DialogTitle>
+            {isEditing ? t("skills.editTitle") : t("skills.addTitle")}
+          </DialogTitle>
           <DialogDescription>
-            Group your skills into categories. Leave a name blank to list skills
-            without a heading.
+            {t("skills.description")}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -154,9 +162,12 @@ function AddSkills({
               name="sectionTitle"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Section heading</FormLabel>
+                  <FormLabel>{t("skills.heading")}</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="e.g. Core Skills" />
+                    <Input
+                      {...field}
+                      placeholder={t("skills.headingPlaceholder")}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -180,7 +191,7 @@ function AddSkills({
                           <FormControl>
                             <Input
                               {...f}
-                              placeholder="Category name (optional, e.g. Languages)"
+                              placeholder={t("skills.categoryPlaceholder")}
                               className="uppercase text-xs font-medium"
                             />
                           </FormControl>
@@ -211,7 +222,7 @@ function AddSkills({
                             selectedTagIds={f.value}
                             onChange={f.onChange}
                             max={APP_CONSTANTS.MAX_SKILLS_PER_CATEGORY}
-                            placeholder="Search or add a skill…"
+                            placeholder={t("skills.skillPlaceholder")}
                             onTagCreated={handleTagCreated}
                           />
                         </FormControl>
@@ -232,7 +243,7 @@ function AddSkills({
               onClick={() => append({ label: "", tagIds: [] })}
             >
               <PlusCircle className="h-4 w-4 mr-2" />
-              Add category
+              {t("skills.addCategory")}
             </Button>
 
             <DialogFooter>
@@ -241,10 +252,10 @@ function AddSkills({
                 variant="outline"
                 onClick={() => setDialogOpen(false)}
               >
-                Cancel
+                {t("buttons.cancel")}
               </Button>
               <Button type="submit" disabled={isPending}>
-                Save
+                {t("buttons.save")}
                 {isPending && <Loader className="h-4 w-4 shrink-0 spinner ml-2" />}
               </Button>
             </DialogFooter>

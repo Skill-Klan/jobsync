@@ -6,10 +6,12 @@ import { SectionType } from "@/models/profile.model";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { assertResumeOwnership, requireUser } from "./shared";
+import { getTranslations } from "@/i18n/server";
 
 export const addResumeSummary = async (
   data: z.infer<typeof AddSummarySectionFormSchema>,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("profile");
   try {
     const user = await requireUser();
 
@@ -38,7 +40,7 @@ export const addResumeSummary = async (
     revalidatePath(`/dashboard/profile/resume/${data.resumeId}`);
     return { data: summary, success: true };
   } catch (error) {
-    const msg = "Failed to create summary.";
+    const msg = t("errors.summaryCreateFailed");
     return handleError(error, msg);
   }
 };
@@ -46,6 +48,7 @@ export const addResumeSummary = async (
 export const updateResumeSummary = async (
   data: z.infer<typeof AddSummarySectionFormSchema>,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("profile");
   try {
     const user = await requireUser();
 
@@ -75,7 +78,7 @@ export const updateResumeSummary = async (
     revalidatePath(`/dashboard/profile/resume/${data.resumeId}`);
     return { data: summary, success: true };
   } catch (error) {
-    const msg = "Failed to update summary.";
+    const msg = t("errors.summaryUpdateFailed");
     return handleError(error, msg);
   }
 };

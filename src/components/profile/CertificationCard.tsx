@@ -9,7 +9,8 @@ import {
 } from "../ui/card";
 import { Button } from "../ui/button";
 import { Pencil, ExternalLink, Trash2 } from "lucide-react";
-import { format } from "date-fns";
+import { useFormatDate, useTranslations } from "@/i18n/client";
+import { MONTH_YEAR } from "./dates";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,6 +34,8 @@ function CertificationCard({
   openDialogForEdit,
   onDelete,
 }: CertificationCardProps) {
+  const t = useTranslations("profile");
+  const formatDate = useFormatDate();
   const { sectionTitle, licenseOrCertifications } = certificationSection!;
   return (
     <>
@@ -51,41 +54,45 @@ function CertificationCard({
               <CardTitle className="text-xl pl-4">{title}</CardTitle>
               <div className="flex gap-1 absolute top-2 right-2">
                 <Button
-                  title="Edit"
+                  title={t("buttons.edit")}
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8"
                   onClick={() => openDialogForEdit(id!)}
                 >
                   <Pencil className="h-3.5 w-3.5" />
-                  <span className="sr-only">Edit</span>
+                  <span className="sr-only">{t("buttons.edit")}</span>
                 </Button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button
-                      title="Delete"
+                      title={t("buttons.delete")}
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-destructive hover:text-destructive"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
-                      <span className="sr-only">Delete</span>
+                      <span className="sr-only">{t("buttons.delete")}</span>
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Delete certification?</AlertDialogTitle>
+                      <AlertDialogTitle>
+                        {t("certification.deleteTitle")}
+                      </AlertDialogTitle>
                       <AlertDialogDescription>
-                        This will remove &quot;{title}&quot; from this resume.
+                        {t("certification.deleteDescription", { title })}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogCancel>
+                        {t("buttons.cancel")}
+                      </AlertDialogCancel>
                       <AlertDialogAction
                         className="bg-destructive-bg text-destructive-foreground hover:bg-destructive-bg/90"
                         onClick={() => onDelete(id!)}
                       >
-                        Delete
+                        {t("buttons.delete")}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
@@ -96,13 +103,21 @@ function CertificationCard({
               <h3>{organization}</h3>
               <CardDescription>
                 {issueDate && (
-                  <>Issued: {format(new Date(issueDate), "MMM yyyy")}</>
+                  <>
+                    {t("certification.issued", {
+                      date: formatDate(new Date(issueDate), MONTH_YEAR),
+                    })}
+                  </>
                 )}
                 {issueDate && expirationDate && " · "}
                 {expirationDate ? (
-                  <>Expires: {format(new Date(expirationDate), "MMM yyyy")}</>
+                  <>
+                    {t("certification.expires", {
+                      date: formatDate(new Date(expirationDate), MONTH_YEAR),
+                    })}
+                  </>
                 ) : (
-                  issueDate && " · No Expiration"
+                  issueDate && ` · ${t("certification.noExpirationShort")}`
                 )}
               </CardDescription>
               {credentialUrl && (
@@ -112,7 +127,7 @@ function CertificationCard({
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-sm text-blue-500 hover:underline mt-1"
                 >
-                  View Credential
+                  {t("certification.viewCredential")}
                   <ExternalLink className="h-3.5 w-3.5" />
                 </a>
               )}

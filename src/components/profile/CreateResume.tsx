@@ -31,6 +31,7 @@ import { getUserSettings } from "@/actions/userSettings.actions";
 import { checkOllamaConnection } from "@/utils/ai.utils";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "@/i18n/client";
 
 type CreateResumeProps = {
   resumeDialogOpen: boolean;
@@ -58,11 +59,14 @@ function CreateResume({
   const [aiAvailable, setAiAvailable] = useState(false);
   const [selectedModel, setSelectedModel] = useState<AiModel>(defaultModel);
   const router = useRouter();
+  const t = useTranslations("profile");
 
-  const pageTitle = resumeToEdit ? "Edit Resume Title" : "Create Resume";
+  const pageTitle = resumeToEdit
+    ? t("createResume.editTitle")
+    : t("createResume.createTitle");
   const pageDescription = resumeToEdit
-    ? "Update the title of this resume."
-    : "Create a new resume for your profile.";
+    ? t("createResume.editDescription")
+    : t("createResume.createDescription");
 
   const form = useForm<z.infer<typeof CreateResumeFormSchema>>({
     resolver: zodResolver(CreateResumeFormSchema),
@@ -179,7 +183,9 @@ function CreateResume({
       if (newResumeId) {
         setNewResumeId(newResumeId);
       }
-      toastSuccess(`Resume title has been ${resumeToEdit ? "updated" : "created"} successfully`);
+      toastSuccess(
+        resumeToEdit ? t("createResume.updated") : t("createResume.created"),
+      );
     });
   };
 
@@ -207,11 +213,13 @@ function CreateResume({
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Resume Title</FormLabel>
+                    <FormLabel>{t("createResume.titleLabel")}</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
-                        placeholder="Ex: Full Stack Developer Angular, Java"
+                        placeholder={t("placeholders.ex", {
+                          example: "Full Stack Developer Angular, Java",
+                        })}
                         data-testid="resume-title-input"
                       />
                     </FormControl>
@@ -234,7 +242,7 @@ function CreateResume({
                 name="file"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Upload Resume (Optional)</FormLabel>
+                    <FormLabel>{t("createResume.fileLabel")}</FormLabel>
                     <FormControl>
                       <Input
                         type="file"
@@ -271,17 +279,17 @@ function CreateResume({
                 >
                   <span className="flex items-center gap-1">
                     <Sparkles className="h-3.5 w-3.5" />
-                    Auto-fill with AI
+                    {t("createResume.autoFill")}
                   </span>
                   {!aiAvailable && (
                     <span className="text-muted-foreground text-xs block mt-0.5">
-                      AI unavailable —{" "}
+                      {t("createResume.aiUnavailable")}{" "}
                       <Link
                         href="/dashboard/settings"
                         className="underline hover:text-foreground"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        Configure AI under Settings
+                        {t("createResume.configureAi")}
                       </Link>
                     </span>
                   )}
@@ -297,10 +305,10 @@ function CreateResume({
                   className="mt-2 md:mt-0"
                   onClick={closeDialog}
                 >
-                  Cancel
+                  {t("buttons.cancel")}
                 </Button>
                 <Button type="submit" disabled={!isValid || isPending}>
-                  Save
+                  {t("buttons.save")}
                   {isPending && (
                     <Loader className="h-4 w-4 shrink-0 animate-spin" />
                   )}

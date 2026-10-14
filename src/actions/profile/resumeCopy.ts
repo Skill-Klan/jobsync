@@ -7,10 +7,12 @@ import {
 } from "@/lib/resumeSections";
 import { buildCopyTitle, ensureUniqueTitle } from "@/lib/resumeCopyTitle";
 import { requireUser, resumeCopySelect } from "./shared";
+import { getTranslations } from "@/i18n/server";
 
 export const getResumeCopyTitleSuggestion = async (
   resumeId: string,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("profile");
   try {
     const user = await requireUser();
 
@@ -19,7 +21,7 @@ export const getResumeCopyTitleSuggestion = async (
       select: { title: true },
     });
     if (!source) {
-      throw new Error("Resume not found or access denied");
+      throw new Error(t("errors.resumeNotFoundOrDenied"));
     }
 
     // All titles, not just the current page, so the suggestion never collides
@@ -36,7 +38,7 @@ export const getResumeCopyTitleSuggestion = async (
       ),
     };
   } catch (error) {
-    const msg = "Failed to build a title for the copy.";
+    const msg = t("errors.copyTitleFailed");
     return handleError(error, msg);
   }
 };
@@ -45,6 +47,7 @@ export const copyResume = async (
   resumeId: string,
   title: string,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("profile");
   try {
     const user = await requireUser();
 
@@ -54,7 +57,7 @@ export const copyResume = async (
       select: resumeCopySelect,
     });
     if (!source) {
-      throw new Error("Resume not found or access denied");
+      throw new Error(t("errors.resumeNotFoundOrDenied"));
     }
 
     if (!hasMinResumeSections(source.ResumeSections.length)) {
@@ -183,7 +186,7 @@ export const copyResume = async (
 
     return { success: true, data: { id: created.id, title: uniqueTitle } };
   } catch (error) {
-    const msg = "Failed to copy resume.";
+    const msg = t("errors.copyFailed");
     return handleError(error, msg);
   }
 };

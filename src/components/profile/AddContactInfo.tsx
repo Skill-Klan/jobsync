@@ -26,6 +26,7 @@ import { useEffect, useState, useTransition } from "react";
 import { toastActionResult } from "@/lib/toast";
 import { ContactInfo } from "@/models/profile.model";
 import { addContactInfo, updateContactInfo } from "@/actions/profile.actions";
+import { useTranslations } from "@/i18n/client";
 
 interface AddContactInfoProps {
   dialogOpen: boolean;
@@ -42,13 +43,14 @@ function AddContactInfo({
 }: AddContactInfoProps) {
   const [isPending, startTransition] = useTransition();
   const [showLink2, setShowLink2] = useState(false);
+  const t = useTranslations("profile");
 
   const pageTitle = contactInfoToEdit
-    ? "Edit Contact Info"
-    : "Add Contact Info";
+    ? t("contactInfo.editTitle")
+    : t("contactInfo.addTitle");
   const pageDescription = contactInfoToEdit
-    ? "Update your contact information on your resume."
-    : "Add your contact information to your resume.";
+    ? t("contactInfo.editDescription")
+    : t("contactInfo.addDescription");
 
   const form = useForm<z.infer<typeof AddContactInfoFormSchema>>({
     resolver: zodResolver(AddContactInfoFormSchema),
@@ -100,9 +102,9 @@ function AddContactInfo({
         ? await updateContactInfo(data)
         : await addContactInfo(data);
       toastActionResult(res, {
-        success: `Contact Info has been ${
-          contactInfoToEdit ? "updated" : "created"
-        } successfully`,
+        success: contactInfoToEdit
+          ? t("contactInfo.updated")
+          : t("contactInfo.created"),
         onSuccess: () => {
           reset();
           setDialogOpen(false);
@@ -132,7 +134,7 @@ function AddContactInfo({
                 name="firstName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>First Name</FormLabel>
+                    <FormLabel>{t("contactInfo.firstName")}</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -149,7 +151,7 @@ function AddContactInfo({
                 name="lastName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Last Name</FormLabel>
+                    <FormLabel>{t("contactInfo.lastName")}</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -166,7 +168,7 @@ function AddContactInfo({
                 name="headline"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Headline</FormLabel>
+                    <FormLabel>{t("contactInfo.headline")}</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -183,7 +185,7 @@ function AddContactInfo({
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{t("contactInfo.email")}</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -200,7 +202,7 @@ function AddContactInfo({
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone</FormLabel>
+                    <FormLabel>{t("contactInfo.phone")}</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -217,7 +219,7 @@ function AddContactInfo({
                 name="address"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Address</FormLabel>
+                    <FormLabel>{t("contactInfo.address")}</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -230,9 +232,9 @@ function AddContactInfo({
             {/* LINK 1 */}
             <div className="md:col-span-2">
               <p className="text-sm font-medium mb-2">
-                Link 1{" "}
+                {t("contactInfo.link", { number: 1 })}{" "}
                 <span className="text-muted-foreground font-normal">
-                  (optional — portfolio, LinkedIn, GitHub, etc.)
+                  {t("contactInfo.linkHint")}
                 </span>
               </p>
               <div className="grid grid-cols-3 gap-2">
@@ -241,9 +243,14 @@ function AddContactInfo({
                   name="url1Label"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs text-muted-foreground">Label</FormLabel>
+                      <FormLabel className="text-xs text-muted-foreground">
+                        {t("contactInfo.linkLabel")}
+                      </FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. LinkedIn" {...field} />
+                        <Input
+                          placeholder={t("placeholders.eg", { example: "LinkedIn" })}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -269,7 +276,9 @@ function AddContactInfo({
             {showLink2 ? (
               <div className="md:col-span-2">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium">Link 2</p>
+                  <p className="text-sm font-medium">
+                    {t("contactInfo.link", { number: 2 })}
+                  </p>
                   <Button
                     type="button"
                     variant="ghost"
@@ -290,9 +299,14 @@ function AddContactInfo({
                     name="url2Label"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-xs text-muted-foreground">Label</FormLabel>
+                        <FormLabel className="text-xs text-muted-foreground">
+                        {t("contactInfo.linkLabel")}
+                      </FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g. GitHub" {...field} />
+                          <Input
+                            placeholder={t("placeholders.eg", { example: "GitHub" })}
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -322,7 +336,7 @@ function AddContactInfo({
                   className="text-muted-foreground px-0 h-auto"
                   onClick={() => setShowLink2(true)}
                 >
-                  + Add another link
+                  {t("contactInfo.addLink")}
                 </Button>
               </div>
             )}

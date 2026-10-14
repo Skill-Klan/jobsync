@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toastError } from "@/lib/toast";
+import { useTranslations } from "@/i18n/client";
 import { deleteResumeById } from "@/actions/profile.actions";
 import { resolveImportCard } from "@/actions/resumeImport.actions";
 import { getUserSettings } from "@/actions/userSettings.actions";
@@ -20,6 +21,11 @@ import {
 // discarding or abandoning the import.
 export function useResumeImport(resume: Resume) {
   const router = useRouter();
+  // Read through a ref: runImport must stay stable (the auto-start effect
+  // re-runs the import whenever it changes), and only its toasts need text.
+  const t = useTranslations("profile");
+  const tRef = useRef(t);
+  tRef.current = t;
 
   // Import review mode state
   const [pendingCards, setPendingCards] = useState<PendingCard[]>([]);
@@ -75,8 +81,8 @@ export function useResumeImport(resume: Resume) {
         if (cards.length === 0) {
           setImportMode(false);
           toastError(
-            "No structured data could be extracted from the document.",
-            "No sections found",
+            tRef.current("importReview.noSectionsDescription"),
+            tRef.current("importReview.noSectionsTitle"),
           );
           return;
         }
@@ -90,7 +96,9 @@ export function useResumeImport(resume: Resume) {
         if (abortController.signal.aborted) return;
         setImportMode(false);
         toastError(
-          error instanceof Error ? error.message : "Failed to contact AI service.",
+          error instanceof Error
+            ? error.message
+            : tRef.current("importReview.aiFailed"),
         );
       } finally {
         if (importAbortRef.current === abortController) {
@@ -166,7 +174,8 @@ export function useResumeImport(resume: Resume) {
               setOllamaConnected(result.isConnected);
               if (!result.isConnected) {
                 setConnectionError(
-                  result.error || "Ollama is not reachable.",
+                  result.error ||
+                    tRef.current("importReview.ollamaUnreachable"),
                 );
               }
             });

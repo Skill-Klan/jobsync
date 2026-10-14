@@ -32,6 +32,7 @@ import {
 } from "./resume-container/ResumeDialogs";
 import { useResumeImport } from "./resume-container/useResumeImport";
 import { useResumePdfExport } from "./resume-container/useResumePdfExport";
+import { useTranslations } from "@/i18n/client";
 
 function ResumeContainer({
   resume,
@@ -41,6 +42,7 @@ function ResumeContainer({
   defaultResumeId?: string | null;
 }) {
   const router = useRouter();
+  const t = useTranslations("profile");
   const goBack = () => router.back();
   const isDefault = !!resume?.id && resume.id === defaultResumeId;
   const [setDefaultConfirmOpen, setSetDefaultConfirmOpen] = useState(false);
@@ -155,7 +157,7 @@ function ResumeContainer({
     if (!skillsSection?.id) return;
     const result = await deleteSkillsSection(skillsSection.id);
     toastActionResult(result, {
-      success: "Skills section has been deleted successfully",
+      success: t("resumePage.skillsDeleted"),
       onSuccess: () => router.refresh(),
     });
   };
@@ -173,7 +175,7 @@ function ResumeContainer({
   const handleDeleteCertification = async (certificationId: string) => {
     const result = await deleteCertification(certificationId);
     toastActionResult(result, {
-      success: "Certification has been deleted successfully",
+      success: t("resumePage.certificationDeleted"),
       onSuccess: () => router.refresh(),
     });
   };
@@ -187,7 +189,7 @@ function ResumeContainer({
     if (!resume?.id) return;
     const { success, message } = await setDefaultResume(resume.id);
     if (success) {
-      toastSuccess("This resume is now your default.");
+      toastSuccess(t("resumePage.nowDefault"));
       router.refresh();
     } else {
       toastError(message);
@@ -208,13 +210,13 @@ function ResumeContainer({
       />
 
       <DeleteAlertDialog
-        pageTitle="resume"
+        pageTitle={t("deleteItem.resume")}
         open={setDefaultConfirmOpen}
         onOpenChange={setSetDefaultConfirmOpen}
         onDelete={handleSetDefault}
-        alertTitle="Change default resume?"
-        alertDescription="This will make this resume your default, replacing any current default."
-        actionLabel="Set as default"
+        alertTitle={t("resumePage.changeDefaultTitle")}
+        alertDescription={t("resumePage.changeDefaultDescription")}
+        actionLabel={t("buttons.setAsDefault")}
         actionVariant="default"
       />
 
@@ -223,7 +225,7 @@ function ResumeContainer({
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Sparkles className="h-4 w-4" />
-              AI Review
+              {t("resumePage.aiReview")}
             </CardTitle>
             <ReviewDetails reviewData={parsedReviewData} />
           </CardHeader>

@@ -14,6 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../ui/alert-dialog";
+import { useTranslations } from "@/i18n/client";
 
 interface SkillsSectionCardProps {
   skillsSection: ResumeSection;
@@ -37,6 +38,7 @@ function SkillsSectionCard({
   openDialogForEdit,
   onDelete,
 }: SkillsSectionCardProps) {
+  const t = useTranslations("profile");
   const skills = skillsSection.skills ?? [];
   const grouped = groupByCategory(skills);
   const hasCategories = Array.from(grouped.keys()).some((k) => k !== "");
@@ -48,42 +50,41 @@ function SkillsSectionCard({
         <CardHeader className="p-2 pb-0 flex-row justify-end items-center">
           <div className="flex gap-1">
             <Button
-              title="Edit"
+              title={t("buttons.edit")}
               variant="ghost"
               size="icon"
               className="h-8 w-8"
               onClick={openDialogForEdit}
             >
               <Pencil className="h-3.5 w-3.5" />
-              <span className="sr-only">Edit</span>
+              <span className="sr-only">{t("buttons.edit")}</span>
             </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
-                  title="Delete"
+                  title={t("buttons.delete")}
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 text-destructive hover:text-destructive"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
-                  <span className="sr-only">Delete</span>
+                  <span className="sr-only">{t("buttons.delete")}</span>
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Delete skills section?</AlertDialogTitle>
+                  <AlertDialogTitle>{t("skills.deleteTitle")}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This will remove the entire skills section and all skills in
-                    it. The skill tags themselves are not deleted.
+                    {t("skills.deleteDescription")}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>{t("buttons.cancel")}</AlertDialogCancel>
                   <AlertDialogAction
                     className="bg-destructive-bg text-destructive-foreground hover:bg-destructive-bg/90"
                     onClick={onDelete}
                   >
-                    Delete
+                    {t("buttons.delete")}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

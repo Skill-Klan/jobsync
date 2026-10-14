@@ -22,6 +22,7 @@ import { APP_CONSTANTS } from "@/lib/constants";
 import Loading from "../Loading";
 import DocumentTable from "./ResumeTable";
 import { toastError } from "@/lib/toast";
+import { useTranslations } from "@/i18n/client";
 import { ChevronDown, PlusCircle } from "lucide-react";
 import { Button } from "../ui/button";
 import { RecordsCount } from "../RecordsCount";
@@ -33,6 +34,7 @@ import {
 } from "../ui/dropdown-menu";
 
 const ProfileContainer = () => {
+  const t = useTranslations("profile");
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [coverLetters, setCoverLetters] = useState<CoverLetter[]>([]);
   const [resumeDialogOpen, setResumeDialogOpen] = useState(false);
@@ -198,9 +200,9 @@ const ProfileContainer = () => {
     <Card>
       <ResponsiveCardHeader>
         <div className="flex items-baseline gap-2">
-          <CardTitle>Profile</CardTitle>
+          <CardTitle>{t("profileContainer.title")}</CardTitle>
           {!loading && totalDocuments > 0 && (
-            <RecordsCount count={documents.length} total={totalDocuments} label="documents" />
+            <RecordsCount count={documents.length} total={totalDocuments} label={t("profileContainer.documents")} />
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
@@ -209,7 +211,7 @@ const ProfileContainer = () => {
               <Button size="sm" variant="outline" className="h-8 gap-1">
                 <PlusCircle className="h-3.5 w-3.5" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                  New
+                  {t("profileContainer.new")}
                 </span>
                 <ChevronDown className="h-3.5 w-3.5" />
               </Button>
@@ -219,13 +221,13 @@ const ProfileContainer = () => {
                 className="cursor-pointer"
                 onClick={createResume}
               >
-                Add New Resume
+                {t("profileContainer.addResume")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="cursor-pointer"
                 onClick={createCoverLetter}
               >
-                Add New Cover Letter
+                {t("profileContainer.addCoverLetter")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -281,7 +283,7 @@ const ProfileContainer = () => {
               disabled={loading}
               className="btn btn-primary"
             >
-              {loading ? "Loading..." : "Load More"}
+              {loading ? t("profileContainer.loading") : t("profileContainer.loadMore")}
             </Button>
           </div>
         )}
