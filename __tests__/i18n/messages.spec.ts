@@ -29,13 +29,30 @@ const en = leaves(MESSAGES.en as unknown as Tree);
 // Strings that are the same in both languages on purpose.
 const SAME_IN_BOTH = new Set<string>([]);
 
+// Prompts whose English names the item ("Select stage") while the Ukrainian
+// does not: the caller passes an English noun, and Ukrainian would have to
+// decline it. Extra values are ignored, so dropping the argument is safe —
+// adding one that English lacks is not, and stays forbidden.
+const UK_DROPS_ARGS = new Set<string>([
+  "common.comboBox.select",
+  "common.comboBox.search",
+  "common.comboBox.createOrSearch",
+  "common.select.placeholder",
+]);
+
 describe("dictionaries", () => {
   it("uk and en have exactly the same keys", () => {
     expect([...uk.keys()].sort()).toEqual([...en.keys()].sort());
   });
 
   it("every message keeps the same ICU arguments in both languages", () => {
-    const mismatched = [...en.keys()].filter((k) => uk.has(k) && icuArgs(uk.get(k)!).join() !== icuArgs(en.get(k)!).join());
+    const mismatched = [...en.keys()].filter((k) => {
+      if (!uk.has(k)) return false;
+      const ukArgs = icuArgs(uk.get(k)!);
+      const enArgs = icuArgs(en.get(k)!);
+      if (UK_DROPS_ARGS.has(k)) return ukArgs.some((a) => !enArgs.includes(a));
+      return ukArgs.join() !== enArgs.join();
+    });
     expect(mismatched).toEqual([]);
   });
 

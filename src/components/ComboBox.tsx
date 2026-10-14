@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "@/i18n/client";
 
 import { Check, ChevronsUpDown, CirclePlus, Loader } from "lucide-react";
 import { ControllerRenderProps } from "react-hook-form";
@@ -51,6 +52,9 @@ export function Combobox({
   fullWidth,
 }: ComboboxProps) {
   // Placeholder text only; the accessible name comes from FormLabel/FormControl
+  const t = useTranslations("common");
+  // The English prompts name the item ("Select stage"); the Ukrainian ones do
+  // not (the noun would need declining) — common.comboBox.
   const displayName = label ?? field.name;
   const [newOption, setNewOption] = useState<string>("");
   const [isPopoverOpen, setIsPopoverOpen] = useState<boolean>(false);
@@ -152,7 +156,7 @@ export function Combobox({
               {field.value
                 ? (options.find((option) => option.id === field.value)?.label ??
                   (freeText ? field.value : null))
-                : `Select ${displayName}`}
+                : t("comboBox.select", { item: displayName })}
             </span>
 
             {isPending ? (
@@ -182,7 +186,11 @@ export function Combobox({
               setNewOption(val);
               onSearchChange?.(val);
             }}
-            placeholder={`${creatable ? "Create or " : ""}Search ${displayName}`}
+            placeholder={
+              creatable
+                ? t("comboBox.createOrSearch", { item: displayName })
+                : t("comboBox.search", { item: displayName })
+            }
             onKeyDown={(e) => handleEnterKey(e)}
           />
           <CommandList>
@@ -199,19 +207,21 @@ export function Combobox({
               {creatable ? (
                 <>
                   <CirclePlus className="h-4 w-4" />
-                  <p>Create: </p>
+                  <p>{t("comboBox.create")} </p>
                   <p className="block max-w-48 truncate font-semibold text-primary">
                     {newOption}
                   </p>
                 </>
               ) : (
-                <p className="font-semibold text-primary">No source found!</p>
+                <p className="font-semibold text-primary">{t("comboBox.notFound")}</p>
               )}
             </CommandEmpty>
             <CommandGroup>
               {options.map((option) => (
                 <CommandItem
-                  value={option.value}
+                  // Searched by what the person sees (the label, in any
+                  // language) and by the stored value.
+                  value={`${option.label} ${option.value}`}
                   key={option.id}
                   onSelect={() => {
                     if (field.onChange) {

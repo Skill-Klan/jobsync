@@ -3,5 +3,109 @@
   "language": "Language",
   "toggleMenu": "Toggle Menu",
   "navigationMenu": "Navigation Menu",
-  "appSubtitle": "Job Search Assistant"
+  "appSubtitle": "Job Search Assistant",
+  "close": "Close",
+  "loading": "Loading",
+  "save": "Save",
+  "cancel": "Cancel",
+  "deleteDialog": {
+    "title": "Are you sure you want to delete this {item}?",
+    "description": "This action cannot be undone. This will permanently delete and remove data from server.",
+    "delete": "Delete"
+  },
+  "comboBox": {
+    "select": "Select {item}",
+    "search": "Search {item}",
+    "createOrSearch": "Create or Search {item}",
+    "create": "Create:",
+    "notFound": "No source found!"
+  },
+  "select": {
+    "placeholder": "Select {item}"
+  },
+  "datePicker": {
+    "pick": "Pick a date",
+    "preset": "Select Preset",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "in3days": "In 3 days",
+    "inWeek": "In a week"
+  },
+  "timePicker": {
+    "pick": "Pick a time",
+    "hour": "Hour",
+    "minute": "Minute",
+    "earlier": "{minutes} minutes earlier",
+    "later": "{minutes} minutes later"
+  },
+  "editor": {
+    "placeholder": "enter here..."
+  },
+  "score": "Score",
+  "support": {
+    "title": "Support",
+    "about": "{brand} — job search tracker for SkillKlan students and graduates.",
+    "version": "Version",
+    "copyright": "Copyright",
+    "license": "© {year} {brand}. Based on JobSync by gsync, MIT License."
+  },
+  "staleSession": "Your session is no longer valid. Signing you out…",
+  "slowResponse": "The model is taking longer than usual. Either wait or try a different, faster model in <settings>Settings</settings> for quicker responses.",
+  "notFound": {
+    "title": "Not found",
+    "body": "This page doesn't exist, or the record was deleted.",
+    "back": "Back to dashboard"
+  },
+  "contactForm": {
+    "addTitle": "Add Contact",
+    "editTitle": "Edit Contact",
+    "newContact": "New Contact",
+    "saved": "Contact has been updated successfully",
+    "created": "Contact has been created successfully",
+    "name": "Name",
+    "namePlaceholder": "e.g. Dana Whitfield",
+    "title": "Title",
+    "titlePlaceholder": "e.g. Engineering Manager",
+    "email": "Email",
+    "phone": "Phone",
+    "phonePlaceholder": "e.g. +1 416 555 0134",
+    "linkedin": "LinkedIn URL",
+    "whereTheyWork": "Where they work",
+    "company": "Company",
+    "location": "Location",
+    "role": "Role",
+    "howYouKnowThem": "How you know them",
+    "relationship": "Relationship",
+    "relationshipPlaceholder": "e.g. my manager, peer",
+    "workedTogetherAt": "Worked together at",
+    "from": "From",
+    "to": "To",
+    "followUp": "Follow-up",
+    "lastContacted": "Last contacted",
+    "notes": "Notes",
+    "notesPlaceholder": "How you met, what to follow up on..."
+  },
+  "stageDialog": {
+    "addTitle": "Add Stage",
+    "editTitle": "Edit Stage",
+    "added": "Stage has been added successfully",
+    "updated": "Stage has been updated successfully",
+    "stage": "STAGE",
+    "customName": "OR ENTER A CUSTOM STAGE NAME",
+    "customNamePlaceholder": "e.g. Panel Interview, Reference Check…",
+    "parentStatus": "PARENT STATUS",
+    "date": "DATE",
+    "time": "TIME",
+    "format": "FORMAT",
+    "formatPlaceholder": "e.g. Video, Phone",
+    "duration": "DURATION (MIN)",
+    "location": "LOCATION",
+    "locationPlaceholder": "e.g. 200 King St W, or a meeting link",
+    "outcome": "OUTCOME",
+    "notes": "NOTES (OPTIONAL)",
+    "notesPlaceholder": "Add any context for this stage…",
+    "setCurrent": "Set as current stage",
+    "saveChanges": "Save Changes",
+    "add": "Add Stage"
+  }
 }

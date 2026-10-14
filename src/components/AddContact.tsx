@@ -1,4 +1,5 @@
 "use client";
+import { useLabel, useTranslations } from "@/i18n/client";
 import { useEffect, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -95,9 +96,13 @@ function AddContact({
   pickersLoading,
   onSaved,
 }: AddContactProps) {
+  const t = useTranslations("common");
+  const label = useLabel();
+  // Seeded roles in the user's language (glossary); renamed/own roles as stored.
+  const roleOptions = roles.map((r) => ({ ...r, label: label("contactRole", r) }));
   const [isPending, startTransition] = useTransition();
 
-  const pageTitle = editContact ? "Edit Contact" : "Add Contact";
+  const pageTitle = editContact ? t("contactForm.editTitle") : t("contactForm.addTitle");
 
   const prefilled: ContactFormValues = {
     ...EMPTY_CONTACT,
@@ -186,7 +191,7 @@ function AddContact({
         : await createContact(values);
       const name = values.name.trim();
       toastActionResult(res, {
-        success: `Contact has been ${editContact ? "updated" : "created"} successfully`,
+        success: editContact ? t("contactForm.saved") : t("contactForm.created"),
         onSuccess: () => {
           onSaved?.({ id: res.data.id, label: name, value: name.toLowerCase() });
           reset();
@@ -210,7 +215,7 @@ function AddContact({
         >
           <PlusCircle className="h-3.5 w-3.5" />
           <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-            New Contact
+            {t("contactForm.newContact")}
           </span>
         </Button>
       )}
@@ -231,9 +236,9 @@ function AddContact({
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>{t("contactForm.name")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Dana Whitfield" {...field} />
+                      <Input placeholder={t("contactForm.namePlaceholder")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -245,9 +250,9 @@ function AddContact({
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Title</FormLabel>
+                    <FormLabel>{t("contactForm.title")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Engineering Manager" {...field} />
+                      <Input placeholder={t("contactForm.titlePlaceholder")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -259,7 +264,7 @@ function AddContact({
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{t("contactForm.email")}</FormLabel>
                     <FormControl>
                       <Input
                         type="email"
@@ -277,9 +282,9 @@ function AddContact({
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone</FormLabel>
+                    <FormLabel>{t("contactForm.phone")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. +1 416 555 0134" {...field} />
+                      <Input placeholder={t("contactForm.phonePlaceholder")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -292,7 +297,7 @@ function AddContact({
                   name="linkedinUrl"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>LinkedIn URL</FormLabel>
+                      <FormLabel>{t("contactForm.linkedin")}</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="https://www.linkedin.com/in/..."
@@ -305,14 +310,14 @@ function AddContact({
                 />
               </div>
 
-              <SectionHeading>Where they work</SectionHeading>
+              <SectionHeading>{t("contactForm.whereTheyWork")}</SectionHeading>
 
               <FormField
                 control={form.control}
                 name="company"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Company</FormLabel>
+                    <FormLabel>{t("contactForm.company")}</FormLabel>
                     <Combobox options={companies} field={field} creatable fullWidth />
                     <FormMessage />
                   </FormItem>
@@ -324,7 +329,7 @@ function AddContact({
                 name="location"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Location</FormLabel>
+                    <FormLabel>{t("contactForm.location")}</FormLabel>
                     <Combobox options={locations} field={field} creatable fullWidth />
                     <FormMessage />
                   </FormItem>
@@ -336,9 +341,9 @@ function AddContact({
                 name="contactRole"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Role</FormLabel>
+                    <FormLabel>{t("contactForm.role")}</FormLabel>
                     <Combobox
-                      options={roles}
+                      options={roleOptions}
                       field={{
                         ...field,
                         onChange: (value: string) => onRoleChange(field, value),
@@ -354,16 +359,16 @@ function AddContact({
 
               {isReference && (
                 <>
-                  <SectionHeading>How you know them</SectionHeading>
+                  <SectionHeading>{t("contactForm.howYouKnowThem")}</SectionHeading>
 
                   <FormField
                     control={form.control}
                     name="relationship"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Relationship</FormLabel>
+                        <FormLabel>{t("contactForm.relationship")}</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g. my manager, peer" {...field} />
+                          <Input placeholder={t("contactForm.relationshipPlaceholder")} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -375,7 +380,7 @@ function AddContact({
                     name="workedAtCompany"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>Worked together at</FormLabel>
+                        <FormLabel>{t("contactForm.workedTogetherAt")}</FormLabel>
                         <Combobox
                           options={companies}
                           field={field}
@@ -395,7 +400,7 @@ function AddContact({
                     name="workedFrom"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>From</FormLabel>
+                        <FormLabel>{t("contactForm.from")}</FormLabel>
                         <DatePicker
                           field={field}
                           presets={false}
@@ -413,7 +418,7 @@ function AddContact({
                     name="workedTo"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>To</FormLabel>
+                        <FormLabel>{t("contactForm.to")}</FormLabel>
                         <DatePicker
                           field={field}
                           presets={false}
@@ -428,14 +433,14 @@ function AddContact({
                 </>
               )}
 
-              <SectionHeading>Follow-up</SectionHeading>
+              <SectionHeading>{t("contactForm.followUp")}</SectionHeading>
 
               <FormField
                 control={form.control}
                 name="lastContactedAt"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Last contacted</FormLabel>
+                    <FormLabel>{t("contactForm.lastContacted")}</FormLabel>
                     <DatePicker
                       field={field}
                       presets={false}
@@ -455,11 +460,11 @@ function AddContact({
                   name="notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Notes</FormLabel>
+                      <FormLabel>{t("contactForm.notes")}</FormLabel>
                       <FormControl>
                         <Textarea
                           className="min-h-24"
-                          placeholder="How you met, what to follow up on..."
+                          placeholder={t("contactForm.notesPlaceholder")}
                           {...field}
                         />
                       </FormControl>
