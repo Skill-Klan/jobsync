@@ -2,7 +2,7 @@
 # skillklan: тест cloudflare-sync (skillklan/server/cloudflare-sync.sh) — перевіряє ВИМОГИ:
 #
 #   C1  перший запуск: nginx вірить CF-Connecting-IP рівно від кожного діапазону, ufw пускає :443
-#       з кожного, nginx перезавантажено
+#       з кожного, nginx перезавантажено — на списках у справжньому форматі (без \n у кінці файлу)
 #   C2  Cloudflare змінив список: зайвий діапазон прибрано з ufw, новий додано, решту не чіпали
 #   C3  той самий список: ні reload, ні ufw
 #   C4  сторінка помилки замість списку → нічого не змінено (ні конфіг, ні ufw)
@@ -24,7 +24,9 @@ V6_LIST="2400:cb00::/32 2606:4700::/32 2803:f800::/32 2405:b500::/32 2405:8100::
 
 setup() {
   T="$(mktemp -d)"; BIN="$T/bin"; mkdir -p "$BIN" "$T/www"
-  printf '%s\n' $V4_LIST > "$T/www/ips-v4"; printf '%s\n' $V6_LIST > "$T/www/ips-v6"
+  # Як у справжніх файлах Cloudflare: БЕЗ переводу рядка в кінці (перевірено 2026-10-14 на ips-v4) —
+  # склеєні «як є», останній IPv4 злипся б з першим IPv6.
+  printf '%s\n' $V4_LIST | head -c -1 > "$T/www/ips-v4"; printf '%s\n' $V6_LIST | head -c -1 > "$T/www/ips-v6"
   : > "$T/calls"
   cat > "$BIN/curl" <<'EOF'
 #!/usr/bin/env bash
