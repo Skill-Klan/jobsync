@@ -27,6 +27,19 @@ const FLOORS: Floor[] = [
   { pkg: "undici", min: "6.28.1", advisories: ["GHSA-rfgv-xxqx-mfg5", "GHSA-3wwx-pv8p-q78v", "GHSA-r53p-7pc4-xj5r"] },
   // Quadratic linkify paths: a few hundred KB of markdown blocks the event loop.
   { pkg: "markdown-it", min: "14.3.1", advisories: ["GHSA-253c-mchw-3w2r"] },
+  // Dev tooling below: never in the image, but it runs on CI and on our machines.
+  // CPU DoS: maxTotalMergeKeys did not bound empty merge sources.
+  { pkg: "js-yaml", min: "4.3.2", advisories: ["GHSA-2883-xcg3-v3hh"] },
+  // Arbitrary file read through a redirect mock path.
+  { pkg: "vitest", min: "4.1.11", advisories: ["GHSA-82fw-gwwq-j7x9"] },
+  { pkg: "@vitest/mocker", min: "4.1.11", advisories: ["GHSA-82fw-gwwq-j7x9"] },
+];
+
+// Packages present on more than one major, each with its own patched release.
+const MAJOR_FLOORS: { pkg: string; major: number; min: string; advisories: string[] }[] = [
+  // Quadratic `{a},b}` rewrite — CPU DoS.
+  { pkg: "brace-expansion", major: 1, min: "1.1.21", advisories: ["GHSA-q2hr-2g5m-vwhr"] },
+  { pkg: "brace-expansion", major: 5, min: "5.0.12", advisories: ["GHSA-q2hr-2g5m-vwhr"] },
 ];
 
 const lock = JSON.parse(
@@ -60,6 +73,18 @@ describe("atLeast", () => {
     expect(atLeast("15.5.9", "15.5.27")).toBe(false);
     expect(atLeast("15.5.26", "15.5.27")).toBe(false);
     expect(atLeast("16.0.0", "15.5.27")).toBe(true);
+  });
+});
+
+describe.each(MAJOR_FLOORS)("$pkg $major.x stays at or above $min ($advisories)", ({ pkg, major, min }) => {
+  const onMajor = () => installed(pkg).filter(({ version }) => parse(version)[0] === major);
+
+  it("is installed on this major at least once — otherwise this row checks nothing", () => {
+    expect(onMajor().length).toBeGreaterThan(0);
+  });
+
+  it("has no copy on this major below the patched version", () => {
+    expect(onMajor().filter(({ version }) => !atLeast(version, min))).toEqual([]);
   });
 });
 
