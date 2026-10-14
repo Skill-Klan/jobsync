@@ -62,7 +62,52 @@ vi.mock("next-auth", () => {
 
 
 
+// SkillKlan Job keeps email + password sign-up and sign-in for local
+// development only (src/skillklan/devPasswordLogin.ts): the upstream cases
+// below run with the flag on; "disabled" runs without it.
+describe("password sign-up and sign-in are off without the dev flag", () => {
+  const ORIGINAL = process.env.JOBSYNC_DEV_PASSWORD_LOGIN;
+  beforeEach(() => {
+    vi.clearAllMocks();
+    delete process.env.JOBSYNC_DEV_PASSWORD_LOGIN;
+  });
+  afterAll(() => {
+    if (ORIGINAL === undefined) delete process.env.JOBSYNC_DEV_PASSWORD_LOGIN;
+    else process.env.JOBSYNC_DEV_PASSWORD_LOGIN = ORIGINAL;
+  });
+
+  it("signup refuses and creates nothing", async () => {
+    const result = await signup({ name: "John Doe", email: "john@example.com", password: "password123" });
+    expect(result).toEqual({ error: expect.stringMatching(/disabled/i) });
+    expect(prisma.user.findUnique).not.toHaveBeenCalled();
+    expect(prisma.user.create).not.toHaveBeenCalled();
+    expect(prisma.jobSource.createMany).not.toHaveBeenCalled();
+  });
+
+  it("authenticate refuses without calling signIn", async () => {
+    const form = new FormData();
+    form.set("email", "john@example.com");
+    form.set("password", "password123");
+    const result = await authenticate("", form);
+    expect(result).toMatch(/disabled/i);
+    expect(signIn).not.toHaveBeenCalled();
+  });
+
+  it("a stray flag value does not turn them on", async () => {
+    process.env.JOBSYNC_DEV_PASSWORD_LOGIN = "true";
+    const result = await signup({ name: "John Doe", email: "john@example.com", password: "password123" });
+    expect(result).toEqual({ error: expect.stringMatching(/disabled/i) });
+    expect(prisma.user.create).not.toHaveBeenCalled();
+  });
+});
+
 describe("Auth Actions", () => {
+  beforeAll(() => {
+    process.env.JOBSYNC_DEV_PASSWORD_LOGIN = "1";
+  });
+  afterAll(() => {
+    delete process.env.JOBSYNC_DEV_PASSWORD_LOGIN;
+  });
   beforeEach(() => {
     vi.clearAllMocks();
     // Stage-type seeding reads the statuses back to map value -> id.

@@ -5,18 +5,20 @@ import { delay } from "@/utils/delay";
 import prisma from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { SignupFormSchema } from "@/models/signupForm.schema";
-import {
-  CONTACT_ROLES,
-  JOB_SOURCES,
-  JOB_STAGES,
-  JOB_STATUSES,
-} from "@/lib/constants";
+import { seedNewAccount } from "@/lib/account/seedNewAccount";
+import { isDevPasswordLoginEnabled } from "@/skillklan/devPasswordLogin";
 
 export async function signup(formData: {
   name: string;
   email: string;
   password: string;
 }) {
+  // A server action is callable without its page; hiding /signup alone is
+  // not enough.
+  if (!isDevPasswordLoginEnabled()) {
+    return { error: "Sign-up is disabled. Open SkillKlan Job from your SkillKlan cabinet." };
+  }
+
   const parsed = SignupFormSchema.safeParse(formData);
   if (!parsed.success) {
     return { error: "Invalid form data." };
@@ -38,44 +40,7 @@ export async function signup(formData: {
     data: { name, email, password: hashedPassword },
   });
 
-  await prisma.jobSource.createMany({
-    data: JOB_SOURCES.map((source) => ({
-      label: source.label,
-      value: source.value,
-      createdBy: newUser.id,
-    })),
-  });
-
-  await prisma.contactRole.createMany({
-    data: CONTACT_ROLES.map((role) => ({
-      label: role.label,
-      value: role.value,
-      createdBy: newUser.id,
-    })),
-  });
-
-  for (const status of JOB_STATUSES) {
-    await prisma.jobStatus.upsert({
-      where: { value: status.value },
-      update: {},
-      create: status,
-    });
-  }
-
-  // Stage types point at JobStatus, so this must follow the upsert loop.
-  const statusRows = await prisma.jobStatus.findMany({
-    select: { id: true, value: true },
-  });
-  const statusIdByValue = new Map(statusRows.map((s) => [s.value, s.id]));
-  await prisma.jobStageType.createMany({
-    data: JOB_STAGES.map((stage) => ({
-      label: stage.label,
-      value: stage.value,
-      statusId: statusIdByValue.get(stage.status)!,
-      sortOrder: stage.sortOrder,
-      createdBy: newUser.id,
-    })),
-  });
+  await seedNewAccount(newUser.id);
 
   return { success: true };
 }
@@ -84,6 +49,9 @@ export async function authenticate(
   prevState: string | undefined,
   formData: FormData
 ) {
+  if (!isDevPasswordLoginEnabled()) {
+    return "Sign-in with a password is disabled.";
+  }
   try {
     await delay(1000);
     await signIn("credentials", {

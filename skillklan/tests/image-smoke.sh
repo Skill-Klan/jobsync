@@ -8,6 +8,10 @@
 #   R3  міграції застосовано: /data/dev.db існує й не порожній
 #   R4  плейсхолдер AUTH_SECRET → контейнер НЕ працює (fail closed)
 #   R5  порожній ENCRYPTION_KEY  → контейнер НЕ працює (fail closed)
+#   R6  власної реєстрації немає: /signup → 404
+#   R7  вхід лише з кабінету: серед провайдерів NextAuth тільки «cabinet» — навіть
+#       коли контейнеру передано JOBSYNC_DEV_PASSWORD_LOGIN=1 (у production-збірці
+#       вхід за паролем не вмикається нічим)
 #
 # Використання: skillklan/tests/image-smoke.sh <image>
 # Код виходу: 0 — усі вимоги виконано, 1 — хоч одна ні.
@@ -46,6 +50,7 @@ docker run -d --name "$PREFIX-ok" --network none \
   -e AUTH_SECRET="$SECRET_A" -e ENCRYPTION_KEY="$SECRET_B" \
   -e NEXTAUTH_URL="http://localhost:3737" -e AUTH_TRUST_HOST=true \
   -e DATABASE_URL="file:/data/dev.db" -e TZ=Europe/Kyiv \
+  -e JOBSYNC_DEV_PASSWORD_LOGIN=1 \
   "$IMAGE" >/dev/null
 
 healthy=false
@@ -62,9 +67,17 @@ if $healthy; then
   [ "$uid" = "1001" ] && pass "R2b PID 1 runs as uid 1001" || fail "R2b PID 1 runs as uid 1001 (got '${uid:-?}')"
   size=$(docker exec "$PREFIX-ok" sh -c 'stat -c %s /data/dev.db 2>/dev/null || echo 0')
   [ "${size:-0}" -gt 0 ] && pass "R3 migrations applied (/data/dev.db ${size} bytes)" || fail "R3 migrations applied (/data/dev.db missing or empty)"
+  # busybox wget: статус — з пари «HTTP/x.y код»; на 4xx він ще й дописує «server returned error: HTTP/…».
+  signup=$(docker exec "$PREFIX-ok" sh -c 'wget -S -O /dev/null http://127.0.0.1:3737/signup 2>&1 | grep -o "HTTP/[0-9.]* [0-9]*" | tail -1 | cut -d" " -f2')
+  [ "$signup" = "404" ] && pass "R6 no sign-up (/signup 404)" || fail "R6 no sign-up (/signup answered ${signup:-?})"
+  providers=$(docker exec "$PREFIX-ok" wget -q -O - http://127.0.0.1:3737/api/auth/providers 2>/dev/null | tr -d ' \n')
+  ids=$(echo "$providers" | grep -o '"id":"[^"]*"' | sort -u | tr '\n' ' ')
+  [ "$ids" = '"id":"cabinet" ' ] && pass "R7 cabinet-only sign-in (providers: $ids)" || fail "R7 cabinet-only sign-in (providers: ${ids:-none})"
 else
   fail "R2b PID 1 runs as uid 1001 (not reached: R1 failed)"
   fail "R3 migrations applied (not reached: R1 failed)"
+  fail "R6 no sign-up (not reached: R1 failed)"
+  fail "R7 cabinet-only sign-in (not reached: R1 failed)"
 fi
 
 # --- R4, R5: мережа є (щоб падіння було саме через секрет, а не через мережу) --

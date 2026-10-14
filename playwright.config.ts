@@ -79,6 +79,10 @@ export default defineConfig({
   webServer: {
     command: "npm run dev",
     url: "http://localhost:3737",
+    // The suite signs in with email + password, which SkillKlan Job keeps
+    // for development only (src/skillklan/devPasswordLogin.ts). A server
+    // already running without this flag is reused as is — start it with it.
+    env: { ...process.env, JOBSYNC_DEV_PASSWORD_LOGIN: "1" } as Record<string, string>,
     reuseExistingServer: true,
     timeout: 120 * 1000,
   },
