@@ -15,8 +15,8 @@ const inter = localFont({
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | JobSync",
-    default: "JobSync",
+    template: "%s | SkillKlan Job",
+    default: "SkillKlan Job",
   },
   description: "Job Application Tracking System",
 };

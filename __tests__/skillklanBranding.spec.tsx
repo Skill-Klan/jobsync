@@ -16,6 +16,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useNotifications } from "@/context/NotificationContext";
 
 vi.mock("@/context/NotificationContext", () => ({ useNotifications: vi.fn() }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }), usePathname: () => "/" }));
+// Форми входу тут не перевіряємо — лише заголовок картки.
+vi.mock("@/components/auth/SigninForm", () => ({ default: () => null }));
+vi.mock("@/components/auth/SignupForm", () => ({ default: () => null }));
 
 // Назви збираємо з частин, щоб цей файл не знаходив сам себе (і щоб скан у B4 не залежав від нього).
 const UPSTREAM_SLUG = ["Gsync", "jobsync"].join("/");
@@ -80,6 +84,21 @@ describe("B3 profile menu", () => {
     await screen.findByRole("menuitem", { name: /support/i });
     const hrefs = screen.queryAllByRole("menuitem").map((el) => el.getAttribute("href") ?? "");
     expect(hrefs.some((h) => h.includes(UPSTREAM_SLUG))).toBe(false);
+  });
+});
+
+describe("B5 app name is SkillKlan Job", () => {
+  it("sign-in page heading", async () => {
+    const { default: AuthCard } = await import("@/components/auth/AuthCard");
+    render(<AuthCard mode="signin" />);
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(BRAND);
+  });
+
+  it("AI assistant introduces itself as SkillKlan Job and its tools never say JobSync", async () => {
+    const { AGENT_CHAT_PROMPT_SECTIONS, AGENT_TOOL_DESCRIPTIONS } = await import("@/lib/agent/prompt");
+    expect(AGENT_CHAT_PROMPT_SECTIONS.role).toContain(BRAND);
+    const texts = [AGENT_CHAT_PROMPT_SECTIONS.role, ...Object.values(AGENT_TOOL_DESCRIPTIONS)].join("\n");
+    expect(texts).not.toMatch(/JobSync/);
   });
 });
 

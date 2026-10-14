@@ -117,6 +117,14 @@ describe("Sidebar", () => {
     (usePathname as any).mockReturnValue("/dashboard");
   });
 
+  // skillklan (owner 2026-10-14): the app is called "SkillKlan Job", not "JobSync".
+  it("shows the SkillKlan Job brand, not JobSync", () => {
+    renderSidebar();
+    const aside = screen.getByRole("complementary");
+    expect(aside.textContent).toContain("SkillKlan Job");
+    expect(aside.textContent).not.toContain("JobSync");
+  });
+
   it("renders a link for each nav item", () => {
     renderSidebar();
 
