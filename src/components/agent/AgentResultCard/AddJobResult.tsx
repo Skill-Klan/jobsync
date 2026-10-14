@@ -4,9 +4,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import type { AgentAddJobResult } from "@/models/agent.model";
 
-// Composed from the tool result's STRUCTURED fields, never from
-// createJobFromNames' message string — that prose is MCP-facing protocol text
-// naming update_job and allowDuplicate, tools this surface does not expose.
+// Composed from the tool result's structured fields.
 export function AddJobResult({
   output,
   input,

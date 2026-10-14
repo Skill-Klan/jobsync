@@ -45,7 +45,7 @@ esac
 docker run -d --name "$PREFIX-ok" --network none \
   -e AUTH_SECRET="$SECRET_A" -e ENCRYPTION_KEY="$SECRET_B" \
   -e NEXTAUTH_URL="http://localhost:3737" -e AUTH_TRUST_HOST=true \
-  -e DATABASE_URL="file:/data/dev.db" -e TZ=Europe/Kyiv -e MCP_ENABLED=false \
+  -e DATABASE_URL="file:/data/dev.db" -e TZ=Europe/Kyiv \
   "$IMAGE" >/dev/null
 
 healthy=false

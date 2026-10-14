@@ -199,7 +199,7 @@ export type JobFilterCounts = {
 // "C#" cannot collapse — folding separators here is safe. Postings write
 // "On-site" far more often than "Onsite", and rejecting the variant used to
 // fail the whole save. Lives here rather than in resolve.ts because
-// mcp.schema.ts needs it too and cannot import Prisma.
+// agent.schema.ts needs it too and cannot import Prisma.
 export function matchEnumEntry(
   members: Record<string, string>,
   input: string,

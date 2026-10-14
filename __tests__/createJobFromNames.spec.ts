@@ -83,12 +83,15 @@ describe("createJobFromNames", () => {
     );
   });
 
-  it("creates a job and reports matched/created resolutions in the message", async () => {
+  it("creates a job and reports matched/created resolutions", async () => {
     const result = await createJobFromNames(baseInput, userId);
 
     expect(result.created).toBe(true);
     expect(result.jobId).toBe("job-1");
-    expect(result.message).toBe("Created Acme; Created Engineer. Job created (id: job-1).");
+    expect(result.resolutions.map((r) => [r.label, r.created])).toEqual([
+      ["Acme", true],
+      ["Engineer", true],
+    ]);
     expect(createJobRecord).toHaveBeenCalledWith(
       expect.objectContaining({
         companyId: "company-1",
@@ -121,22 +124,37 @@ describe("createJobFromNames", () => {
     expect(call.appliedDate).toBe(appliedDate);
   });
 
-  it("appends dropped tags to the success message", async () => {
+  it("attaches only the tags within the limit, not the dropped ones", async () => {
     (resolveTags as any).mockResolvedValue({
       resolved: [{ id: "tag-1", label: "React", created: false }],
       dropped: ["Extra1", "Extra2"],
     });
 
-    const result = await createJobFromNames(baseInput, userId);
+    await createJobFromNames(baseInput, userId);
 
-    expect(result.message).toContain("Dropped tags exceeding limit: Extra1, Extra2.");
+    expect(createJobRecord).toHaveBeenCalledWith(
+      expect.objectContaining({ tagIds: ["tag-1"] }),
+    );
   });
 
-  it("skips duplicate detection when allowDuplicate is true", async () => {
-    await createJobFromNames({ ...baseInput, allowDuplicate: true }, userId);
+  // The same company + title saved within the last 30 days is a duplicate;
+  // an older one is a new application round, not a duplicate.
+  it("looks for a company+title duplicate only among the last 30 days", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2030-01-31T12:00:00Z"));
+    try {
+      await createJobFromNames(baseInput, userId);
+    } finally {
+      vi.useRealTimers();
+    }
 
-    expect(prisma.job.findFirst).not.toHaveBeenCalled();
-    expect(createJobRecord).toHaveBeenCalled();
+    expect(prisma.job.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          createdAt: { gte: new Date("2030-01-01T12:00:00Z") },
+        }),
+      }),
+    );
   });
 
   it("detects a duplicate by jobUrl (aggressive key catches www/case/tracking variants)", async () => {
@@ -160,8 +178,6 @@ describe("createJobFromNames", () => {
       title: "Engineer",
       company: "Acme",
     });
-    expect(result.message).toContain("Duplicate detected");
-    expect(result.message).toContain("update_job");
     expect(createJobRecord).not.toHaveBeenCalled();
   });
 

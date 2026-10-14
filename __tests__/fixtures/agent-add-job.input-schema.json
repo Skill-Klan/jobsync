@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "company": {
+      "type": "string",
+      "minLength": 1
+    },
+    "jobTitle": {
+      "type": "string",
+      "minLength": 1
+    },
+    "jobDescription": {
+      "description": "What the job involves, in the user's own words, copied verbatim and never summarised. Always include this field, even if their description is only one sentence and looks nothing like a full posting, and never condense it into tags instead. If you were shown only the opening portion of a pasted posting, copy the portion you were shown. Use 'N/A' only if the user explicitly declines to give any description after being asked once.",
+      "type": "string"
+    },
+    "location": {
+      "description": "City, province/state, country, or 'Remote' — e.g. 'Calgary, AB'. Do not include a street address.",
+      "type": "string"
+    },
+    "source": {
+      "description": "Job board or site the listing came from, e.g. 'LinkedIn', 'Indeed', 'company website'. If not stated explicitly, infer it from the job posting's URL/domain when possible instead of leaving it blank.",
+      "type": "string"
+    },
+    "jobType": {
+      "description": "Employment type: 'Full-time', 'Part-time', or 'Contract'",
+      "type": "string"
+    },
+    "workplaceType": {
+      "description": "Work arrangement stated in the posting. One of: Remote, Hybrid, Onsite.",
+      "type": "string",
+      "enum": [
+        "Remote",
+        "Hybrid",
+        "Onsite"
+      ]
+    },
+    "status": {
+      "description": "Application status. One of: new, draft, applied, interview, offer, offer-accepted, offer-declined, rejected, expired, archived, withdrawn. Defaults to 'draft'.",
+      "type": "string",
+      "enum": [
+        "new",
+        "draft",
+        "applied",
+        "interview",
+        "offer",
+        "offer-accepted",
+        "offer-declined",
+        "rejected",
+        "expired",
+        "archived",
+        "withdrawn"
+      ]
+    },
+    "dueDate": {
+      "description": "Application deadline as an ISO-8601 datetime string. Defaults to 3 days from now if omitted.",
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+    },
+    "applied": {
+      "description": "Set true if you have already submitted the application",
+      "type": "boolean"
+    },
+    "appliedDate": {
+      "description": "Date the application was submitted as an ISO-8601 datetime string",
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+    },
+    "jobUrl": {
+      "description": "Direct URL to the job posting",
+      "type": "string",
+      "format": "uri"
+    },
+    "salaryRange": {
+      "description": "Salary range as a free-form string, e.g. '$120k–$150k' or '100,000 CAD'",
+      "type": "string"
+    },
+    "tags": {
+      "description": "Skills required for the job (max 10 applied, extras are dropped). Tags are created if they don't exist. e.g. ['React', 'TypeScript', 'Node.js']",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "company",
+    "jobTitle"
+  ]
+}

@@ -148,7 +148,6 @@ export type CleanupRegistry = {
   activityType: (name: string) => void;
   activity: (name: string) => void;
   tag: (name: string) => void;
-  mcpToken: (name: string) => void;
   automation: (name: string) => void;
   contact: (name: string) => void;
   contactRole: (name: string) => void;
@@ -180,7 +179,6 @@ export const test = base.extend<Fixtures>({
     const activityTypes: string[] = [];
     const activities: string[] = [];
     const tags: string[] = [];
-    const mcpTokens: string[] = [];
     const automations: string[] = [];
     const contacts: string[] = [];
     const contactRoles: string[] = [];
@@ -196,7 +194,6 @@ export const test = base.extend<Fixtures>({
       activityType: (name) => activityTypes.push(name),
       activity: (name) => activities.push(name),
       tag: (name) => tags.push(name),
-      mcpToken: (name) => mcpTokens.push(name),
       automation: (name) => automations.push(name),
       contact: (name) => contacts.push(name),
       contactRole: (name) => contactRoles.push(name),
@@ -216,7 +213,6 @@ export const test = base.extend<Fixtures>({
         activityTypes,
         activities,
         tags,
-        mcpTokens,
         automations,
         contacts,
         contactRoles,

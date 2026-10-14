@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { McpAddJobInputShape } from "@/models/mcp.schema";
+import { APP_CONSTANTS, JOB_STATUS_VALUES } from "@/lib/constants";
+import { WORKPLACE_TYPES, matchEnumEntry } from "@/models/job.model";
 
 export const AgentChatRequestSchema = z.object({
   // Validated by the SDK downstream, not here. The whole array is
@@ -17,21 +18,57 @@ export const AgentChatRequestSchema = z.object({
 
 export type AgentChatRequest = z.infer<typeof AgentChatRequestSchema>;
 
-// Derived from the MCP RAW shape, not McpAddJobSchema: AI SDK's tool()
-// uses one schema for both the JSON schema the model reads and the
-// validation of what it returns, so the date transforms are deferred to
-// AgentAddJobParseSchema. status keeps its z.preprocess — that is what
-// keeps enum: [...] on the input side of the emitted JSON schema.
-export const AgentAddJobSchema = z
-  .object(McpAddJobInputShape)
-  .omit({ upsert: true, allowDuplicate: true })
-  .extend({
-    jobDescription: z
-      .string()
-      .refine((val) => val === "N/A" || val.length >= 10, "jobDescription must be at least 10 characters")
-      .optional()
-      .describe("What the job involves, in the user's own words, copied verbatim and never summarised. Always include this field, even if their description is only one sentence and looks nothing like a full posting, and never condense it into tags instead. If you were shown only the opening portion of a pasted posting, copy the portion you were shown. Use 'N/A' only if the user explicitly declines to give any description after being asked once."),
-  });
+// An enum rather than a described string, for the same reason status is one:
+// a small local model fills an enum-constrained slot and ignores prose hints.
+// It sent "On-site" — the posting's own spelling — and when that was rejected
+// it dropped the field entirely, losing a value the posting stated. The
+// preprocess folds case and separators through matchEnumEntry, so "On-site",
+// "on site" and "REMOTE" all still validate.
+const workplaceTypeField = z
+  .preprocess(
+    (v) => (typeof v === "string" ? (matchEnumEntry(WORKPLACE_TYPES, v)?.[1] ?? v) : v),
+    z.enum(WORKPLACE_TYPES),
+  )
+  .optional()
+  .describe(`Work arrangement stated in the posting. One of: ${Object.values(WORKPLACE_TYPES).join(", ")}.`);
+
+// No upsert or allowDuplicate: the model must not be able to force past
+// duplicate detection. AI SDK's tool() uses one schema for both the JSON
+// schema the model reads and the validation of what it returns, so the date
+// transforms are deferred to AgentAddJobParseSchema. status keeps its
+// z.preprocess — that is what keeps enum: [...] on the input side of the
+// emitted JSON schema.
+export const AgentAddJobSchema = z.object({
+  company: z.string().min(1, "company is required"),
+  jobTitle: z.string().min(1, "jobTitle is required"),
+  jobDescription: z
+    .string()
+    .refine((val) => val === "N/A" || val.length >= 10, "jobDescription must be at least 10 characters")
+    .optional()
+    .describe("What the job involves, in the user's own words, copied verbatim and never summarised. Always include this field, even if their description is only one sentence and looks nothing like a full posting, and never condense it into tags instead. If you were shown only the opening portion of a pasted posting, copy the portion you were shown. Use 'N/A' only if the user explicitly declines to give any description after being asked once."),
+  location: z.string().optional().describe("City, province/state, country, or 'Remote' — e.g. 'Calgary, AB'. Do not include a street address."),
+  source: z.string().optional().describe("Job board or site the listing came from, e.g. 'LinkedIn', 'Indeed', 'company website'. If not stated explicitly, infer it from the job posting's URL/domain when possible instead of leaving it blank."),
+  jobType: z.string().optional().describe("Employment type: 'Full-time', 'Part-time', or 'Contract'"),
+  workplaceType: workplaceTypeField,
+  // Lowercased before the enum check so "Applied"/"Draft" still validate.
+  // zod v4's pipe-aware conversion keeps the target enum on the input side of
+  // the JSON schema too — it is NOT just cosmetic.
+  status: z
+    .preprocess(
+      (v) => (typeof v === "string" ? v.toLowerCase() : v),
+      z.enum(JOB_STATUS_VALUES),
+    )
+    .optional()
+    .describe(
+      `Application status. One of: ${JOB_STATUS_VALUES.join(", ")}. Defaults to '${APP_CONSTANTS.JOB_DEFAULT_STATUS}'.`,
+    ),
+  dueDate: z.string().datetime({ offset: true }).optional().describe("Application deadline as an ISO-8601 datetime string. Defaults to 3 days from now if omitted."),
+  applied: z.boolean().optional().describe("Set true if you have already submitted the application"),
+  appliedDate: z.string().datetime({ offset: true }).optional().describe("Date the application was submitted as an ISO-8601 datetime string"),
+  jobUrl: z.string().url().optional().describe("Direct URL to the job posting"),
+  salaryRange: z.string().optional().describe("Salary range as a free-form string, e.g. '$120k–$150k' or '100,000 CAD'"),
+  tags: z.array(z.string()).optional().describe("Skills required for the job (max 10 applied, extras are dropped). Tags are created if they don't exist. e.g. ['React', 'TypeScript', 'Node.js']"),
+});
 
 export const AgentAddJobInputShape = AgentAddJobSchema.shape;
 

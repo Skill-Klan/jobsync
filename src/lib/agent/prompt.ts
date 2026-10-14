@@ -38,8 +38,7 @@ export const AGENT_ADD_JOB_INTRO = [
 ].join("\n");
 
 // Prompt surface, not documentation — kept beside the prompt so evals assert
-// against the exact string the route registers. Mirrors
-// src/lib/mcp/toolDescriptions.ts.
+// against the exact string the route registers.
 export const AGENT_TOOL_DESCRIPTIONS = {
   add_job: "Add a job application to SkillKlan Job. Resolves or creates company, job title, location and source by name, and detects duplicates automatically. The user confirms the extracted details before anything is saved.",
   get_resume: "Read the contents of one of the user's own resumes in SkillKlan Job and return it as text. Use it to answer a question about what a resume says. Optionally takes the resume's title; with no title the app uses the resume the user is currently viewing, or their default resume. Returns their resume titles instead if it cannot tell which one they mean.",

@@ -10,8 +10,8 @@ import {
   AGENT_NESTED_TOOLS,
   isNestedTool,
 } from "@/models/agent.model";
-import { McpAddJobInputShape } from "@/models/mcp.schema";
 import { JOB_STATUS_VALUES } from "@/lib/constants";
+import addJobInputSchemaBeforeMcpRemoval from "./fixtures/agent-add-job.input-schema.json";
 
 describe("AgentAddJobSchema", () => {
   it("drops upsert and allowDuplicate so the model cannot force past dedupe", () => {
@@ -19,16 +19,12 @@ describe("AgentAddJobSchema", () => {
     expect("allowDuplicate" in AgentAddJobSchema.shape).toBe(false);
   });
 
-  it("inherits every other field from the MCP shape", () => {
-    const inherited = Object.keys(McpAddJobInputShape).filter(
-      (k) => k !== "upsert" && k !== "allowDuplicate",
-    );
-    expect(Object.keys(AgentAddJobSchema.shape).sort()).toEqual(inherited.sort());
-  });
-
-  it("inherits the MCP describe() text for a field it does not override", () => {
-    expect(AgentAddJobSchema.shape.location.description).toBe(
-      McpAddJobInputShape.location.description,
+  // The shape used to be derived from the MCP server's add_job schema. The
+  // fixture is the model-facing JSON schema captured before the MCP removal:
+  // moving the fields here must not change one word the model reads.
+  it("emits the same model-facing JSON schema as before the MCP removal", () => {
+    expect(z.toJSONSchema(AgentAddJobSchema, { io: "input" })).toEqual(
+      addJobInputSchemaBeforeMcpRemoval,
     );
   });
 
@@ -40,9 +36,6 @@ describe("AgentAddJobSchema", () => {
   it("keeps jobDescription optional while telling the model to always send it", () => {
     expect(AgentAddJobSchema.safeParse({ company: "Acme", jobTitle: "Eng" }).success).toBe(true);
     expect(AgentAddJobSchema.shape.jobDescription.description).toMatch(/always include this field/i);
-    expect(AgentAddJobSchema.shape.jobDescription.description).not.toBe(
-      McpAddJobInputShape.jobDescription.description,
-    );
   });
 
   it("still emits status as an enum in the model-facing JSON schema", () => {

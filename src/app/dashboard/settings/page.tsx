@@ -6,7 +6,6 @@ import AiUsageSettings from "@/components/settings/AiUsageSettings";
 import ApiKeySettings from "@/components/settings/ApiKeySettings";
 import DataSettings from "@/components/settings/DataSettings";
 import DisplaySettings from "@/components/settings/DisplaySettings";
-import McpAccessSettings from "@/components/settings/McpAccessSettings";
 import SettingsSidebar, { type SettingsSection } from "@/components/settings/SettingsSidebar";
 
 function Settings() {
@@ -27,7 +26,6 @@ function Settings() {
           {activeSection === "ai-usage" && <AiUsageSettings />}
           {activeSection === "api-keys" && <ApiKeySettings />}
           {activeSection === "appearance" && <DisplaySettings />}
-          {activeSection === "mcp-access" && <McpAccessSettings />}
           {activeSection === "data" && <DataSettings />}
         </div>
       </div>

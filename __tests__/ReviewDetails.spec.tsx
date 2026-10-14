@@ -43,16 +43,6 @@ describe("ReviewDetails", () => {
     expect(screen.getByText("using openai / gpt-4o")).toBeInTheDocument();
   });
 
-  it("shows a 'via <agent>' badge for an MCP-sourced review instead of the provider text", () => {
-    render(
-      <ReviewDetails
-        reviewData={{ ...reviewData, provider: "mcp", model: "my-agent-token" }}
-      />,
-    );
-    expect(screen.getByText(/via my-agent-token/)).toBeInTheDocument();
-    expect(screen.queryByText(/using/)).not.toBeInTheDocument();
-  });
-
   it("hides the full markdown body by default", () => {
     render(<ReviewDetails reviewData={reviewData} />);
     expect(screen.queryByTestId("tiptap-content")).not.toBeInTheDocument();

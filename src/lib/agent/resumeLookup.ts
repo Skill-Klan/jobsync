@@ -31,8 +31,8 @@ async function load(
   });
   if (!resume) return null;
   // Prisma's generated shape is structurally what preprocessResume reads but
-  // is not nominally profile.model's Resume — same cast as
-  // getDefaultResumeForUser.
+  // is not nominally profile.model's Resume; getResumeById returns `any` to
+  // the same effect.
   return {
     status: "ok",
     resume: resume as unknown as Resume,

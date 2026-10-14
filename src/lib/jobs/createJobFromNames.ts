@@ -38,7 +38,6 @@ export interface CreateJobFromNamesInput {
   jobUrl?: string;
   salaryRange?: string;
   tags?: string[];
-  allowDuplicate?: boolean;
   createdVia?: string;
 }
 
@@ -48,7 +47,6 @@ export interface CreateJobFromNamesResult {
   duplicateOf?: { id: string; title: string; company: string };
   resolutions: ResolvedEntity[];
   descriptionCompleteness?: DescriptionCompleteness;
-  message: string;
 }
 
 export async function createJobFromNames(
@@ -70,7 +68,6 @@ export async function createJobFromNames(
     jobUrl,
     salaryRange,
     tags = [],
-    allowDuplicate = false,
     createdVia,
   } = input;
 
@@ -105,21 +102,14 @@ export async function createJobFromNames(
   ];
 
   // Duplicate detection
-  if (!allowDuplicate) {
-    const duplicate = await detectDuplicate(
-      userId,
-      resolvedCompany.id,
-      resolvedTitle.id,
-      jobUrl,
-    );
-    if (duplicate) {
-      return {
-        created: false,
-        duplicateOf: duplicate,
-        resolutions,
-        message: buildDuplicateMessage(duplicate, resolutions),
-      };
-    }
+  const duplicate = await detectDuplicate(
+    userId,
+    resolvedCompany.id,
+    resolvedTitle.id,
+    jobUrl,
+  );
+  if (duplicate) {
+    return { created: false, duplicateOf: duplicate, resolutions };
   }
 
   // Default appliedDate if applied is true but no date provided
@@ -150,14 +140,11 @@ export async function createJobFromNames(
     descriptionCompleteness,
   });
 
-  const message = buildSuccessMessage(resolutions, resolvedTagsResult.dropped, job.id);
-
   return {
     created: true,
     jobId: job.id,
     resolutions,
     descriptionCompleteness,
-    message,
   };
 }
 
@@ -177,7 +164,7 @@ async function detectDuplicate(
   }
 
   // Tier 2 — company + title within window
-  const windowDays = APP_CONSTANTS.MCP_DUPLICATE_WINDOW_DAYS;
+  const windowDays = APP_CONSTANTS.JOB_DUPLICATE_WINDOW_DAYS;
   const since = new Date(Date.now() - windowDays * 24 * 60 * 60 * 1000);
   const byNameWindow = await prisma.job.findFirst({
     where: {
@@ -193,36 +180,4 @@ async function detectDuplicate(
   }
 
   return null;
-}
-
-function buildSuccessMessage(
-  resolutions: ResolvedEntity[],
-  droppedTags: string[],
-  jobId: string,
-): string {
-  const parts = resolutions.map((r) => {
-    const action = r.created ? "Created" : "Matched";
-    return `${action} ${r.label}`;
-  });
-  let msg = parts.join("; ") + `. Job created (id: ${jobId}).`;
-  if (droppedTags.length > 0) {
-    msg += ` Dropped tags exceeding limit: ${droppedTags.join(", ")}.`;
-  }
-  return msg;
-}
-
-function buildDuplicateMessage(
-  dup: { id: string; title: string; company: string },
-  resolutions: ResolvedEntity[],
-): string {
-  const parts = resolutions.map((r) => {
-    const action = r.created ? "Created" : "Matched";
-    return `${action} ${r.label}`;
-  });
-  return (
-    `Duplicate detected — existing job "${dup.title}" at "${dup.company}" (id: ${dup.id}). ` +
-    `To enrich or correct it, call update_job with jobId "${dup.id}" instead of re-adding. ` +
-    `Pass allowDuplicate: true only if this is genuinely a different posting. ` +
-    `Resolutions: ${parts.join("; ")}.`
-  );
 }

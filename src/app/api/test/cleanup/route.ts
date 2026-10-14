@@ -29,7 +29,6 @@ export async function POST(req: NextRequest) {
     activityTypes = [],
     activities = [],
     tags = [],
-    mcpTokens = [],
     automations = [],
     contacts = [],
     contactRoles = [],
@@ -45,7 +44,6 @@ export async function POST(req: NextRequest) {
     activityTypes?: string[];
     activities?: string[];
     tags?: string[];
-    mcpTokens?: string[];
     automations?: string[];
     contacts?: string[];
     contactRoles?: string[];
@@ -127,11 +125,6 @@ export async function POST(req: NextRequest) {
   // a custom stage type. Seeded types are never registered by a test.
   await deleteLibraryByName("jobStageType", jobStageTypes, userId);
   await deleteTagsByName(tags, userId);
-  if (mcpTokens.length > 0) {
-    await prisma.mcpAccessToken.deleteMany({
-      where: { name: { in: mcpTokens }, userId },
-    });
-  }
 
   return NextResponse.json({ success: true });
 }

@@ -66,9 +66,7 @@ export function buildAddJobTool(userId: string, pastedText?: string) {
           userId,
         );
 
-        // result.message is deliberately NOT returned: it is MCP-facing
-        // protocol text naming update_job and allowDuplicate, neither of
-        // which this surface exposes. The card composes its own copy.
+        // The card composes its own copy from these structured fields.
         return {
           created: result.created,
           jobId: result.jobId,
