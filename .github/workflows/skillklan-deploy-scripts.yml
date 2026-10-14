@@ -1,0 +1,62 @@
+# skillklan: перевірки скриптів деплою й сервера на кожен PR, що їх зачіпає.
+# Тести перевіряють вимоги (W1–W10 обгортки, C1–C7 синхронізації Cloudflare); nginx —
+# справжнім `nginx -t` тієї версії, що на Server2 (Ubuntu 24.04 → nginx 1.24).
+name: SkillKlan deploy scripts
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "skillklan/**"
+      - ".github/workflows/skillklan-*.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scripts:
+    name: Deploy and server scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: shellcheck
+        run: |
+          shellcheck --version | head -2
+          shellcheck -S warning skillklan/deploy/*.sh skillklan/server/*.sh \
+            skillklan/tests/deploy-wrapper.test.sh skillklan/tests/cloudflare-sync.test.sh
+
+      - name: Deploy wrapper (W1–W10)
+        run: bash skillklan/tests/deploy-wrapper.test.sh
+
+      - name: Cloudflare sync (C1–C7)
+        if: ${{ !cancelled() }}
+        run: bash skillklan/tests/cloudflare-sync.test.sh
+
+      - name: nginx -t on nginx 1.24 (as on Server2)
+        if: ${{ !cancelled() }}
+        run: |
+          docker run --rm -v "$PWD:/repo:ro" nginx:1.24.0-alpine sh -ec '
+            apk add -q openssl > /dev/null
+            mkdir -p /etc/ssl/jobs
+            openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=jobs.test \
+              -keyout /etc/ssl/jobs/jobs.key -out /etc/ssl/jobs/jobs.pem 2> /dev/null
+            rm -f /etc/nginx/conf.d/default.conf
+            cp /repo/skillklan/server/nginx-jobs.conf /etc/nginx/conf.d/jobs.conf
+            printf "set_real_ip_from 173.245.48.0/20;\nreal_ip_header CF-Connecting-IP;\n" > /etc/nginx/conf.d/cloudflare-realip.conf
+            nginx -v
+            nginx -t'
+
+      - name: compose file is valid and pinned by digest
+        if: ${{ !cancelled() }}
+        run: |
+          dir=$(mktemp -d)
+          cp skillklan/deploy/compose.yaml "$dir/"
+          : > "$dir/app.env"
+          # Без digest compose мусить відмовити — образ лише за digest.
+          if (cd "$dir" && docker compose config -q 2> /dev/null); then
+            echo "::error::compose accepted a config without JOBSYNC_DIGEST"; exit 1
+          fi
+          printf 'JOBSYNC_DIGEST=sha256:%s\n' "$(printf 'a%.0s' $(seq 64))" > "$dir/.env"
+          (cd "$dir" && docker compose config | grep -E 'image: ghcr.io/skill-klan/jobsync@sha256:a{64}$')

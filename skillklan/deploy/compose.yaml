@@ -1,0 +1,51 @@
+# skillklan: SkillKlan Job на Server2 — rootless Docker під svc-jobsync, тека ~/jobsync.
+#
+#   compose.yaml  цей файл, власник root (svc-jobsync лише читає)
+#   .env          лише JOBSYNC_DIGEST=sha256:… — пише тільки jobsync-deploy
+#   app.env       секрети застосунку, 600 svc-jobsync — генеруються на сервері, у git не йдуть
+#   backups/      копії тому /data перед кожним деплоєм
+#
+# Образ — лише за digest. Порт — лише на loopback: назовні ходить nginx Server2.
+# Файлова система контейнера — лише читання: пишуть тільки том /data і tmpfs
+# (перевірено на sk-0.1.0: старт, міграції, /signin, оптимізація картинок).
+name: jobsync
+
+services:
+  app:
+    image: ghcr.io/skill-klan/jobsync@${JOBSYNC_DIGEST:?JOBSYNC_DIGEST is not set — deploy with jobsync-deploy}
+    restart: unless-stopped
+    init: true
+    user: "1001:1001"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=64m
+      - /app/.next/cache:rw,noexec,nosuid,nodev,size=256m,uid=1001,gid=1001
+    env_file: app.env
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: file:/data/dev.db
+      AUTH_TRUST_HOST: "true"
+      NEXTAUTH_URL: https://jobs.skillklan.com.ua
+      TZ: Europe/Kyiv
+    ports:
+      - "127.0.0.1:3737:3737"
+    volumes:
+      - data:/data
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    pids_limit: 256
+    mem_limit: 1g
+    cpus: 2.0
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  # Іменований том, а не ./data: у rootless Docker файли належать uid 1001
+  # контейнера (на хості — subuid), і svc-jobsync не зміг би їх ні копіювати, ні
+  # повертати. Копії й відкат робить jobsync-deploy через контейнер.
+  data:
+    name: jobsync_data

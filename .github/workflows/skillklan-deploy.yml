@@ -1,0 +1,74 @@
+# skillklan: деплой SkillKlan Job на Server2. Запускається вручну з digest, який надрукував ран
+# публікації («SkillKlan image» на тегу sk-*) — на сервер іде рівно той образ, що пройшов smoke.
+#
+#   digest існує в ghcr → кнопка в Telegram (та сама, що для сайту; fail closed) →
+#   на Server2 примусова команда jobsync-deploy: копія /data, заміна, перевірка здоровʼя, відкат
+#
+# Ключ SERVER2_DEPLOY_KEY уміє на сервері лише `deploy <digest>` і `status` (ForceCommand).
+# Лог цього рану публічний — обгортка логів застосунку сюди не друкує.
+name: SkillKlan deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      digest:
+        description: "Image digest from the publish run (sha256:…)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sk-deploy-server2
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to Server2
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: The digest is a published SkillKlan Job image
+        env:
+          DIGEST: ${{ inputs.digest }}
+        run: |
+          [[ "$DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]] || { echo "::error::not an image digest (sha256:<64 hex>)"; exit 1; }
+          token=$(curl -fsS "https://ghcr.io/token?scope=repository:skill-klan/jobsync:pull" | jq -r .token)
+          code=$(curl -sS -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $token" \
+            -H "Accept: application/vnd.oci.image.index.v1+json, application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.list.v2+json, application/vnd.docker.distribution.manifest.v2+json" \
+            "https://ghcr.io/v2/skill-klan/jobsync/manifests/$DIGEST")
+          [ "$code" = 200 ] || { echo "::error::ghcr.io/skill-klan/jobsync@$DIGEST not found (HTTP $code)"; exit 1; }
+          echo "OK: ghcr.io/skill-klan/jobsync@$DIGEST"
+
+      - name: Ask the owner in Telegram
+        env:
+          DEPLOY_GATE_SECRET: ${{ secrets.DEPLOY_GATE_SECRET }}
+          GATE_ID: jobsync-${{ github.run_id }}-${{ github.run_attempt }}
+          GATE_REPO: ${{ github.repository }}
+          GATE_SHA: ${{ github.sha }}
+          GATE_ACTOR: ${{ github.actor }}
+          # Через env, а не всередині run: — так ввід не потрапляє в шелл.
+          GATE_MESSAGE: "SkillKlan Job → Server2: ${{ inputs.digest }}"
+        run: bash skillklan/deploy/deploy-gate.sh
+
+      - name: Deploy on Server2
+        env:
+          SSH_KEY: ${{ secrets.SERVER2_DEPLOY_KEY }}
+          DIGEST: ${{ inputs.digest }}
+        run: |
+          [ -n "$SSH_KEY" ] || { echo "::error::SERVER2_DEPLOY_KEY is not set"; exit 1; }
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/server2_deploy
+          chmod 600 ~/.ssh/server2_deploy
+          ssh -i ~/.ssh/server2_deploy -o IdentitiesOnly=yes -o BatchMode=yes \
+              -o StrictHostKeyChecking=yes -o UserKnownHostsFile=skillklan/deploy/server2.known_hosts \
+              -o ConnectTimeout=20 -o ServerAliveInterval=30 \
+              svc-jobsync@80.241.214.221 "deploy $DIGEST"
+
+      - name: Forget the key
+        if: always()
+        run: rm -f ~/.ssh/server2_deploy
