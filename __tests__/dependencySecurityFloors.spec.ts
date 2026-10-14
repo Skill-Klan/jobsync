@@ -25,6 +25,8 @@ const FLOORS: Floor[] = [
   // WebSocket DoS (unrequested subprotocol, deflate error) and response
   // splitting through the retry interceptor.
   { pkg: "undici", min: "6.28.1", advisories: ["GHSA-rfgv-xxqx-mfg5", "GHSA-3wwx-pv8p-q78v", "GHSA-r53p-7pc4-xj5r"] },
+  // Quadratic linkify paths: a few hundred KB of markdown blocks the event loop.
+  { pkg: "markdown-it", min: "14.3.1", advisories: ["GHSA-253c-mchw-3w2r"] },
 ];
 
 const lock = JSON.parse(
