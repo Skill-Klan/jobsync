@@ -2,7 +2,6 @@
 import { useEffect, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
 import { Info, Loader } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +23,8 @@ import {
   type GoalTargets,
   type GoalTargetsByMonth,
 } from "@/models/dailyGoals.model";
+import { useFormatDate, useTranslations } from "@/i18n/client";
+import { DATE_PATTERNS, type DatePattern } from "@/i18n/dates";
 
 interface SetGoalsDialogProps {
   open: boolean;
@@ -36,19 +37,24 @@ interface SetGoalsDialogProps {
   }) => void;
 }
 
+// "October 2026" inside a sentence: Ukrainian needs the genitive ("з жовтня 2026").
+const MONTH_IN_SENTENCE: DatePattern = { en: "MMMM yyyy", uk: "MMMM yyyy" };
+
 const FIELDS = [
   {
     name: "jobs",
-    label: "Jobs applied per day",
-    noun: "jobs",
+    labelKey: "goals.jobsPerDay",
+    decreaseKey: "goals.fewerJobs",
+    increaseKey: "goals.moreJobs",
     ring: "var(--gc-ring-1)",
     min: DAILY_GOALS.JOBS_MIN,
     max: DAILY_GOALS.JOBS_MAX,
   },
   {
     name: "hours",
-    label: "Activity hours per day",
-    noun: "hours",
+    labelKey: "goals.hoursPerDay",
+    decreaseKey: "goals.fewerHours",
+    increaseKey: "goals.moreHours",
     ring: "var(--gc-ring-2)",
     min: DAILY_GOALS.HOURS_MIN,
     max: DAILY_GOALS.HOURS_MAX,
@@ -62,6 +68,8 @@ export default function SetGoalsDialog({
   targets,
   onSaved,
 }: SetGoalsDialogProps) {
+  const t = useTranslations("dashboard");
+  const formatDate = useFormatDate();
   const [isPending, startTransition] = useTransition();
   const form = useForm<GoalTargets>({
     resolver: zodResolver(GoalTargetsSchema),
@@ -80,7 +88,7 @@ export default function SetGoalsDialog({
     startTransition(async () => {
       const result = await updateGoalTargets({ month, ...values });
       toastActionResult(result, {
-        success: "Daily goals saved.",
+        success: t("goals.saved"),
         onSuccess: (data) => {
           if (!data) return;
           onSaved(data);
@@ -89,7 +97,8 @@ export default function SetGoalsDialog({
       });
     });
 
-  const monthName = format(new Date(`${month}-01T00:00:00`), "MMMM yyyy");
+  const monthStart = new Date(`${month}-01T00:00:00`);
+  const monthName = formatDate(monthStart, DATE_PATTERNS.monthYear);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -97,7 +106,7 @@ export default function SetGoalsDialog({
       <DialogContent className="daily-goals-calendar sm:max-w-[440px]">
         <DialogHeader>
           <div className="flex items-center gap-2.5">
-            <DialogTitle>Daily goals</DialogTitle>
+            <DialogTitle>{t("goals.dialogTitle")}</DialogTitle>
             <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
               {monthName}
             </span>
@@ -109,19 +118,23 @@ export default function SetGoalsDialog({
             onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-3"
           >
-            {FIELDS.map((f) => (
+            {FIELDS.map(({ labelKey, decreaseKey, increaseKey, ...f }) => (
               <GoalRow
                 key={f.name}
                 control={form.control}
                 previous={targets[f.name]}
+                label={t(labelKey)}
+                decreaseLabel={t(decreaseKey)}
+                increaseLabel={t(increaseKey)}
                 {...f}
               />
             ))}
             <div className="flex items-start gap-2.5 rounded-lg bg-muted p-3">
               <Info className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
               <DialogDescription className="text-[13px]">
-                Applies from {monthName} and carries forward until you change
-                it. Earlier months keep their own targets.
+                {t("goals.appliesFrom", {
+                  month: formatDate(monthStart, MONTH_IN_SENTENCE),
+                })}
               </DialogDescription>
             </div>
             <DialogFooter>
@@ -130,14 +143,14 @@ export default function SetGoalsDialog({
                 variant="outline"
                 onClick={() => onOpenChange(false)}
               >
-                Cancel
+                {t("goals.cancel")}
               </Button>
               <Button
                 type="submit"
                 disabled={isPending || !form.formState.isDirty}
               >
                 {isPending && <Loader className="mr-2 h-4 w-4 animate-spin" />}
-                Save goals
+                {t("goals.save")}
               </Button>
             </DialogFooter>
           </form>

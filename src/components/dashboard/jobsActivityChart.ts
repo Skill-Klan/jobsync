@@ -15,13 +15,22 @@ export const OTHER_ACTIVITY_LABEL = "Other";
 
 export const OTHER_SLICE_ID = "__other__";
 
-// A real activity type can itself be named "Other". When it is, the
-// synthetic bucket needs a distinct display label so the two don't render
-// as two identically-labeled slices/bars.
-export function otherBucketLabel(topLabels: string[]): string {
-  return topLabels.includes(OTHER_ACTIVITY_LABEL)
-    ? "Other activity types"
-    : OTHER_ACTIVITY_LABEL;
+// Display names of the synthetic bucket, in the user's language (dashboard.other
+// in src/i18n/messages); English is the default the pure helpers fall back to.
+export type OtherBucketText = { label: string; types: string };
+export const OTHER_BUCKET_TEXT_EN: OtherBucketText = {
+  label: OTHER_ACTIVITY_LABEL,
+  types: "Other activity types",
+};
+
+// A real activity type can itself be named "Other" (in the language shown).
+// When it is, the synthetic bucket needs a distinct display label so the two
+// don't render as two identically-labeled slices/bars.
+export function otherBucketLabel(
+  topLabels: string[],
+  text: OtherBucketText = OTHER_BUCKET_TEXT_EN,
+): string {
+  return topLabels.includes(text.label) ? text.types : text.label;
 }
 
 export interface DonutSlice {
@@ -39,6 +48,7 @@ export function buildDonutSlices(
   otherHours: number,
   theme: "light" | "dark",
   otherActivities: TopActivityType[] = [],
+  otherText: OtherBucketText = OTHER_BUCKET_TEXT_EN,
 ): DonutSlice[] {
   const slices: DonutSlice[] = topActivities
     .filter((activity) => activity.hours > 0)
@@ -52,7 +62,10 @@ export function buildDonutSlices(
   if (otherHours > 0) {
     slices.push({
       id: OTHER_SLICE_ID,
-      label: otherBucketLabel(topActivities.map((activity) => activity.label)),
+      label: otherBucketLabel(
+        topActivities.map((activity) => activity.label),
+        otherText,
+      ),
       value: otherHours,
       color: OTHER_COLOR[theme],
       breakdown: otherActivities.filter((activity) => activity.hours > 0),
@@ -120,11 +133,12 @@ export function donutLayout(width: number): DonutLayout {
 export function arcLabelLines(
   slice: DonutSlice,
   maxChars: number,
+  hours: (value: number) => string = (value) => `${value}h`,
 ): [string, string] {
   const name =
     slice.label.length > maxChars
       ? `${slice.label.slice(0, maxChars - 1).trimEnd()}…`
       : slice.label;
 
-  return [name, `${slice.value}h`];
+  return [name, hours(slice.value)];
 }

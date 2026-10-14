@@ -1,7 +1,9 @@
 "use client";
 import { useState } from "react";
 import { ResponsiveCalendar } from "@nivo/calendar";
-import { format, parseISO } from "date-fns";
+import { parseISO } from "date-fns";
+import { useFormatDate, useTranslations } from "@/i18n/client";
+import type { DatePattern } from "@/i18n/dates";
 import { useTheme } from "next-themes";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import {
@@ -11,6 +13,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+// "Mon Jun 15, 2026" / "пн, 15 черв. 2026"; month row: "Jun" / "черв."
+const TOOLTIP_DATE: DatePattern = { en: "EEE MMM d, yyyy", uk: "EEEEEE, d MMM yyyy" };
+const MONTH_LEGEND: DatePattern = { en: "MMM", uk: "LLL" };
+
 // make sure parent container have a defined height when using
 // responsive component, otherwise height will be 0 and
 // no chart will be rendered.
@@ -23,6 +29,8 @@ export default function ActivityCalendar({
   years: string[];
   dataByYear: Record<string, any[]>;
 }) {
+  const t = useTranslations("dashboard");
+  const formatDate = useFormatDate();
   const { resolvedTheme } = useTheme();
   const [year, setYear] = useState(years.at(-1));
   const borderColor = resolvedTheme === "light" ? "#ffffff" : "#0e1117";
@@ -34,10 +42,10 @@ export default function ActivityCalendar({
     <Card className="w-[100%]">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg text-green-600">Activity Calendar</CardTitle>
+          <CardTitle className="text-lg text-green-600">{t("calendar.title")}</CardTitle>
           <Select value={year} onValueChange={setYear}>
-            <SelectTrigger className="w-[100px]" aria-label="Select year">
-              <SelectValue placeholder="Select year" />
+            <SelectTrigger className="w-[100px]" aria-label={t("calendar.selectYear")}>
+              <SelectValue placeholder={t("calendar.selectYear")} />
             </SelectTrigger>
             <SelectContent>
               {years.map((y) => (
@@ -62,6 +70,7 @@ export default function ActivityCalendar({
           monthBorderColor={borderColor}
           dayBorderWidth={2}
           dayBorderColor={borderColor}
+          monthLegend={(_year, _month, date) => formatDate(date, MONTH_LEGEND)}
           tooltip={(day) => {
             const hours = hoursMap[day.day] ?? 0;
             return (
@@ -75,9 +84,9 @@ export default function ActivityCalendar({
                   whiteSpace: "nowrap",
                 }}
               >
-                <div><strong>{format(parseISO(day.day), "EEE MMM d, yyyy")}</strong></div>
-                <div>{day.value} job{Number(day.value) === 1 ? "" : "s"} applied</div>
-                <div>{hours} hr{hours === 1 ? "" : "s"} activity</div>
+                <div><strong>{formatDate(parseISO(day.day), TOOLTIP_DATE)}</strong></div>
+                <div>{t("calendar.jobsApplied", { count: Number(day.value) })}</div>
+                <div>{t("calendar.activityHours", { hours })}</div>
               </div>
             );
           }}

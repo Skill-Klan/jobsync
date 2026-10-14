@@ -108,6 +108,24 @@ export function formatDays(count: number): string {
   return `${count} ${count === 1 ? "day" : "days"}`;
 }
 
+// The summary's stat names and day counts, in the user's language
+// (dashboard.goals in src/i18n/messages); English is the default.
+export type MonthSummaryText = {
+  currentStreak: string;
+  bestStreak: string;
+  bothMet: string;
+  nothingLogged: string;
+  days: (count: number) => string;
+};
+
+export const MONTH_SUMMARY_TEXT_EN: MonthSummaryText = {
+  currentStreak: "Current streak",
+  bestStreak: "Best streak (12 mo)",
+  bothMet: "Both goals met",
+  nothingLogged: "Nothing logged",
+  days: formatDays,
+};
+
 const IDS = Object.values(GOAL_IDS);
 
 export function buildMonthSummary(
@@ -116,6 +134,7 @@ export function buildMonthSummary(
   today: string,
   targets: GoalTargets,
   streaks: GoalStreaks | null,
+  text: MonthSummaryText = MONTH_SUMMARY_TEXT_EN,
 ): MonthSummary {
   const hit: Record<string, number> = {};
   const counted: Record<string, number> = {};
@@ -147,19 +166,19 @@ export function buildMonthSummary(
     rings,
     stats: [
       {
-        label: "Current streak",
-        value: streaks ? formatDays(streaks.current) : "—",
+        label: text.currentStreak,
+        value: streaks ? text.days(streaks.current) : "—",
         tone: "primary",
       },
       {
-        label: "Best streak (12 mo)",
-        value: streaks ? formatDays(streaks.best) : "—",
+        label: text.bestStreak,
+        value: streaks ? text.days(streaks.best) : "—",
         tone: "warning",
       },
-      { label: "Both goals met", value: formatDays(bothMet), tone: "success" },
+      { label: text.bothMet, value: text.days(bothMet), tone: "success" },
       {
-        label: "Nothing logged",
-        value: formatDays(nothingLogged),
+        label: text.nothingLogged,
+        value: text.days(nothingLogged),
         tone: "danger",
       },
     ],

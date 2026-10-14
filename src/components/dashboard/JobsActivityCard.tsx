@@ -14,6 +14,7 @@ import { useElementWidth } from "@/hooks/useElementWidth";
 import { usePersistedTabIndex } from "@/hooks/usePersistedTabIndex";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "@/i18n/client";
 import {
   ARC_LABEL_TEXT_COLOR,
   arcLabelLines,
@@ -25,6 +26,8 @@ import {
 
 interface JobsActivityCardProps {
   data: {
+    // Stable id the chosen tab is remembered by; the label is translated.
+    id?: string;
     label: string;
     summary: JobsActivitySummary;
   }[];
@@ -42,9 +45,16 @@ const FULL_TOTAL_HOLE = 96;
 // the name needs a custom component rather than a label formatter.
 // The budget arrives by ref because a new component type would remount the
 // whole label subtree on every frame the card resizes.
-function makeArcLinkLabel(maxChars: RefObject<number>) {
+function makeArcLinkLabel(
+  maxChars: RefObject<number>,
+  hoursText: RefObject<(value: number) => string>,
+) {
   return function ArcLinkLabel({ datum, style }: ArcLinkLabelProps) {
-    const [name, hours] = arcLabelLines(datum.data, maxChars.current);
+    const [name, hours] = arcLabelLines(
+      datum.data,
+      maxChars.current,
+      hoursText.current,
+    );
 
     return (
       <animated.g opacity={style.opacity}>
@@ -74,10 +84,13 @@ function makeArcLinkLabel(maxChars: RefObject<number>) {
 }
 
 export default function JobsActivityCard({ data }: JobsActivityCardProps) {
+  const t = useTranslations("dashboard");
   const [activeIndex, selectTab] = usePersistedTabIndex(
     APP_CONSTANTS.DASHBOARD_JOBS_ACTIVITY_STORAGE_KEY,
-    data.map((item) => item.label),
+    data.map((item) => item.id ?? item.label),
   );
+  const hoursText = useRef((value: number) => t("jobsActivity.hours", { hours: value }));
+  hoursText.current = (value: number) => t("jobsActivity.hours", { hours: value });
   const [chartRef, chartWidth] = useElementWidth<HTMLDivElement>();
   const { resolvedTheme } = useTheme();
   const theme = resolvedTheme === "light" ? "light" : "dark";
@@ -95,13 +108,14 @@ export default function JobsActivityCard({ data }: JobsActivityCardProps) {
     otherHours,
     theme,
     otherActivities,
+    { label: t("other.label"), types: t("other.types") },
   );
   const layout = donutLayout(chartWidth);
   const roomyTotal = layout.holeDiameter >= FULL_TOTAL_HOLE;
   const maxLabelChars = useRef(layout.maxLabelChars);
   maxLabelChars.current = layout.maxLabelChars;
   const arcLinkLabelComponent = useMemo(
-    () => makeArcLinkLabel(maxLabelChars),
+    () => makeArcLinkLabel(maxLabelChars, hoursText),
     [],
   );
 
@@ -110,7 +124,7 @@ export default function JobsActivityCard({ data }: JobsActivityCardProps) {
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between gap-2">
           <CardTitle className="text-lg text-green-600 min-w-0 truncate">
-            Jobs &amp; Activity
+            {t("jobsActivity.title")}
           </CardTitle>
           <div
             className="flex shrink-0 rounded-md border text-xs"
@@ -118,7 +132,7 @@ export default function JobsActivityCard({ data }: JobsActivityCardProps) {
           >
             {data.map((item, index) => (
               <button
-                key={item.label}
+                key={item.id ?? item.label}
                 onClick={() => selectTab(index)}
                 className={cn(
                   "px-2 py-1 transition-colors",
@@ -141,7 +155,7 @@ export default function JobsActivityCard({ data }: JobsActivityCardProps) {
             <div className="flex h-full w-full items-center justify-center">
               <div className="h-[132px] w-[132px] rounded-full border-[18px] border-muted" />
               <p className="absolute inset-x-0 bottom-0 text-center text-sm text-muted-foreground">
-                No activities recorded
+                {t("jobsActivity.empty")}
               </p>
             </div>
           ) : (
@@ -196,10 +210,12 @@ export default function JobsActivityCard({ data }: JobsActivityCardProps) {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    <strong>{datum.data.label}</strong> — {datum.value}h
+                    <strong>{datum.data.label}</strong> —{" "}
+                    {t("jobsActivity.hours", { hours: datum.value })}
                     {datum.data.breakdown?.map((activity: TopActivityType) => (
                       <div key={activity.label}>
-                        {activity.label} — {activity.hours}h
+                        {activity.label} —{" "}
+                        {t("jobsActivity.hours", { hours: activity.hours })}
                       </div>
                     ))}
                   </div>
@@ -217,7 +233,7 @@ export default function JobsActivityCard({ data }: JobsActivityCardProps) {
                 roomyTotal ? "text-xl" : "text-base",
               )}
             >
-              {totalHours}h
+              {t("jobsActivity.hours", { hours: totalHours })}
             </span>
             <span
               className={cn(
@@ -225,7 +241,7 @@ export default function JobsActivityCard({ data }: JobsActivityCardProps) {
                 roomyTotal ? "text-sm" : "text-xs",
               )}
             >
-              {jobsApplied} {jobsApplied === 1 ? "job" : "jobs"}
+              {t("jobsActivity.jobs", { count: jobsApplied })}
             </span>
             {jobsTrend !== 0 && roomyTotal && (
               <span
