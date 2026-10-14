@@ -214,16 +214,6 @@ async function seedFullAccount() {
   await prisma.apiKey.create({
     data: { userId, provider: "openai", encryptedKey: "e", iv: "i", last4: "1234" },
   });
-  await prisma.mcpAccessToken.create({
-    data: {
-      userId,
-      name: "cli",
-      tokenHash: "hash",
-      tokenPrefix: "js_",
-      scopes: "[]",
-      expiresAt: new Date(Date.now() + 86_400_000),
-    },
-  });
   await prisma.chatConversation.create({
     data: { userId, messages: "[]" },
   });
@@ -312,7 +302,6 @@ describe("backup round trip", () => {
 
     // The wipe set is honoured in both directions.
     expect(await prisma.apiKey.count({ where: { userId } })).toBe(1);
-    expect(await prisma.mcpAccessToken.count({ where: { userId } })).toBe(1);
     expect(await prisma.chatConversation.count({ where: { userId } })).toBe(0);
 
     // filePath was recomputed and the bytes are actually there.

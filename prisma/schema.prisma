@@ -36,7 +36,6 @@ model User {
   Note           Note[]
   Tag            Tag[]
   Question       Question[]
-  McpAccessToken McpAccessToken[]
   Notification   Notification[]
   aiCalls        AiCall[]
   ChatConversation ChatConversation?
@@ -474,7 +473,8 @@ model Job {
   discoveryStatus String?
   discoveredAt    DateTime?
 
-  // MCP provenance: which agent/token created this job (null = UI or automation)
+  // Which surface created this job: "chat" for the in-app agent (null = UI or
+  // automation). Older rows may name an MCP token from before its removal.
   createdVia      String?
   // Word-count classification of `description` at write time:
   // "title-only" | "partial" | "full". Null for pre-existing/UI jobs.
@@ -704,25 +704,9 @@ model Question {
   prepLinks  JobStagePrepQuestion[]
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  createdVia String? // MCP provenance: which agent/token created this, mirrors Job.createdVia
+  createdVia String? // Which surface created this; only the removed MCP server ever set it
 
   @@index([createdBy])
-}
-
-model McpAccessToken {
-  id          String    @id @default(uuid())
-  userId      String
-  User        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name        String
-  tokenHash   String    @unique
-  tokenPrefix String
-  scopes      String    // JSON array string; new tokens are always ["jobs:write","questions:write","resume:write"]
-  expiresAt   DateTime
-  lastUsedAt  DateTime?
-  createdAt   DateTime  @default(now())
-
-  @@unique([userId, name])
-  @@index([userId])
 }
 
 model ChatConversation {
