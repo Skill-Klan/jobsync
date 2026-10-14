@@ -16,6 +16,8 @@ type Floor = {
 const FLOORS: Floor[] = [
   // Cache poisoning of SSG/ISR pages, cross-user content substitution.
   { pkg: "next", min: "15.5.27", advisories: ["GHSA-4jqv-mc3x-m676", "GHSA-mcj8-r9mp-w47p"] },
+  // XSS when attacker-provided HTML is pasted into the editor.
+  { pkg: "prosemirror-view", min: "1.42.3", advisories: ["GHSA-c8x8-7fp4-3x9w"] },
 ];
 
 const lock = JSON.parse(
