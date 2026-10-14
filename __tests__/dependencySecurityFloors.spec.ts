@@ -43,6 +43,10 @@ const MAJOR_FLOORS: { pkg: string; major: number; min: string; advisories: strin
   // Quadratic `{a},b}` rewrite — CPU DoS.
   { pkg: "brace-expansion", major: 1, min: "1.1.21", advisories: ["GHSA-q2hr-2g5m-vwhr"] },
   { pkg: "brace-expansion", major: 5, min: "5.0.12", advisories: ["GHSA-q2hr-2g5m-vwhr"] },
+  // mergeAttributes(): an own `__proto__` key from JSON swapped the merged
+  // object's prototype, so inherited onerror/src reached the DOM. The advisory
+  // lists 3.30.4 only, but 2.27.3 carries the same fix (defineProperty).
+  { pkg: "@tiptap/core", major: 2, min: "2.27.3", advisories: ["GHSA-cp6q-959q-f8rh"] },
 ];
 
 const lock = JSON.parse(
