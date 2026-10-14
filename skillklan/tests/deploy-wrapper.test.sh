@@ -189,7 +189,7 @@ mkdir -p "$APP/backups"
 for i in 1 2 3 4 5; do echo old > "$APP/backups/data-2026010${i}T000000Z-aaaaaaaaaaaa.tar"; touch -d "2026-01-0$i" "$APP/backups/data-2026010${i}T000000Z-aaaaaaaaaaaa.tar"; done
 rc=$(run_wrapper "deploy $B")
 left=$(ls "$APP/backups" | wc -l | tr -d ' ')
-newest_kept=$(ls "$APP/backups" | grep -vc '^data-2026010')
+newest_kept=$(find "$APP/backups" -maxdepth 1 -name 'data-*' ! -name 'data-2026010*' | wc -l | tr -d ' ')
 if [ "$rc" = 0 ] && [ "$left" = 3 ] && [ "$newest_kept" = 1 ] && [ -e "$APP/backups/data-20260105T000000Z-aaaaaaaaaaaa.tar" ] \
    && [ ! -e "$APP/backups/data-20260101T000000Z-aaaaaaaaaaaa.tar" ]; then pass "W9 keeps only the newest copies"
 else fail "W9 prune (rc=$rc left=$left new=$newest_kept)"; ls "$APP/backups" | sed 's/^/     | /'; fi
