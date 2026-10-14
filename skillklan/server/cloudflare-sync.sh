@@ -23,8 +23,10 @@ trap 'rm -rf "$tmp"' EXIT
 
 curl -fsS --max-time 20 "$V4_URL" -o "$tmp/v4.raw" || die "download of the IPv4 list failed — nothing changed"
 curl -fsS --max-time 20 "$V6_URL" -o "$tmp/v6.raw" || die "download of the IPv6 list failed — nothing changed"
-tr -d '\r' < "$tmp/v4.raw" | sed '/^[[:space:]]*$/d' > "$tmp/v4"
-tr -d '\r' < "$tmp/v6.raw" | sed '/^[[:space:]]*$/d' > "$tmp/v6"
+# Файли Cloudflare закінчуються БЕЗ \n: awk друкує кожен рядок із \n, інакше після склеювання останній
+# IPv4 злипся б із першим IPv6 (так і сталось на першому запуску, 2026-10-14 — nginx -t не пропустив).
+tr -d '\r' < "$tmp/v4.raw" | awk 'NF { print $1 }' > "$tmp/v4"
+tr -d '\r' < "$tmp/v6.raw" | awk 'NF { print $1 }' > "$tmp/v6"
 
 v4_re='^([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]|[12][0-9]|3[0-2])$'
 v6_re='^[0-9a-f]{1,4}(:[0-9a-f]{0,4}){1,7}/([0-9]|[1-9][0-9]|1[01][0-9]|12[0-8])$'
@@ -33,6 +35,8 @@ if grep -Eviq "$v6_re" "$tmp/v6"; then die "IPv6 list does not look like Cloudfl
 [ "$(wc -l < "$tmp/v4")" -ge "$MIN_V4" ] || die "IPv4 list is too short — nothing changed"
 [ "$(wc -l < "$tmp/v6")" -ge "$MIN_V6" ] || die "IPv6 list is too short — nothing changed"
 cat "$tmp/v4" "$tmp/v6" | tr 'A-F' 'a-f' | sort -u > "$tmp/ranges"
+# Ще раз — уже обʼєднаний список: кожен рядок мусить бути одним діапазоном IPv4 або IPv6.
+if grep -Evq "$v4_re|$v6_re" "$tmp/ranges"; then die "merged list has a line that is not a range — nothing changed"; fi
 
 # --- nginx: кому вірити в CF-Connecting-IP ----------------------------------------
 {
