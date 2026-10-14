@@ -38,3 +38,16 @@ describe("Node runtime version", () => {
     expect(Number(range.replace(/^[^\d]*/, "").split(".")[0])).toBe(NODE_MAJOR);
   });
 });
+
+// npm 11 (bundled with Node 24) no longer installs optional peer
+// dependencies from the lockfile. jsdom is only an optional peer of vitest,
+// so on Node 24 `npm ci` left it out and 277 suites could not start. Whatever
+// vitest.config names as its environment must be a direct devDependency.
+describe("test environment package", () => {
+  it("is a direct devDependency, not an optional peer of vitest", () => {
+    const env = read("vitest.config.ts").match(/environment:\s*["']([\w-]+)["']/)?.[1];
+    expect(env).toBe("jsdom");
+    const pkg = JSON.parse(read("package.json"));
+    expect(pkg.devDependencies[env!]).toBeDefined();
+  });
+});
