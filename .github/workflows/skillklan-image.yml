@@ -1,6 +1,6 @@
-# skillklan: збірка й публікація образу форку. Апстрімні release.yml і wiki.yml у форку вимкнені
-# (вони публікують від імені апстріму). Тут: перевірки вимог до образу на кожен PR у main,
-# публікація — лише на тег `sk-*`, і на сервер іде саме той образ, що пройшов smoke-тест.
+# skillklan: збірка й публікація образу. Перевірки вимог до образу на кожен PR у main, публікація —
+# лише на тег `sk-*`, і на сервер іде саме той образ, що пройшов smoke-тест. (Апстрімні release.yml
+# і wiki.yml видалено 2026-10-14 — репозиторій більше не підтягує апстрім.)
 name: SkillKlan image
 
 on:
@@ -30,8 +30,8 @@ jobs:
       - uses: actions/checkout@v4
       - run: |
           lock=$(node -p "require('./package-lock.json').packages['node_modules/prisma'].version")
-          img=$(sed -n 's/^ARG PRISMA_VERSION=//p' Dockerfile.skillklan)
-          echo "package-lock: $lock / Dockerfile.skillklan: $img"
+          img=$(sed -n 's/^ARG PRISMA_VERSION=//p' Dockerfile)
+          echo "package-lock: $lock / Dockerfile: $img"
           [ -n "$lock" ] && [ "$lock" = "$img" ]
 
   smoke-is-not-vacuous:
@@ -61,7 +61,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: Dockerfile.skillklan
+          file: Dockerfile
           platforms: linux/amd64
           load: true
           tags: sk-jobsync:ci

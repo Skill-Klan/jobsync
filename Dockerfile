@@ -1,56 +1,61 @@
-FROM node:20.20.2-alpine AS base
+# Образ SkillKlan JobSync (єдиний Dockerfile репозиторію з 2026-10-14; апстрімний прибрано).
+# Базовий образ за digest; Prisma CLI в образі (без npx на старті); процес — uid 1001 від самого
+# початку; entrypoint — skillklan/docker-entrypoint.sh (fail closed без справжніх секретів).
 
-# Install dependencies only when needed
+# node:20.20.2-alpine (індекс, multi-arch)
+FROM node:20.20.2-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293 AS base
+
 FROM base AS deps
-
 RUN apk add --no-cache libc6-compat
-# Set the working directory
 WORKDIR /app
-
-# Install dependencies based on the preferred package manager
-COPY package.json package-lock.json* ./
+COPY package.json package-lock.json ./
 RUN npm ci
 
-# Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
 ENV DATABASE_URL=file:/data/dev.db
-
-# Generate Prisma client
+ENV NEXT_TELEMETRY_DISABLED=1
 RUN npx prisma generate
-
 RUN npm run build
 
-# Production image, copy all the files and run next
+# Prisma CLI тієї ж версії, що в package-lock.json (перевіряє CI) — ставиться під час ЗБИРАННЯ,
+# разом із рушіями під цю платформу.
+FROM base AS prismacli
+ARG PRISMA_VERSION=6.19.0
+WORKDIR /opt/prisma
+RUN npm init -y >/dev/null \
+ && npm install --omit=dev --no-audit --no-fund "prisma@${PRISMA_VERSION}" \
+ && npm cache clean --force
+
 FROM base AS runner
 WORKDIR /app
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    PORT=3737 \
+    HOSTNAME=0.0.0.0 \
+    HOME=/home/nextjs \
+    NPM_CONFIG_UPDATE_NOTIFIER=false \
+    CHECKPOINT_DISABLE=1 \
+    PRISMA_HIDE_UPDATE_MESSAGE=1
 
-# Set environment variables
-ENV NEXT_TELEMETRY_DISABLED=1
+RUN addgroup --system --gid 1001 nodejs \
+ && adduser --system --uid 1001 -G nodejs -h /home/nextjs nextjs \
+ && mkdir -p /data/files/resumes /app/.next /home/nextjs \
+ && chown -R nextjs:nodejs /data /app/.next /home/nextjs
 
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 -h /home/nextjs nextjs
-
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
-
-# Set up /data directory with the right permissions
-RUN mkdir -p /data/files/resumes && chown -R nextjs:nodejs /data/files/resumes
-
+COPY --from=prismacli --chown=root:root /opt/prisma /opt/prisma
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY skillklan/docker-entrypoint.sh /app/skillklan-entrypoint.sh
+# без `COPY --chmod`: той потребує BuildKit, а локальний збирач (colima) — класичний
+RUN chmod 0755 /app/skillklan-entrypoint.sh
 
-COPY docker-entrypoint.sh /app/docker-entrypoint.sh
-RUN chmod +x /app/docker-entrypoint.sh
-
+USER 1001:1001
 EXPOSE 3737
-
-ENV PORT=3737
-
-ENTRYPOINT ["/app/docker-entrypoint.sh"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+  CMD wget -q --spider http://127.0.0.1:3737/ || exit 1
+ENTRYPOINT ["/app/skillklan-entrypoint.sh"]

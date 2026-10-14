@@ -1,6 +1,6 @@
 #!/bin/sh
 # skillklan: entrypoint форку. На відміну від апстріму:
-#  - процес уже не root (USER 1001 у Dockerfile.skillklan) — без chown і su;
+#  - процес уже не root (USER 1001 у Dockerfile) — без chown і su;
 #  - Prisma CLI вбудовано в образ — жодних завантажень із npm під час старту;
 #  - fail closed: без справжніх секретів не стартуємо (апстрім генерував тимчасовий
 #    AUTH_SECRET, а compose апстріму підставляв публічні плейсхолдери).
