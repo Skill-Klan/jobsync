@@ -189,7 +189,7 @@ async function wipe(tx: Tx, userId: string): Promise<void> {
   });
 
   // Not restorable, but a conversation about deleted jobs is worse than a
-  // clean panel. ApiKey and McpAccessToken are deliberately absent.
+  // clean panel. ApiKey is deliberately absent.
   await tx.chatConversation.deleteMany({ where: { userId } });
 
   for (const model of DELETE_ORDER) {

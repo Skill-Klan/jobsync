@@ -106,11 +106,10 @@ describe("importBackup guards", () => {
     expect(syncSchedulerState).toHaveBeenCalled();
   });
 
-  it("wipes ChatConversation but never ApiKey or McpAccessToken", async () => {
+  it("wipes ChatConversation but never ApiKey", async () => {
     await importBackup(await emptyBackup(), "user-1", EMAIL, true);
     expect(mockDb.chatConversation.deleteMany).toHaveBeenCalled();
     expect(mockDb.apiKey).toBeUndefined();
-    expect(mockDb.mcpAccessToken).toBeUndefined();
   });
 
   // The ordering that makes the safety net real: a snapshot that is written
