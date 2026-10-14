@@ -10,6 +10,8 @@ import { dateFnsLocale } from "./dateFns";
 import { getLocale } from "./locale";
 import { MESSAGES, type Messages } from "./messages";
 import { fallbackMessage } from "./fallback";
+import { formatDate, type DatePattern } from "./dates";
+import { labelFor, type LabelKind, type LabelsTranslator } from "./labels";
 
 export { getLocale };
 
@@ -33,4 +35,14 @@ export async function getFormatter() {
 
 export async function getDateFnsLocale() {
   return dateFnsLocale(await getLocale());
+}
+
+export async function getFormatDate() {
+  const locale = await getLocale();
+  return (date: Date | number, pattern: DatePattern) => formatDate(date, pattern, locale);
+}
+
+export async function getLabel() {
+  const t = (await getTranslations("labels")) as unknown as LabelsTranslator;
+  return (kind: LabelKind, item: { value: string; label?: string | null }) => labelFor(t, kind, item);
 }

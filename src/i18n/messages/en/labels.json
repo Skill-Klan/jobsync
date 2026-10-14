@@ -1,1 +1,55 @@
-{}
+{
+  "jobStatus": {
+    "new": "New",
+    "draft": "Draft",
+    "applied": "Applied",
+    "interview": "Interview",
+    "offer": "Offer",
+    "offer-accepted": "Offer Accepted",
+    "offer-declined": "Offer Declined",
+    "rejected": "Rejected",
+    "expired": "Expired",
+    "archived": "Archived",
+    "withdrawn": "Withdrawn"
+  },
+  "jobStage": {
+    "new": "New",
+    "draft": "Draft",
+    "applied": "Applied",
+    "interview": "Interview",
+    "1st screening interview": "1st Screening Interview",
+    "2nd technical interview": "2nd Technical Interview",
+    "final / onsite interview": "Final / Onsite Interview",
+    "offer": "Offer",
+    "offer accepted": "Offer Accepted",
+    "offer declined": "Offer Declined",
+    "rejected": "Rejected",
+    "expired": "Expired",
+    "archived": "Archived",
+    "withdrawn": "Withdrawn"
+  },
+  "stageOutcome": {
+    "scheduled": "Scheduled",
+    "completed": "Completed",
+    "passed": "Passed",
+    "failed": "Failed",
+    "no-show": "No-show",
+    "cancelled": "Cancelled"
+  },
+  "contactRole": {
+    "recruiter": "Recruiter",
+    "hiring manager": "Hiring Manager",
+    "interviewer": "Interviewer",
+    "referrer": "Referrer",
+    "reference": "Reference"
+  },
+  "jobSource": {
+    "careerpage": "Company Career page",
+    "other": "Other"
+  },
+  "discoveryStatus": {
+    "new": "New",
+    "accepted": "Accepted",
+    "dismissed": "Dismissed"
+  }
+}

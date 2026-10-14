@@ -35,6 +35,10 @@ vi.mock("@/i18n/client", async () => {
   const { dateFnsLocale } = await import("@/i18n/dateFns");
   const { TIME_ZONE } = await import("@/i18n/config");
   const { fallbackMessage } = await import("@/i18n/fallback");
+  const { formatDate } = await import("@/i18n/dates");
+  const { labelFor } = await import("@/i18n/labels");
+  type DatePattern = import("@/i18n/dates").DatePattern;
+  type LabelKind = import("@/i18n/labels").LabelKind;
   return {
     useTranslations: (namespace?: string) =>
       createTranslator({
@@ -47,6 +51,11 @@ vi.mock("@/i18n/client", async () => {
     useLocale: () => i18nTest.locale,
     useFormatter: () => createFormatter({ locale: i18nTest.locale, timeZone: TIME_ZONE }),
     useDateFnsLocale: () => dateFnsLocale(i18nTest.locale),
+    useFormatDate: () => (date: Date | number, pattern: DatePattern) => formatDate(date, pattern, i18nTest.locale),
+    useLabel: () => {
+      const t = createTranslator({ locale: i18nTest.locale, messages: MESSAGES[i18nTest.locale], namespace: "labels", timeZone: TIME_ZONE });
+      return (kind: LabelKind, item: { value: string; label?: string | null }) => labelFor(t as never, kind, item);
+    },
   };
 });
 
