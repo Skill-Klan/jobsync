@@ -1,1 +1,55 @@
-{}
+{
+  "jobStatus": {
+    "new": "Нова",
+    "draft": "Чернетка",
+    "applied": "Відгук надіслано",
+    "interview": "Співбесіда",
+    "offer": "Офер",
+    "offer-accepted": "Офер прийнято",
+    "offer-declined": "Офер відхилено",
+    "rejected": "Відмова",
+    "expired": "Неактуальна",
+    "archived": "В архіві",
+    "withdrawn": "Відкликано"
+  },
+  "jobStage": {
+    "new": "Нова",
+    "draft": "Чернетка",
+    "applied": "Відгук надіслано",
+    "interview": "Співбесіда",
+    "1st screening interview": "Перша співбесіда",
+    "2nd technical interview": "Технічна співбесіда",
+    "final / onsite interview": "Фінальна співбесіда",
+    "offer": "Офер",
+    "offer accepted": "Офер прийнято",
+    "offer declined": "Офер відхилено",
+    "rejected": "Відмова",
+    "expired": "Неактуальна",
+    "archived": "В архіві",
+    "withdrawn": "Відкликано"
+  },
+  "stageOutcome": {
+    "scheduled": "Заплановано",
+    "completed": "Відбулась",
+    "passed": "Пройдено",
+    "failed": "Не пройдено",
+    "no-show": "Неявка",
+    "cancelled": "Скасовано"
+  },
+  "contactRole": {
+    "recruiter": "Рекрутер",
+    "hiring manager": "Наймаючий менеджер",
+    "interviewer": "Інтервʼюер",
+    "referrer": "Рекомендує в компанію",
+    "reference": "Дає рекомендацію"
+  },
+  "jobSource": {
+    "careerpage": "Сайт компанії",
+    "other": "Інше"
+  },
+  "discoveryStatus": {
+    "new": "Нова",
+    "accepted": "Прийнята",
+    "dismissed": "Відхилена"
+  }
+}
