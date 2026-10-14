@@ -5,6 +5,7 @@ import { requireUser } from "../shared";
 import type { AutomationRun } from "@/models/automation.model";
 import { automationLogger } from "@/lib/automation-logger";
 import { formatError } from "./shared";
+import { getTranslations } from "@/i18n/server";
 
 export async function getAutomationRuns(
   automationId: string,
@@ -18,6 +19,7 @@ export async function getAutomationRuns(
   total?: number;
   message?: string;
 }> {
+  const t = await getTranslations("automations");
   try {
     const user = await requireUser();
 
@@ -29,7 +31,7 @@ export async function getAutomationRuns(
     });
 
     if (!automation) {
-      return { success: false, message: "Automation not found" };
+      return { success: false, message: t("errors.notFound") };
     }
 
     const [runs, total] = await Promise.all([
@@ -48,13 +50,14 @@ export async function getAutomationRuns(
       total,
     };
   } catch (error) {
-    return formatError(error, "Failed to get automation runs");
+    return formatError(error, t("errors.runsFailed"));
   }
 }
 
 export async function deleteAutomationRun(
   runId: string,
 ): Promise<{ success: boolean; message?: string }> {
+  const t = await getTranslations("automations");
   try {
     const user = await requireUser();
 
@@ -63,7 +66,7 @@ export async function deleteAutomationRun(
       where: { id: runId, automation: { userId: user.id } },
     });
 
-    if (!run) return { success: false, message: "Run not found" };
+    if (!run) return { success: false, message: t("errors.runNotFound") };
 
     await db.automationRun.delete({ where: { id: runId } });
 
@@ -75,6 +78,6 @@ export async function deleteAutomationRun(
 
     return { success: true };
   } catch (error) {
-    return formatError(error, "Failed to delete run");
+    return formatError(error, t("errors.deleteRunFailed"));
   }
 }

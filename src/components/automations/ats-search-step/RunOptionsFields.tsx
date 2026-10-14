@@ -5,6 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { APP_CONSTANTS } from "@/lib/constants";
 import type { AtsConfigValue } from "./types";
+import { useTranslations } from "@/i18n/client";
 
 interface RunOptionsFieldsProps {
   value: AtsConfigValue;
@@ -12,11 +13,14 @@ interface RunOptionsFieldsProps {
 }
 
 export function RunOptionsFields({ value, onChange }: RunOptionsFieldsProps) {
+  const t = useTranslations("automations");
   return (
     <>
       <div className="space-y-2">
         <Label>
-          Jobs analyzed per run: {value.topK ?? APP_CONSTANTS.MAX_JOBS_PER_RUN}
+          {t("search.runOptions.topK", {
+            count: value.topK ?? APP_CONSTANTS.MAX_JOBS_PER_RUN,
+          })}
         </Label>
         <Slider
           min={1}
@@ -26,18 +30,15 @@ export function RunOptionsFields({ value, onChange }: RunOptionsFieldsProps) {
           onValueChange={(next) => onChange({ ...value, topK: next[0] })}
         />
         <p className="text-sm text-muted-foreground">
-          The number of listings that get full AI match analysis each run.
-          Higher means more coverage but slower, costlier runs.
+          {t("search.runOptions.topKHint")}
         </p>
       </div>
 
       <div className="flex items-start justify-between gap-4 rounded-lg border p-3">
         <div className="space-y-1">
-          <Label>Save additional relevant listings</Label>
+          <Label>{t("search.runOptions.saveLabel")}</Label>
           <p className="text-sm text-muted-foreground">
-            When on, listings that are relevant but didn&apos;t make the top-K
-            are also saved, lexically-ranked but not yet AI-scored. They can be
-            analyzed on-demand later from the discovered jobs list.
+            {t("search.runOptions.saveHint")}
           </p>
         </div>
         <Switch

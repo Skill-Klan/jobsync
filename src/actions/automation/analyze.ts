@@ -25,6 +25,7 @@ import {
   withSpan,
 } from "@/lib/telemetry";
 import { formatError } from "./shared";
+import { getTranslations } from "@/i18n/server";
 
 // Runs an on-demand LLM match for an un-analyzed discovered job using the
 // resume tied to its automation and the user's AI settings (no model picker —
@@ -34,6 +35,7 @@ export async function analyzeDiscoveredJob(jobId: string): Promise<{
   matchScore?: number;
   message?: string;
 }> {
+  const t = await getTranslations("automations");
   try {
     const user = await requireUser();
 
@@ -43,20 +45,19 @@ export async function analyzeDiscoveredJob(jobId: string): Promise<{
     });
 
     if (!job) {
-      return { success: false, message: "Discovered job not found" };
+      return { success: false, message: t("errors.jobNotFound") };
     }
 
     if (job.automationId && automationLogger.isRunning(job.automationId)) {
       return {
         success: false,
-        message:
-          "A run is in progress for this automation. Please wait until it completes before analyzing jobs.",
+        message: t("errors.runInProgress"),
       };
     }
 
     const resumeId = job.automation?.resumeId;
     if (!resumeId) {
-      return { success: false, message: "Automation resume is missing" };
+      return { success: false, message: t("errors.resumeMissing") };
     }
 
     const userSettings = await db.userSettings.findUnique({
@@ -80,7 +81,7 @@ export async function analyzeDiscoveredJob(jobId: string): Promise<{
     ]);
 
     if (!resumePre.success || !jobPre.success) {
-      return { success: false, message: "Failed to prepare match inputs" };
+      return { success: false, message: t("errors.prepareFailed") };
     }
 
     const model = await getModel(ai.provider, ai.model || "qwen3.5:9b", user.id);
@@ -146,7 +147,7 @@ export async function analyzeDiscoveredJob(jobId: string): Promise<{
 
     const { scores, body } = parseJobMatch(result.text);
     if (!scores) {
-      return { success: false, message: "AI did not return a match score" };
+      return { success: false, message: t("errors.noScore") };
     }
 
     let previous: Record<string, unknown> = {};
@@ -176,6 +177,6 @@ export async function analyzeDiscoveredJob(jobId: string): Promise<{
 
     return { success: true, matchScore: scores.matchScore };
   } catch (error) {
-    return formatError(error, "Failed to analyze discovered job");
+    return formatError(error, t("errors.analyzeFailed"));
   }
 }

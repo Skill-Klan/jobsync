@@ -1,13 +1,11 @@
 "use client";
 
-import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/StatusBadge";
 import { CircularScore } from "@/components/CircularScore";
 import { getDiscoveryStatusBadgeColor } from "@/lib/badge-colors";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { DISCOVERY_STATUSES } from "@/lib/constants";
 import {
   Check,
   X,
@@ -20,6 +18,8 @@ import {
 import type { DiscoveredJob } from "@/models/automation.model";
 import { getWorkplaceTypeLabel } from "@/models/job.model";
 import { isAnalyzed, getPrerankPercent } from "./matchData";
+import { useFormatDate, useLabel, useTranslations } from "@/i18n/client";
+import { DATE_PATTERNS } from "@/i18n/dates";
 
 interface DiscoveredJobRowProps {
   job: DiscoveredJob;
@@ -40,6 +40,9 @@ export function DiscoveredJobRow({
   onAccept,
   onDismiss,
 }: DiscoveredJobRowProps) {
+  const t = useTranslations("automations");
+  const label = useLabel();
+  const formatDate = useFormatDate();
   const analyzed = isAnalyzed(job);
   const prerankPercent = getPrerankPercent(job);
 
@@ -74,7 +77,7 @@ export function DiscoveredJobRow({
       <TableCell>
         <div className="flex items-center gap-2">
           <MapPin className="h-4 w-4 text-muted-foreground" />
-          {job.Location?.label || "N/A"}
+          {job.Location?.label || t("shared.notAvailable")}
           {job.workplaceType && (
             <Badge variant="outline" className="text-xs">
               {getWorkplaceTypeLabel(job.workplaceType, job.workplaceType)}
@@ -86,7 +89,7 @@ export function DiscoveredJobRow({
         {prerankPercent != null ? (
           <span
             className="font-mono text-sm text-muted-foreground"
-            title="Internal lexical relevance score (not an AI match)"
+            title={t("discovered.row.prerankTitle")}
           >
             {prerankPercent}%
           </span>
@@ -109,9 +112,7 @@ export function DiscoveredJobRow({
             onClick={() => onAnalyze(job.id)}
             disabled={isLoading || runInProgress}
             title={
-              runInProgress
-                ? "A run is in progress. Wait until it completes."
-                : undefined
+              runInProgress ? t("discovered.row.runInProgress") : undefined
             }
           >
             {isLoading ? (
@@ -119,7 +120,7 @@ export function DiscoveredJobRow({
             ) : (
               <>
                 <Sparkles className="h-3.5 w-3.5 mr-1" />
-                Analyze
+                {t("discovered.row.analyze")}
               </>
             )}
           </Button>
@@ -127,14 +128,13 @@ export function DiscoveredJobRow({
       </TableCell>
       <TableCell>
         <StatusBadge
-          label={
-            DISCOVERY_STATUSES.find((s) => s.value === job.discoveryStatus)
-              ?.label ?? job.discoveryStatus
-          }
+          label={label("discoveryStatus", { value: job.discoveryStatus })}
           color={getDiscoveryStatusBadgeColor(job.discoveryStatus)}
         />
       </TableCell>
-      <TableCell>{format(new Date(job.discoveredAt), "MMM d, yyyy")}</TableCell>
+      <TableCell>
+        {formatDate(new Date(job.discoveredAt), DATE_PATTERNS.date)}
+      </TableCell>
       <TableCell className="text-right">
         {job.discoveryStatus === "new" && (
           <div className="flex justify-end gap-2">

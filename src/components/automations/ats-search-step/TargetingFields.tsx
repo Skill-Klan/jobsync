@@ -9,6 +9,7 @@ import { getAllJobLocations } from "@/actions/jobLocation.actions";
 import { createLocation } from "@/actions/job.actions";
 import { EntityStringChipInput } from "./EntityStringChipInput";
 import type { AtsConfigValue } from "./types";
+import { useTranslations } from "@/i18n/client";
 
 interface TargetingFieldsProps {
   value: AtsConfigValue;
@@ -16,6 +17,7 @@ interface TargetingFieldsProps {
 }
 
 export function TargetingFields({ value, onChange }: TargetingFieldsProps) {
+  const t = useTranslations("automations");
   // Without target titles or keywords there is no signal to rank jobs against,
   // so the relevance floor drops everything and nothing is saved.
   const noSignal =
@@ -25,10 +27,14 @@ export function TargetingFields({ value, onChange }: TargetingFieldsProps) {
   return (
     <>
       <EntityStringChipInput
-        label="Target job titles"
-        placeholder="e.g., Frontend Engineer"
-        noun="job title"
-        description="Optional. Listings whose title matches rank higher."
+        label={t("search.targeting.titles.label")}
+        placeholder={t("search.targeting.titles.placeholder")}
+        texts={{
+          search: t("search.targeting.titles.search"),
+          empty: t("search.targeting.titles.empty"),
+          createFailed: t("search.targeting.titles.createFailed"),
+        }}
+        description={t("search.targeting.titles.hint")}
         values={value.targetTitles ?? []}
         onChange={(next) => onChange({ ...value, targetTitles: next })}
         loadOptions={async () => {
@@ -42,10 +48,14 @@ export function TargetingFields({ value, onChange }: TargetingFieldsProps) {
       />
 
       <EntityStringChipInput
-        label="Keywords / skills"
-        placeholder="e.g., React"
-        noun="keyword"
-        description="Optional. Matched against title and description."
+        label={t("search.targeting.keywords.label")}
+        placeholder={t("search.targeting.keywords.placeholder")}
+        texts={{
+          search: t("search.targeting.keywords.search"),
+          empty: t("search.targeting.keywords.empty"),
+          createFailed: t("search.targeting.keywords.createFailed"),
+        }}
+        description={t("search.targeting.keywords.hint")}
         values={value.keywords ?? []}
         onChange={(next) => onChange({ ...value, keywords: next })}
         loadOptions={async () => {
@@ -61,19 +71,19 @@ export function TargetingFields({ value, onChange }: TargetingFieldsProps) {
       {noSignal && (
         <div className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-400">
           <TriangleAlert className="h-4 w-4 mt-0.5 shrink-0" />
-          <span>
-            Add at least one target title or keyword. Without them there is
-            nothing to rank jobs against, so this automation will save no
-            listings.
-          </span>
+          <span>{t("search.targeting.noSignal")}</span>
         </div>
       )}
 
       <EntityStringChipInput
-        label="Locations"
-        placeholder="e.g., Calgary, Seattle"
-        noun="location"
-        description="Optional. Used only to filter results when the toggle below is on (not part of ranking)."
+        label={t("shared.locations")}
+        placeholder={t("search.targeting.locations.placeholder")}
+        texts={{
+          search: t("search.targeting.locations.search"),
+          empty: t("search.targeting.locations.empty"),
+          createFailed: t("search.targeting.locations.createFailed"),
+        }}
+        description={t("search.targeting.locations.hint")}
         values={value.locations ?? []}
         onChange={(next) => onChange({ ...value, locations: next })}
         loadOptions={async () => {
@@ -88,10 +98,9 @@ export function TargetingFields({ value, onChange }: TargetingFieldsProps) {
 
       <div className="flex items-start justify-between gap-4 rounded-lg border p-3">
         <div className="space-y-1">
-          <Label>Only show jobs in these locations</Label>
+          <Label>{t("search.targeting.strictLabel")}</Label>
           <p className="text-sm text-muted-foreground">
-            When on, jobs matching none of your locations are dropped before
-            ranking. Remote roles always pass.
+            {t("search.targeting.strictHint")}
           </p>
         </div>
         <Switch

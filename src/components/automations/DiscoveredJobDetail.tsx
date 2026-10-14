@@ -34,6 +34,7 @@ import { MatchDetails } from "./MatchDetails";
 import { PrerankBreakdown } from "./PrerankBreakdown";
 import { TipTapContentViewer } from "@/components/TipTapContentViewer";
 import { CircularScore } from "@/components/CircularScore";
+import { useLabel, useTranslations } from "@/i18n/client";
 
 interface DiscoveredJobDetailProps {
   job: DiscoveredJob | null;
@@ -50,6 +51,8 @@ export function DiscoveredJobDetail({
   onOpenChange,
   onRefresh,
 }: DiscoveredJobDetailProps) {
+  const t = useTranslations("automations");
+  const label = useLabel();
   const [loadingAction, setLoadingAction] = useState<
     "accept" | "dismiss" | "analyze" | null
   >(null);
@@ -63,14 +66,17 @@ export function DiscoveredJobDetail({
     try {
       const result = await analyzeDiscoveredJob(job.id);
       if (result.success) {
-        toastSuccess("AI match score is ready.", "Match analyzed");
+        toastSuccess(
+          t("discovered.toasts.analyzed"),
+          t("discovered.toasts.analyzedTitle"),
+        );
         onOpenChange(false);
         onRefresh();
       } else {
         toastError(result.message);
       }
     } catch {
-      toastError("Failed to analyze job");
+      toastError(t("discovered.toasts.analyzeFailed"));
     } finally {
       setLoadingAction(null);
     }
@@ -81,14 +87,17 @@ export function DiscoveredJobDetail({
     try {
       const result = await acceptDiscoveredJob(job.id);
       if (result.success) {
-        toastSuccess("The job has been added to your tracked jobs.", "Job accepted");
+        toastSuccess(
+          t("discovered.toasts.accepted"),
+          t("discovered.toasts.acceptedTitle"),
+        );
         onOpenChange(false);
         onRefresh();
       } else {
         toastError(result.message);
       }
     } catch {
-      toastError("Failed to accept job");
+      toastError(t("discovered.toasts.acceptFailed"));
     } finally {
       setLoadingAction(null);
     }
@@ -99,14 +108,14 @@ export function DiscoveredJobDetail({
     try {
       const result = await dismissDiscoveredJob(job.id);
       if (result.success) {
-        toastSuccess("Job dismissed");
+        toastSuccess(t("discovered.toasts.dismissed"));
         onOpenChange(false);
         onRefresh();
       } else {
         toastError(result.message);
       }
     } catch {
-      toastError("Failed to dismiss job");
+      toastError(t("discovered.toasts.dismissFailed"));
     } finally {
       setLoadingAction(null);
     }
@@ -126,7 +135,7 @@ export function DiscoveredJobDetail({
                 </span>
                 <span className="flex items-start gap-1">
                   <MapPin className="h-4 w-4 shrink-0 mt-0.5" />
-                  {job.Location?.label || "N/A"}
+                  {job.Location?.label || t("shared.notAvailable")}
                 </span>
                 {job.workplaceType && (
                   <Badge variant="outline">
@@ -139,7 +148,9 @@ export function DiscoveredJobDetail({
               job.matchScore != null && (
                 <div className="flex flex-col items-center gap-1 shrink-0">
                   <CircularScore score={job.matchScore} size="md" />
-                  <span className="text-xs text-muted-foreground">AI Match</span>
+                  <span className="text-xs text-muted-foreground">
+                    {t("discovered.detail.aiMatch")}
+                  </span>
                 </div>
               )
             ) : (
@@ -154,7 +165,7 @@ export function DiscoveredJobDetail({
                 ) : (
                   <Sparkles className="h-4 w-4 mr-2" />
                 )}
-                Analyze match
+                {t("discovered.detail.analyzeMatch")}
               </Button>
             )}
           </div>
@@ -164,7 +175,9 @@ export function DiscoveredJobDetail({
           <div className="space-y-4 pr-4">
             {job.jobUrl && (
               <div>
-                <span className="font-semibold mr-2">Job URL:</span>
+                <span className="font-semibold mr-2">
+                  {t("discovered.detail.jobUrl")}
+                </span>
                 <a
                   href={formatUrl(job.jobUrl)}
                   target="_blank"
@@ -176,10 +189,12 @@ export function DiscoveredJobDetail({
             )}
 
             <div className="flex items-center gap-4">
-              <Badge variant="outline">{job.discoveryStatus}</Badge>
+              <Badge variant="outline">
+                {label("discoveryStatus", { value: job.discoveryStatus })}
+              </Badge>
               {job.automation && (
                 <span className="text-sm text-muted-foreground">
-                  from {job.automation.name}
+                  {t("discovered.detail.from", { name: job.automation.name })}
                 </span>
               )}
             </div>
@@ -192,7 +207,9 @@ export function DiscoveredJobDetail({
             )}
 
             <div>
-              <h4 className="font-medium mb-2">Description</h4>
+              <h4 className="font-medium mb-2">
+                {t("discovered.detail.description")}
+              </h4>
               <div className="text-sm text-muted-foreground">
                 <TipTapContentViewer content={job.description ?? ""} />
               </div>
@@ -214,7 +231,7 @@ export function DiscoveredJobDetail({
               ) : (
                 <X className="h-4 w-4 mr-2" />
               )}
-              Dismiss
+              {t("discovered.detail.dismiss")}
             </Button>
             <Button onClick={handleAccept} disabled={loadingAction !== null}>
               {loadingAction === "accept" ? (
@@ -222,7 +239,7 @@ export function DiscoveredJobDetail({
               ) : (
                 <Check className="h-4 w-4 mr-2" />
               )}
-              Accept
+              {t("discovered.detail.accept")}
             </Button>
           </DialogFooter>
         )}

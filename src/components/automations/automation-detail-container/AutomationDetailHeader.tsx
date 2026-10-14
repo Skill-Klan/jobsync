@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { AutomationWithResume } from "@/models/automation.model";
+import { useTranslations } from "@/i18n/client";
 
 interface AutomationDetailHeaderProps {
   automation: AutomationWithResume;
@@ -46,6 +47,8 @@ export function AutomationDetailHeader({
   onAbort,
   onRunNow,
 }: AutomationDetailHeaderProps) {
+  const t = useTranslations("automations");
+  const { keywords, location } = automation;
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
       <div className="flex flex-1 min-w-0 items-center gap-4">
@@ -59,15 +62,14 @@ export function AutomationDetailHeader({
           {retired && (
             <p className="flex items-center gap-2 text-amber-600 text-sm">
               <AlertTriangle className="h-4 w-4 shrink-0" />
-              The {automation.jobBoard} job board was removed and no longer
-              runs. Delete this automation.
+              {t("detail.header.retired", { board: automation.jobBoard })}
             </p>
           )}
-          {(automation.keywords || automation.location) && (
+          {(keywords || location) && (
             <p className="text-muted-foreground">
-              {[automation.keywords, automation.location]
-                .filter(Boolean)
-                .join(" in ")}
+              {keywords && location
+                ? t("detail.header.keywordsIn", { keywords, location })
+                : keywords || location}
             </p>
           )}
         </div>
@@ -79,7 +81,7 @@ export function AutomationDetailHeader({
         {!retired && (
           <Button variant="outline" onClick={onEdit}>
             <Pencil className="h-4 w-4 mr-2" />
-            Edit
+            {t("lifecycle.edit")}
           </Button>
         )}
         <Button
@@ -88,7 +90,7 @@ export function AutomationDetailHeader({
           onClick={onDelete}
         >
           <Trash2 className="h-4 w-4 mr-2" />
-          Delete
+          {t("shared.delete")}
         </Button>
         {!retired && (
           <Button
@@ -103,7 +105,9 @@ export function AutomationDetailHeader({
             ) : (
               <Play className="h-4 w-4 mr-2" />
             )}
-            {automation.status === "active" ? "Pause" : "Resume"}
+            {automation.status === "active"
+              ? t("lifecycle.pause")
+              : t("lifecycle.resume")}
           </Button>
         )}
         {retired ? null : runActive ? (
@@ -113,7 +117,7 @@ export function AutomationDetailHeader({
             disabled={aborting}
           >
             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            {aborting ? "Aborting…" : "Abort Run"}
+            {aborting ? t("detail.header.aborting") : t("detail.header.abortRun")}
           </Button>
         ) : (
           <Button
@@ -123,13 +127,11 @@ export function AutomationDetailHeader({
               resumeMissing || automation.status === "paused" || jobsBusy
             }
             title={
-              jobsBusy
-                ? "Wait for the in-progress job analysis to finish"
-                : undefined
+              jobsBusy ? t("detail.header.waitAnalysis") : undefined
             }
           >
             <PlayCircle className="h-4 w-4 mr-2" />
-            Run Now
+            {t("detail.header.runNow")}
           </Button>
         )}
       </div>

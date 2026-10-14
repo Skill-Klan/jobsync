@@ -26,6 +26,7 @@ import { PROVIDER_META } from "./types";
 import { useAtsCompanySearch } from "./useAtsCompanySearch";
 import { useWatchedBoards } from "./useWatchedBoards";
 import { JobBoardUrlAdd } from "@/components/JobBoardUrlAdd";
+import { useTranslations } from "@/i18n/client";
 
 interface CompanyPickerProps {
   provider: JobBoard;
@@ -42,6 +43,7 @@ export function CompanyPicker({
   onAddMany,
   onRemove,
 }: CompanyPickerProps) {
+  const t = useTranslations("automations");
   const meta = PROVIDER_META[provider] ?? PROVIDER_META.greenhouse;
   const {
     query,
@@ -64,7 +66,10 @@ export function CompanyPicker({
     const skipped = onAddMany(watched);
     if (skipped > 0) {
       toastInfo(
-        `Added what fits — ${skipped} skipped at the ${APP_CONSTANTS.ATS_MAX_COMPANIES}-company limit.`,
+        t("search.companies.skipped", {
+          skipped,
+          max: APP_CONSTANTS.ATS_MAX_COMPANIES,
+        }),
       );
     }
   };
@@ -81,14 +86,14 @@ export function CompanyPicker({
     <div className="space-y-2">
       <Label className="flex items-center justify-between">
         <span>
-          {meta.label} Companies{" "}
+          {t("search.companies.label", { provider: meta.label })}{" "}
           <span className="font-normal text-muted-foreground">
             ({companies.length}/{APP_CONSTANTS.ATS_MAX_COMPANIES})
           </span>
         </span>
         {totalCount !== null && totalCount > 0 && (
           <span className="text-xs font-normal text-muted-foreground">
-            {totalCount} available
+            {t("search.companies.available", { count: totalCount })}
           </span>
         )}
       </Label>
@@ -105,8 +110,12 @@ export function CompanyPicker({
             disabled={atLimit}
           >
             {atLimit
-              ? `Max ${APP_CONSTANTS.ATS_MAX_COMPANIES} companies reached`
-              : `Search companies (e.g., ${meta.searchExample})`}
+              ? t("search.companies.maxReached", {
+                  max: APP_CONSTANTS.ATS_MAX_COMPANIES,
+                })
+              : t("search.companies.searchButton", {
+                  example: meta.searchExample,
+                })}
             {isSearching ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
@@ -120,7 +129,7 @@ export function CompanyPicker({
         >
           <Command shouldFilter={false}>
             <CommandInput
-              placeholder="Search or browse companies..."
+              placeholder={t("search.companies.searchPlaceholder")}
               value={query}
               onValueChange={handleQueryChange}
             />
@@ -129,7 +138,9 @@ export function CompanyPicker({
             {watched.length > 0 && (
               <div className="flex items-center justify-between border-b px-3 py-1.5">
                 <span className="text-xs text-muted-foreground">
-                  {watched.length} watched on this board
+                  {t("search.companies.watchedCount", {
+                    count: watched.length,
+                  })}
                 </span>
                 <button
                   type="button"
@@ -137,7 +148,7 @@ export function CompanyPicker({
                   onClick={addAllWatched}
                   className="text-xs text-primary hover:underline disabled:opacity-50"
                 >
-                  Add all watched
+                  {t("search.companies.addAllWatched")}
                 </button>
               </div>
             )}
@@ -145,16 +156,20 @@ export function CompanyPicker({
               {isSearching && results.length === 0 && (
                 <div className="flex items-center gap-2 p-3 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Searching...
+                  {t("search.companies.searching")}
                 </div>
               )}
               {!isSearching && results.length === 0 && (
                 <CommandEmpty>
-                  No matches. Try &quot;Add by URL&quot; below.
+                  {t("search.companies.noMatches")}
                 </CommandEmpty>
               )}
               {watched.length > 0 && (
-                <CommandGroup heading={`Watched (${watched.length})`}>
+                <CommandGroup
+                  heading={t("search.companies.watchedGroup", {
+                    count: watched.length,
+                  })}
+                >
                   {watchedOnly.map((c) => {
                     const selected = companies.some(
                       (sel) => sel.token === c.token,
@@ -207,8 +222,8 @@ export function CompanyPicker({
                         href={companyBoardUrl(provider, c)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        aria-label={`Open ${c.name} job board`}
-                        title="Open job board"
+                        aria-label={t("shared.openBoard", { name: c.name })}
+                        title={t("shared.openBoardTitle")}
                         onClick={(e) => e.stopPropagation()}
                         onPointerDown={(e) => e.stopPropagation()}
                         className="ml-auto text-muted-foreground hover:text-foreground"
@@ -222,7 +237,7 @@ export function CompanyPicker({
               {isSearching && results.length > 0 && (
                 <div className="flex items-center justify-center gap-2 p-2 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Loading more...
+                  {t("search.companies.loadingMore")}
                 </div>
               )}
             </CommandList>
@@ -245,13 +260,12 @@ export function CompanyPicker({
 
       <JobBoardUrlAdd
         provider={provider}
-        placeholder={meta.urlHint}
+        placeholder={t(`search.companies.urlHint.${provider}`)}
         disabled={atLimit}
         onResolved={onAdd}
       />
       <p className="text-sm text-muted-foreground">
-        Select {meta.label} companies to monitor their job boards for new
-        openings.
+        {t("search.companies.hint", { provider: meta.label })}
       </p>
     </div>
   );

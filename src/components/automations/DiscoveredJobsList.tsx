@@ -17,6 +17,7 @@ import { useJobsInfiniteScroll } from "./discovered-jobs-list/useJobsInfiniteScr
 import { DiscoveredJobsHeader } from "./discovered-jobs-list/DiscoveredJobsHeader";
 import { DiscoveredJobRow } from "./discovered-jobs-list/DiscoveredJobRow";
 import { ClearJobsDialog } from "./discovered-jobs-list/ClearJobsDialog";
+import { useTranslations } from "@/i18n/client";
 
 interface DiscoveredJobsListProps {
   jobs: DiscoveredJob[];
@@ -58,6 +59,7 @@ export function DiscoveredJobsList({
   runInProgress = false,
   onBusyChange,
 }: DiscoveredJobsListProps) {
+  const t = useTranslations("automations");
   const [clearOpen, setClearOpen] = useState(false);
   const [clearIncludeNew, setClearIncludeNew] = useState(false);
 
@@ -89,9 +91,9 @@ export function DiscoveredJobsList({
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12">
           <Briefcase className="h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium">No discovered jobs</h3>
+          <h3 className="text-lg font-medium">{t("discovered.emptyTitle")}</h3>
           <p className="text-muted-foreground text-center mt-2">
-            Jobs discovered by automations will appear here.
+            {t("discovered.emptyBody")}
           </p>
         </CardContent>
       </Card>
@@ -115,9 +117,11 @@ export function DiscoveredJobsList({
         {jobs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Briefcase className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium">No jobs match this filter</h3>
+            <h3 className="text-lg font-medium">
+              {t("discovered.noMatchTitle")}
+            </h3>
             <p className="text-muted-foreground mt-2">
-              Try selecting a different status above.
+              {t("discovered.noMatchBody")}
             </p>
           </div>
         ) : (
@@ -125,14 +129,20 @@ export function DiscoveredJobsList({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Job</TableHead>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead className="text-center">Pre-rank</TableHead>
-                  <TableHead className="text-center">Match</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Discovered</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t("discovered.columns.job")}</TableHead>
+                  <TableHead>{t("discovered.columns.company")}</TableHead>
+                  <TableHead>{t("discovered.columns.location")}</TableHead>
+                  <TableHead className="text-center">
+                    {t("discovered.columns.prerank")}
+                  </TableHead>
+                  <TableHead className="text-center">
+                    {t("discovered.columns.match")}
+                  </TableHead>
+                  <TableHead>{t("discovered.columns.status")}</TableHead>
+                  <TableHead>{t("discovered.columns.discovered")}</TableHead>
+                  <TableHead className="text-right">
+                    {t("discovered.columns.actions")}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

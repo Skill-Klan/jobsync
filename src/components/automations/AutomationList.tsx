@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { format } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +42,8 @@ import {
 } from "@/actions/automation.actions";
 import { APP_CONSTANTS } from "@/lib/constants";
 import Link from "next/link";
+import { useFormatDate, useTranslations } from "@/i18n/client";
+import { AUTOMATION_DATE_PATTERNS } from "./datePatterns";
 
 interface AutomationListProps {
   automations: AutomationWithResume[];
@@ -55,6 +56,8 @@ export function AutomationList({
   onEdit,
   onRefresh,
 }: AutomationListProps) {
+  const t = useTranslations("automations");
+  const formatDate = useFormatDate();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
@@ -65,7 +68,7 @@ export function AutomationList({
     setLoadingAction(null);
 
     if (result.success) {
-      toastSuccess("Automation paused");
+      toastSuccess(t("lifecycle.paused"));
       onRefresh();
     } else {
       toastError(result.message);
@@ -78,7 +81,7 @@ export function AutomationList({
     setLoadingAction(null);
 
     if (result.success) {
-      toastSuccess("Automation resumed");
+      toastSuccess(t("lifecycle.resumed"));
       onRefresh();
     } else {
       toastError(result.message);
@@ -94,7 +97,7 @@ export function AutomationList({
     setDeleteId(null);
 
     if (result.success) {
-      toastSuccess("Automation deleted");
+      toastSuccess(t("lifecycle.deleted"));
       onRefresh();
     } else {
       toastError(result.message);
@@ -106,10 +109,9 @@ export function AutomationList({
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12">
           <Zap className="h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium">No automations yet</h3>
+          <h3 className="text-lg font-medium">{t("list.emptyTitle")}</h3>
           <p className="text-muted-foreground text-center mt-2">
-            Create your first automation to start discovering jobs
-            automatically.
+            {t("list.emptyBody")}
           </p>
         </CardContent>
       </Card>
@@ -158,14 +160,14 @@ export function AutomationList({
                     {automation.jobBoard}
                   </Badge>
                   {retired ? (
-                    <Badge variant="destructive">Retired</Badge>
+                    <Badge variant="destructive">{t("list.retired")}</Badge>
                   ) : (
                     <Badge
                       variant={
                         automation.status === "active" ? "default" : "secondary"
                       }
                     >
-                      {automation.status}
+                      {t(`status.${automation.status}`)}
                     </Badge>
                   )}
                 </div>
@@ -173,17 +175,14 @@ export function AutomationList({
                 {retired && (
                   <div className="flex items-center gap-2 text-amber-600 text-sm">
                     <AlertTriangle className="h-4 w-4 shrink-0" />
-                    <span>
-                      This job board was removed and no longer runs. Delete this
-                      automation.
-                    </span>
+                    <span>{t("list.retiredWarning")}</span>
                   </div>
                 )}
 
                 {!retired && resumeMissing && (
                   <div className="flex items-center gap-2 text-amber-600 text-sm">
                     <AlertTriangle className="h-4 w-4" />
-                    <span>Resume missing - select a new one</span>
+                    <span>{t("list.resumeMissing")}</span>
                   </div>
                 )}
 
@@ -197,47 +196,53 @@ export function AutomationList({
                       ))}
                       {atsCompanies.length > 3 && (
                         <Badge variant="secondary">
-                          +{atsCompanies.length - 3} more
+                          {t("list.moreCompanies", {
+                            count: atsCompanies.length - 3,
+                          })}
                         </Badge>
                       )}
                     </div>
                     <div className="flex flex-wrap gap-x-6 gap-y-1">
                       <span>
                         <span className="font-medium text-foreground">
-                          Titles:
+                          {t("list.titles")}
                         </span>{" "}
-                        {atsTitles.length ? atsTitles.join(", ") : "Not set"}
+                        {atsTitles.length
+                          ? atsTitles.join(", ")
+                          : t("list.notSet")}
                       </span>
                       <span>
                         <span className="font-medium text-foreground">
-                          Keywords:
+                          {t("list.keywords")}
                         </span>{" "}
-                        {atsKeywords.length ? atsKeywords.join(", ") : "Any"}
+                        {atsKeywords.length
+                          ? atsKeywords.join(", ")
+                          : t("shared.any")}
                       </span>
                       <span>
                         <span className="font-medium text-foreground">
-                          Location:
+                          {t("list.location")}
                         </span>{" "}
                         {atsLocations.length
                           ? atsLocations.join(", ")
-                          : "Any location"}
+                          : t("shared.anyLocation")}
                       </span>
                       <span>
                         <span className="font-medium text-foreground">
-                          Analyzed/run:
+                          {t("list.analyzedPerRun")}
                         </span>{" "}
                         {atsTopK}
                       </span>
                       <span>
                         <span className="font-medium text-foreground">
-                          Extra listings:
+                          {t("list.extraListings")}
                         </span>{" "}
-                        {atsSaveUnanalyzed ? "on" : "off"}
+                        {atsSaveUnanalyzed ? t("list.on") : t("list.off")}
                       </span>
                       {automation.resume && (
                         <span>
                           <span className="font-medium text-foreground">
-                            Resume:
+                            {t("list.resume")}
                           </span>{" "}
                           {automation.resume.title}
                         </span>
@@ -250,29 +255,39 @@ export function AutomationList({
                   <div className="flex items-center gap-1">
                     <Clock className="h-4 w-4" />
                     <span>
-                      {automation.scheduleHour.toString().padStart(2, "0")}:00
-                      daily
+                      {t("shared.daily", {
+                        hour: automation.scheduleHour
+                          .toString()
+                          .padStart(2, "0"),
+                      })}
                     </span>
                   </div>
                   <div className="flex items-center gap-1">
                     <FileText className="h-4 w-4" />
-                    <span>{automation.matchThreshold}% threshold</span>
+                    <span>
+                      {t("list.threshold", { value: automation.matchThreshold })}
+                    </span>
                   </div>
                   {!retired &&
                     automation.nextRunAt &&
                     automation.status === "active" && (
                       <span className="text-xs">
-                        Next:{" "}
-                        {format(
-                          new Date(automation.nextRunAt),
-                          "MMM d, h:mm a",
-                        )}
+                        {t("list.next", {
+                          date: formatDate(
+                            new Date(automation.nextRunAt),
+                            AUTOMATION_DATE_PATTERNS.dayTime,
+                          ),
+                        })}
                       </span>
                     )}
                   {automation.lastRunAt && (
                     <span className="text-xs">
-                      Last:{" "}
-                      {format(new Date(automation.lastRunAt), "MMM d, h:mm a")}
+                      {t("list.last", {
+                        date: formatDate(
+                          new Date(automation.lastRunAt),
+                          AUTOMATION_DATE_PATTERNS.dayTime,
+                        ),
+                      })}
                     </span>
                   )}
                 </div>
@@ -291,7 +306,7 @@ export function AutomationList({
                         onClick={() => handlePause(automation.id)}
                       >
                         <Pause className="h-4 w-4 mr-2" />
-                        Pause
+                        {t("lifecycle.pause")}
                       </DropdownMenuItem>
                     ) : (
                       <DropdownMenuItem
@@ -299,14 +314,14 @@ export function AutomationList({
                         disabled={resumeMissing}
                       >
                         <Play className="h-4 w-4 mr-2" />
-                        Resume
+                        {t("lifecycle.resume")}
                       </DropdownMenuItem>
                     ))}
                   {!retired && (
                     <>
                       <DropdownMenuItem onClick={() => onEdit(automation)}>
                         <Pencil className="h-4 w-4 mr-2" />
-                        Edit
+                        {t("lifecycle.edit")}
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                     </>
@@ -316,7 +331,7 @@ export function AutomationList({
                     onClick={() => setDeleteId(automation.id)}
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
+                    {t("shared.delete")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -328,21 +343,21 @@ export function AutomationList({
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Automation</AlertDialogTitle>
+            <AlertDialogTitle>{t("lifecycle.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this automation? This action
-              cannot be undone. Discovered jobs will remain but lose their
-              automation reference.
+              {t("lifecycle.deleteDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>
+              {t("shared.cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isDeleting}
               className="bg-destructive-bg text-destructive-foreground hover:bg-destructive-bg/90"
             >
-              {isDeleting ? "Deleting..." : "Delete"}
+              {isDeleting ? t("lifecycle.deleting") : t("shared.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

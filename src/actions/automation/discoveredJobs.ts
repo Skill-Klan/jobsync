@@ -8,6 +8,7 @@ import type {
 } from "@/models/automation.model";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { formatError } from "./shared";
+import { getTranslations } from "@/i18n/server";
 
 export async function getDiscoveredJobs(options?: {
   automationId?: string;
@@ -23,6 +24,7 @@ export async function getDiscoveredJobs(options?: {
   statusCounts?: { new: number; dismissed: number; accepted: number };
   message?: string;
 }> {
+  const t = await getTranslations("automations");
   try {
     const user = await requireUser();
 
@@ -93,7 +95,7 @@ export async function getDiscoveredJobs(options?: {
       statusCounts,
     };
   } catch (error) {
-    return formatError(error, "Failed to get discovered jobs");
+    return formatError(error, t("errors.jobsFailed"));
   }
 }
 
@@ -102,6 +104,7 @@ export async function getDiscoveredJobById(id: string): Promise<{
   data?: DiscoveredJob & { parsedMatchData: object | null };
   message?: string;
 }> {
+  const t = await getTranslations("automations");
   try {
     const user = await requireUser();
 
@@ -122,7 +125,7 @@ export async function getDiscoveredJobById(id: string): Promise<{
     });
 
     if (!job) {
-      return { success: false, message: "Discovered job not found" };
+      return { success: false, message: t("errors.jobNotFound") };
     }
 
     let parsedMatchData = null;
@@ -142,7 +145,7 @@ export async function getDiscoveredJobById(id: string): Promise<{
       },
     };
   } catch (error) {
-    return formatError(error, "Failed to get discovered job");
+    return formatError(error, t("errors.jobFailed"));
   }
 }
 
@@ -154,6 +157,7 @@ async function setDiscoveredJobStatus(
   data?: DiscoveredJob;
   message?: string;
 }> {
+  const t = await getTranslations("automations");
   try {
     const user = await requireUser();
 
@@ -166,7 +170,7 @@ async function setDiscoveredJobStatus(
     });
 
     if (!job) {
-      return { success: false, message: "Discovered job not found" };
+      return { success: false, message: t("errors.jobNotFound") };
     }
 
     const updated = await db.job.update({
@@ -189,7 +193,9 @@ async function setDiscoveredJobStatus(
   } catch (error) {
     return formatError(
       error,
-      `Failed to ${status === "accepted" ? "accept" : "dismiss"} discovered job`,
+      status === "accepted"
+        ? t("errors.acceptFailed")
+        : t("errors.dismissFailed"),
     );
   }
 }
@@ -209,6 +215,7 @@ export async function clearDiscoveredJobs(options: {
   automationId: string;
   includeNew?: boolean;
 }): Promise<{ success: boolean; deleted?: number; message?: string }> {
+  const t = await getTranslations("automations");
   try {
     const user = await requireUser();
 
@@ -227,7 +234,7 @@ export async function clearDiscoveredJobs(options: {
 
     return { success: true, deleted: result.count };
   } catch (error) {
-    return formatError(error, "Failed to clear discovered jobs");
+    return formatError(error, t("errors.clearFailed"));
   }
 }
 
