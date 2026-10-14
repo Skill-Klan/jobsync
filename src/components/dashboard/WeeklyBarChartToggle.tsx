@@ -13,9 +13,16 @@ import {
   OTHER_SLICE_ID,
   otherBucketLabel,
 } from "./jobsActivityChart";
+import { useLocale, useTranslations } from "@/i18n/client";
 
 type ChartConfig = {
+  // Stable id: what the chart is ("Jobs" / "Activities") and what the chosen
+  // tab is remembered by. The label and title are translated.
+  id?: string;
   label: string;
+  title?: string;
+  // Tooltip name of the plain "value" series (jobs chart).
+  valueLabel?: string;
   data: any[];
   keys: string[];
   groupMode?: "grouped" | "stacked";
@@ -30,14 +37,17 @@ type WeeklyBarChartToggleProps = {
 export default function WeeklyBarChartToggle({
   charts,
 }: WeeklyBarChartToggleProps) {
+  const t = useTranslations("dashboard");
+  const locale = useLocale();
   const [activeIndex, selectTab] = usePersistedTabIndex(
     APP_CONSTANTS.DASHBOARD_WEEKLY_CHART_STORAGE_KEY,
-    charts.map((chart) => chart.label),
+    charts.map((chart) => chart.id ?? chart.label),
   );
   const [isSmallScreen, setIsSmallScreen] = useState(false);
   const { resolvedTheme } = useTheme();
   const theme = resolvedTheme === "light" ? "light" : "dark";
   const current = charts[activeIndex];
+  const isActivities = (current.id ?? current.label) === "Activities";
   const activityColors = useMemo(
     () =>
       new Map(
@@ -69,7 +79,7 @@ export default function WeeklyBarChartToggle({
     return newItem;
   });
 
-  const isJobsChart = current.label !== "Activities";
+  const isJobsChart = !isActivities;
   const maxValue = isJobsChart
     ? Math.max(
         0,
@@ -85,7 +95,7 @@ export default function WeeklyBarChartToggle({
     : undefined;
 
   const totalHours =
-    current.label === "Activities"
+    isActivities
       ? roundedData.reduce(
           (sum, item) =>
             sum +
@@ -104,11 +114,13 @@ export default function WeeklyBarChartToggle({
         <div className="flex items-center justify-between gap-2 mb-1 mt-3">
           <div className="flex items-baseline gap-2 min-w-0">
             <CardTitle className="text-lg text-green-600 truncate">
-              Weekly {current.label}
+              {current.title ?? `Weekly ${current.label}`}
             </CardTitle>
             {totalHours !== null && (
               <span className="text-sm text-muted-foreground whitespace-nowrap">
-                {totalHours.toFixed(1)} hrs
+                {t("weekly.totalHours", {
+                  hours: totalHours.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
+                })}
               </span>
             )}
           </div>
@@ -118,7 +130,7 @@ export default function WeeklyBarChartToggle({
           >
             {charts.map((chart, index) => (
               <button
-                key={chart.label}
+                key={chart.id ?? chart.label}
                 onClick={() => selectTab(index)}
                 className={cn(
                   "px-2 py-1 transition-colors",
@@ -157,9 +169,7 @@ export default function WeeklyBarChartToggle({
             }
             enableTotals={current.groupMode === "stacked" ? true : false}
             valueFormat={(value) =>
-              current.label === "Activities"
-                ? value.toFixed(1)
-                : value.toFixed(0)
+              isActivities ? value.toFixed(1) : value.toFixed(0)
             }
             theme={{
               text: {
@@ -228,6 +238,8 @@ export default function WeeklyBarChartToggle({
                 />
                 {current.tooltipLabel
                   ? current.tooltipLabel(String(id))
+                  : String(id) === "value" && current.valueLabel
+                    ? current.valueLabel
                   : String(id) === "value"
                     ? current.axisLeftLegend
                         .toLowerCase()
@@ -237,20 +249,20 @@ export default function WeeklyBarChartToggle({
                     : String(id) === OTHER_SLICE_ID
                       ? otherBucketLabel(
                           current.keys.filter((key) => key !== OTHER_SLICE_ID),
+                          { label: t("other.label"), types: t("other.types") },
                         )
                       : String(id)}
                 :{" "}
                 <strong>
-                  {current.label === "Activities"
-                    ? Number(value).toFixed(1)
-                    : value}
+                  {isActivities ? Number(value).toFixed(1) : value}
                 </strong>
                 {String(id) === OTHER_SLICE_ID &&
                   (data as any).otherBreakdown?.length > 0 &&
                   (data as any).otherBreakdown.map(
                     (activity: { label: string; hours: number }) => (
                       <div key={activity.label}>
-                        {activity.label} – {activity.hours}h
+                        {activity.label} –{" "}
+                        {t("jobsActivity.hours", { hours: activity.hours })}
                       </div>
                     ),
                   )}

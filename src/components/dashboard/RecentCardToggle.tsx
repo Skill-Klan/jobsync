@@ -12,8 +12,9 @@ import { useActivity } from "@/context/ActivityContext";
 import { useActivitySwitchConfirm } from "@/hooks/useActivitySwitchConfirm";
 import { JobResponse } from "@/models/job.model";
 import { CirclePlay } from "lucide-react";
-import { format } from "date-fns";
 import Link from "next/link";
+import { useFormatDate, useLabel, useTranslations } from "@/i18n/client";
+import type { DatePattern } from "@/i18n/dates";
 
 type RecentActivity = {
   id: string;
@@ -28,18 +29,19 @@ interface RecentCardToggleProps {
   activities: RecentActivity[];
 }
 
-function formatDuration(totalMinutes: number) {
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  return totalMinutes === 0 ? "0min" : `${hours}h ${minutes}min`;
-}
+// Day headers: "Wed October 14, 2026" / "ср, 14 жовтня 2026".
+const GROUP_DATE: DatePattern = { en: "EEE MMMM d, yyyy", uk: "EEEEEE, d MMMM yyyy" };
 
-function groupJobsByDate(jobs: JobResponse[]) {
+type Text = {
+  date: (d: Date) => string;
+  noDate: string;
+  inProgress: string;
+};
+
+function groupJobsByDate(jobs: JobResponse[], text: Text) {
   const groups = new Map<string, JobResponse[]>();
   for (const job of jobs) {
-    const key = job.appliedDate
-      ? format(job.appliedDate, "EEE MMMM d, yyyy")
-      : "No date";
+    const key = job.appliedDate ? text.date(job.appliedDate) : text.noDate;
     const existing = groups.get(key);
     if (existing) {
       existing.push(job);
@@ -50,12 +52,10 @@ function groupJobsByDate(jobs: JobResponse[]) {
   return Array.from(groups.entries());
 }
 
-function groupActivitiesByDate(activities: RecentActivity[]) {
+function groupActivitiesByDate(activities: RecentActivity[], text: Text) {
   const groups = new Map<string, RecentActivity[]>();
   for (const activity of activities) {
-    const key = activity.endTime
-      ? format(activity.endTime, "EEE MMMM d, yyyy")
-      : "In progress";
+    const key = activity.endTime ? text.date(activity.endTime) : text.inProgress;
     const existing = groups.get(key);
     if (existing) {
       existing.push(activity);
@@ -66,6 +66,7 @@ function groupActivitiesByDate(activities: RecentActivity[]) {
   return Array.from(groups.entries());
 }
 
+// Stable tab ids — what the chosen tab is remembered by; labels are translated.
 const tabs = ["Jobs", "Activities"] as const;
 
 export default function RecentCardToggle({
@@ -76,6 +77,22 @@ export default function RecentCardToggle({
     APP_CONSTANTS.DASHBOARD_RECENT_CARD_STORAGE_KEY,
     tabs,
   );
+  const t = useTranslations("dashboard");
+  const formatDate = useFormatDate();
+  const label = useLabel();
+  const text: Text = {
+    date: (d) => formatDate(d, GROUP_DATE),
+    noDate: t("recent.noDate"),
+    inProgress: t("recent.inProgress"),
+  };
+  const tabLabel = { Jobs: t("recent.jobsTab"), Activities: t("recent.activitiesTab") };
+  const formatDuration = (totalMinutes: number) =>
+    totalMinutes === 0
+      ? t("recent.durationZero")
+      : t("recent.duration", {
+          hours: Math.floor(totalMinutes / 60),
+          minutes: totalMinutes % 60,
+        });
   const { startActivity } = useActivity();
   const { requestStart, confirmDialog } = useActivitySwitchConfirm();
 
@@ -84,7 +101,7 @@ export default function RecentCardToggle({
       <CardHeader>
         <div className="flex items-center justify-between gap-2">
           <CardTitle className="text-lg text-green-600 min-w-0 truncate">
-            Recent {tabs[activeIndex]}
+            {activeIndex === 0 ? t("recent.jobsTitle") : t("recent.activitiesTitle")}
           </CardTitle>
           <div
             className="flex shrink-0 rounded-md border text-xs"
@@ -103,7 +120,7 @@ export default function RecentCardToggle({
                     : "hover:bg-muted",
                 )}
               >
-                {tab}
+                {tabLabel[tab]}
               </button>
             ))}
           </div>
@@ -111,7 +128,7 @@ export default function RecentCardToggle({
       </CardHeader>
       <CardContent className="grid auto-rows-max gap-6 px-4">
         {activeIndex === 0
-          ? groupJobsByDate(jobs).map(([date, dateJobs]) => (
+          ? groupJobsByDate(jobs, text).map(([date, dateJobs]) => (
               <div key={date} className="grid gap-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   {date}
@@ -121,7 +138,7 @@ export default function RecentCardToggle({
                     <Avatar className="hidden h-8 w-8 sm:flex">
                       <AvatarImage
                         src={job.Company?.logoUrl || "/images/jobsync-logo.svg"}
-                        alt="Avatar"
+                        alt={t("recent.logoAlt")}
                       />
                       <AvatarFallback>JS</AvatarFallback>
                     </Avatar>
@@ -138,7 +155,7 @@ export default function RecentCardToggle({
                     </Link>
                     {job.Status?.label ? (
                       <StatusBadge
-                        label={job.Status.label}
+                        label={label("jobStatus", job.Status)}
                         color={getJobStatusBadgeColor(job.Status.value)}
                         className="ml-auto shrink-0 justify-center text-xs px-1.5 py-0 h-5"
                       />
@@ -147,7 +164,7 @@ export default function RecentCardToggle({
                 ))}
               </div>
             ))
-          : groupActivitiesByDate(activities).map(([date, dateActivities]) => (
+          : groupActivitiesByDate(activities, text).map(([date, dateActivities]) => (
               <div key={date} className="grid gap-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   {date}
@@ -160,7 +177,7 @@ export default function RecentCardToggle({
                       className="relative flex items-center gap-2"
                     >
                       <Button
-                        title="Start Activity"
+                        title={t("recent.startActivity")}
                         data-testid="recent-activity-start-btn"
                         size="icon"
                         variant="ghost"
@@ -176,7 +193,7 @@ export default function RecentCardToggle({
                           {activity.activityName}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {activity.activityType?.label || "Unknown"}
+                          {activity.activityType?.label || t("recent.unknownType")}
                         </p>
                       </div>
                       <div className="ml-auto text-right shrink-0">

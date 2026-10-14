@@ -20,24 +20,16 @@ import {
 } from "@/lib/dailyGoals";
 import { toastError } from "@/lib/toast";
 import { cn } from "@/lib/utils";
+import { useLocale, useTranslations } from "@/i18n/client";
 import type {
   GoalStreaks,
   GoalTargets,
   GoalTargetsByMonth,
 } from "@/models/dailyGoals.model";
 
-// The summary's rings need labels only; targets vary by month
-const RINGS = [
-  { id: GOAL_IDS.JOBS, label: "Jobs applied" },
-  { id: GOAL_IDS.HOURS, label: "Activity" },
-];
-
-const CALENDAR_LABELS = { settings: "Set goals" };
-
-const goalsFor = (targets: GoalTargets): GcGoal[] => [
-  { ...RINGS[0], target: targets.jobs },
-  { ...RINGS[1], target: targets.hours, unit: "h" },
-];
+// The calendar library formats month titles, weekdays and numbers by a BCP 47
+// locale; its own words come in through `labels`.
+const CALENDAR_LOCALE = { uk: "uk-UA", en: "en-US" } as const;
 
 interface DailyGoalsCalendarProps {
   today: string;
@@ -50,6 +42,28 @@ export default function DailyGoalsCalendar({
   initialData,
   initialStreaks,
 }: DailyGoalsCalendarProps) {
+  const t = useTranslations("dashboard");
+  const locale = useLocale();
+  // The summary's rings need labels only; targets vary by month
+  const RINGS = [
+    { id: GOAL_IDS.JOBS, label: t("goals.jobsRing") },
+    { id: GOAL_IDS.HOURS, label: t("goals.activityRing") },
+  ];
+  const goalsFor = (targets: GoalTargets): GcGoal[] => [
+    { ...RINGS[0], target: targets.jobs },
+    { ...RINGS[1], target: targets.hours, unit: t("goals.hoursUnit") },
+  ];
+  const navLabels = {
+    previousMonth: t("goals.previousMonth"),
+    nextMonth: t("goals.nextMonth"),
+  };
+  const summaryText = {
+    currentStreak: t("goals.currentStreak"),
+    bestStreak: t("goals.bestStreak"),
+    bothMet: t("goals.bothMet"),
+    nothingLogged: t("goals.nothingLogged"),
+    days: (count: number) => t("goals.days", { count }),
+  };
   const { minMonth, maxMonth } = goalMonthRange(today);
   const [month, setMonth] = useState(maxMonth);
   // null = the server fetch failed: leave uncached so it shows "—"
@@ -79,10 +93,13 @@ export default function DailyGoalsCalendar({
         today,
         resolveTargets(key, storedTargets ?? {}),
         streaks,
+        summaryText,
       );
     }
     return data;
-  }, [valuesByMonth, storedTargets, streaks, today]);
+    // summaryText follows the locale, which re-renders the page when it changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [valuesByMonth, storedTargets, streaks, today, locale]);
 
   const handleMonthChange = async (next: string) => {
     setMonth(next);
@@ -106,6 +123,7 @@ export default function DailyGoalsCalendar({
     className: cn("daily-goals-calendar p-4", loading && "opacity-60"),
   };
   const monthProps = {
+    locale: CALENDAR_LOCALE[locale === "uk" ? "uk" : "en"],
     today,
     month,
     minMonth,
@@ -116,14 +134,19 @@ export default function DailyGoalsCalendar({
   return (
     <>
       <Card {...cardProps}>
-        <GcMonthSummary rings={RINGS} data={summaries} {...monthProps} />
+        <GcMonthSummary
+          rings={RINGS}
+          data={summaries}
+          labels={{ ...navLabels, goalHit: t("goals.goalHit"), noData: t("goals.noData") }}
+          {...monthProps}
+        />
       </Card>
       <Card {...cardProps}>
         <GcMonthCalendar
           goals={goalsFor(targetsFor(month))}
           values={valuesByMonth[month]}
           legend
-          labels={CALENDAR_LABELS}
+          labels={{ ...navLabels, legend: t("goals.legend"), settings: t("goals.setGoals") }}
           // No button until targets load: the pre-fill would be defaults
           onSettingsClick={
             storedTargets ? () => setDialogOpen(true) : undefined

@@ -11,12 +11,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { GoalTargets } from "@/models/dailyGoals.model";
+import { useTranslations } from "@/i18n/client";
 
 interface GoalRowProps {
   control: Control<GoalTargets>;
   name: keyof GoalTargets;
   label: string;
-  noun: string;
+  // Accessible names of the − and + buttons, already in the user's language.
+  decreaseLabel: string;
+  increaseLabel: string;
   ring: string;
   min: number;
   max: number;
@@ -30,12 +33,14 @@ export default function GoalRow({
   control,
   name,
   label,
-  noun,
+  decreaseLabel,
+  increaseLabel,
   ring,
   min,
   max,
   previous,
 }: GoalRowProps) {
+  const t = useTranslations("dashboard");
   return (
     <FormField
       control={control}
@@ -69,7 +74,7 @@ export default function GoalRow({
                 <FormMessage className="text-xs" />
               ) : changed ? (
                 <span className="text-xs font-medium text-primary">
-                  Was {previous} · now {value}
+                  {t("goals.wasNow", { previous, value })}
                 </span>
               ) : (
                 <span className="text-xs text-muted-foreground">
@@ -82,7 +87,7 @@ export default function GoalRow({
                 type="button"
                 variant="ghost"
                 className="size-11 rounded-none"
-                aria-label={`Fewer ${noun}`}
+                aria-label={decreaseLabel}
                 disabled={value <= min}
                 onClick={() => step(-1)}
               >
@@ -105,7 +110,7 @@ export default function GoalRow({
                 type="button"
                 variant="ghost"
                 className="size-11 rounded-none"
-                aria-label={`More ${noun}`}
+                aria-label={increaseLabel}
                 disabled={value >= max}
                 onClick={() => step(1)}
               >

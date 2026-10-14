@@ -3,7 +3,13 @@ import { getLast7Days } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
 import { OTHER_SLICE_ID } from "@/components/dashboard/jobsActivityChart";
 import { requireUser } from "../shared";
+import { getFormatDate } from "@/i18n/server";
+import type { DatePattern } from "@/i18n/dates";
 import { getLocalDayRange, roundToTenth } from "./shared";
+
+// Bar chart day labels: "Thu, Oct 8" / "чт, 8 жовт." — the small-screen axis
+// keeps the part after ", ".
+const DAY_LABEL: DatePattern = { en: "EEE, MMM d", uk: "EEEEEE, d MMM" };
 
 export const getActivityDataForPeriod = async (): Promise<{
   data: any[];
@@ -11,6 +17,7 @@ export const getActivityDataForPeriod = async (): Promise<{
 }> => {
   try {
     const user = await requireUser();
+    const formatDate = await getFormatDate();
     // Use local time for date range to match grouping and getLast7Days
     const { start: sevenDaysAgo, end: today } = getLocalDayRange(6);
     const activities = await prisma.activity.findMany({
@@ -75,7 +82,7 @@ export const getActivityDataForPeriod = async (): Promise<{
     const data = last7Days.map((dateStr) => {
       const dayTotals: Record<string, number> = groupedData[dateStr] || {};
       const entry: Record<string, any> = {
-        day: format(parseISO(dateStr), "EEE, MMM d"),
+        day: formatDate(parseISO(dateStr), DAY_LABEL),
       };
       for (const label of topLabels) {
         if (dayTotals[label]) entry[label] = dayTotals[label];
@@ -109,6 +116,7 @@ export const getActivityDataForPeriod = async (): Promise<{
 export const getJobsActivityForPeriod = async (): Promise<any | undefined> => {
   try {
     const user = await requireUser();
+    const formatDate = await getFormatDate();
     // Use local time for date range to match grouping and getLast7Days
     const { start: sevenDaysAgo, end: today } = getLocalDayRange(6);
     const jobData = await prisma.job.groupBy({
@@ -139,7 +147,7 @@ export const getJobsActivityForPeriod = async (): Promise<any | undefined> => {
     const last7Days = getLast7Days("yyyy-MM-dd");
     // Map to ensure all dates are represented with a count of 0 if necessary
     const result = last7Days.map((dateStr) => ({
-      day: format(parseISO(dateStr), "EEE, MMM d"),
+      day: formatDate(parseISO(dateStr), DAY_LABEL),
       value: groupedPosts[dateStr] || 0,
     }));
 

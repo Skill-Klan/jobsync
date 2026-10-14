@@ -8,8 +8,10 @@ import { getAllJobLocations } from "@/actions/jobLocation.actions";
 import { getAllContactRoles } from "@/actions/contactRole.actions";
 import type { ContactRole } from "@/models/contact.model";
 import type { Company, JobLocation } from "@/models/job.model";
+import { useTranslations } from "@/i18n/client";
 
 export default function AddContactShortcut() {
+  const t = useTranslations("dashboard");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [locations, setLocations] = useState<JobLocation[]>([]);
@@ -40,7 +42,7 @@ export default function AddContactShortcut() {
         onClick={() => openDialog(true)}
       >
         <Users className="h-3.5 w-3.5 mr-1 shrink-0" />
-        <span className="min-w-0 truncate">Add Contact</span>
+        <span className="min-w-0 truncate">{t("quickActions.addContact")}</span>
       </Button>
       <AddContact
         hideTrigger

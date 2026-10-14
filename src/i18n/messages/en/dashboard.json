@@ -1,1 +1,81 @@
-{}
+{
+  "title": "Dashboard",
+  "quickActions": {
+    "description": "Create new jobs, automations, tasks, activities, questions, and contacts.",
+    "addJob": "Add Job",
+    "addAutomation": "Add Automation",
+    "addTask": "Add Task",
+    "addQuestion": "Add Question",
+    "addActivity": "Add Activity",
+    "addContact": "Add Contact"
+  },
+  "jobsActivity": {
+    "title": "Jobs & Activity",
+    "range7d": "7d",
+    "range30d": "30d",
+    "empty": "No activities recorded",
+    "hours": "{hours}h",
+    "jobs": "{count, plural, one {# job} other {# jobs}}"
+  },
+  "other": {
+    "label": "Other",
+    "types": "Other activity types"
+  },
+  "weekly": {
+    "jobsTab": "Jobs",
+    "activitiesTab": "Activities",
+    "jobsTitle": "Weekly Jobs",
+    "activitiesTitle": "Weekly Activities",
+    "totalHours": "{hours} hrs",
+    "jobsAxis": "JOBS APPLIED",
+    "activitiesAxis": "TIME SPENT (Hours)",
+    "jobsValue": "Jobs Applied"
+  },
+  "recent": {
+    "jobsTab": "Jobs",
+    "activitiesTab": "Activities",
+    "jobsTitle": "Recent Jobs",
+    "activitiesTitle": "Recent Activities",
+    "noDate": "No date",
+    "inProgress": "In progress",
+    "startActivity": "Start Activity",
+    "unknownType": "Unknown",
+    "duration": "{hours}h {minutes}min",
+    "durationZero": "0min",
+    "logoAlt": "Avatar"
+  },
+  "calendar": {
+    "title": "Activity Calendar",
+    "selectYear": "Select year",
+    "jobsApplied": "{count, plural, one {# job applied} other {# jobs applied}}",
+    "activityHours": "{hours, plural, one {# hr activity} other {# hrs activity}}"
+  },
+  "goals": {
+    "jobsRing": "Jobs applied",
+    "activityRing": "Activity",
+    "setGoals": "Set goals",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "goalHit": "Goal hit",
+    "noData": "no data",
+    "legend": "Daily goal",
+    "currentStreak": "Current streak",
+    "bestStreak": "Best streak (12 mo)",
+    "bothMet": "Both goals met",
+    "nothingLogged": "Nothing logged",
+    "days": "{count, plural, one {# day} other {# days}}",
+    "dialogTitle": "Daily goals",
+    "jobsPerDay": "Jobs applied per day",
+    "hoursPerDay": "Activity hours per day",
+    "fewerJobs": "Fewer jobs",
+    "moreJobs": "More jobs",
+    "fewerHours": "Fewer hours",
+    "moreHours": "More hours",
+    "wasNow": "Was {previous} · now {value}",
+    "appliesFrom": "Applies from {month} and carries forward until you change it. Earlier months keep their own targets.",
+    "cancel": "Cancel",
+    "save": "Save goals",
+    "saved": "Daily goals saved.",
+    "hoursUnit": "h"
+  }
+}

@@ -1,1 +1,81 @@
-{}
+{
+  "title": "Головна",
+  "quickActions": {
+    "description": "Додавайте вакансії, автопошук, завдання, активності, питання й контакти.",
+    "addJob": "Додати вакансію",
+    "addAutomation": "Додати автопошук",
+    "addTask": "Додати завдання",
+    "addQuestion": "Додати питання",
+    "addActivity": "Додати активність",
+    "addContact": "Додати контакт"
+  },
+  "jobsActivity": {
+    "title": "Вакансії й активності",
+    "range7d": "7 дн.",
+    "range30d": "30 дн.",
+    "empty": "Активностей ще немає",
+    "hours": "{hours} год",
+    "jobs": "{count, plural, one {# вакансія} few {# вакансії} many {# вакансій} other {# вакансії}}"
+  },
+  "other": {
+    "label": "Інше",
+    "types": "Інші види активностей"
+  },
+  "weekly": {
+    "jobsTab": "Вакансії",
+    "activitiesTab": "Активності",
+    "jobsTitle": "Вакансії за тиждень",
+    "activitiesTitle": "Активності за тиждень",
+    "totalHours": "{hours} год",
+    "jobsAxis": "ВІДГУКІВ НАДІСЛАНО",
+    "activitiesAxis": "ЧАС (ГОДИНИ)",
+    "jobsValue": "Відгуків надіслано"
+  },
+  "recent": {
+    "jobsTab": "Вакансії",
+    "activitiesTab": "Активності",
+    "jobsTitle": "Нещодавні вакансії",
+    "activitiesTitle": "Нещодавні активності",
+    "noDate": "Без дати",
+    "inProgress": "Триває",
+    "startActivity": "Почати активність",
+    "unknownType": "Без типу",
+    "duration": "{hours} год {minutes} хв",
+    "durationZero": "0 хв",
+    "logoAlt": "Логотип компанії"
+  },
+  "calendar": {
+    "title": "Календар активностей",
+    "selectYear": "Оберіть рік",
+    "jobsApplied": "{count, plural, one {# відгук надіслано} few {# відгуки надіслано} many {# відгуків надіслано} other {# відгуку надіслано}}",
+    "activityHours": "{hours, plural, one {# година активності} few {# години активності} many {# годин активності} other {# години активності}}"
+  },
+  "goals": {
+    "jobsRing": "Відгуки",
+    "activityRing": "Активність",
+    "setGoals": "Налаштувати цілі",
+    "previousMonth": "Попередній місяць",
+    "nextMonth": "Наступний місяць",
+    "goalHit": "Ціль виконано",
+    "noData": "немає даних",
+    "legend": "Ціль на день",
+    "currentStreak": "Поточна серія",
+    "bestStreak": "Найкраща серія (12 міс.)",
+    "bothMet": "Обидві цілі виконано",
+    "nothingLogged": "Нічого не записано",
+    "days": "{count, plural, one {# день} few {# дні} many {# днів} other {# дня}}",
+    "dialogTitle": "Цілі на день",
+    "jobsPerDay": "Відгуків на день",
+    "hoursPerDay": "Годин активності на день",
+    "fewerJobs": "Менше відгуків",
+    "moreJobs": "Більше відгуків",
+    "fewerHours": "Менше годин",
+    "moreHours": "Більше годин",
+    "wasNow": "Було {previous} · тепер {value}",
+    "appliesFrom": "Діє з {month} і далі, доки ви не зміните. Попередні місяці зберігають свої цілі.",
+    "cancel": "Скасувати",
+    "save": "Зберегти цілі",
+    "saved": "Цілі збережено.",
+    "hoursUnit": "год"
+  }
+}

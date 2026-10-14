@@ -19,12 +19,15 @@ import RecentCardToggle from "@/components/dashboard/RecentCardToggle";
 import WeeklyBarChartToggle from "@/components/dashboard/WeeklyBarChartToggle";
 
 import { Metadata } from "next";
+import { getTranslations } from "@/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Dashboard",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("dashboard");
+  return { title: t("title") };
+}
 
 export default async function Dashboard() {
+  const t = await getTranslations("dashboard");
   // Server-computed so server and browser agree on "today"
   const today = format(new Date(), "yyyy-MM-dd");
   const [
@@ -57,25 +60,30 @@ export default async function Dashboard() {
             <JobsApplied />
             <JobsActivityCard
               data={[
-                { label: "7d", summary: summary7Days },
-                { label: "30d", summary: summary30Days },
+                { id: "7d", label: t("jobsActivity.range7d"), summary: summary7Days },
+                { id: "30d", label: t("jobsActivity.range30d"), summary: summary30Days },
               ]}
             />
           </div>
           <WeeklyBarChartToggle
             charts={[
               {
-                label: "Jobs",
+                id: "Jobs",
+                label: t("weekly.jobsTab"),
+                title: t("weekly.jobsTitle"),
                 data: weeklyData,
                 keys: ["value"],
-                axisLeftLegend: "JOBS APPLIED",
+                axisLeftLegend: t("weekly.jobsAxis"),
+                valueLabel: t("weekly.jobsValue"),
               },
               {
-                label: "Activities",
+                id: "Activities",
+                label: t("weekly.activitiesTab"),
+                title: t("weekly.activitiesTitle"),
                 data: activitiesData.data,
                 keys: activitiesData.keys,
                 groupMode: "stacked",
-                axisLeftLegend: "TIME SPENT (Hours)",
+                axisLeftLegend: t("weekly.activitiesAxis"),
               },
             ]}
           />
