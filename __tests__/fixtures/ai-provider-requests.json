@@ -1,0 +1,84 @@
+{
+  "openai": {
+    "url": "https://api.openai.com/v1/responses",
+    "method": "POST",
+    "headers": {
+      "authorization": "Bearer test-key-not-real",
+      "content-type": "application/json"
+    },
+    "body": {
+      "model": "gpt-4o-mini",
+      "input": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "input_text",
+              "text": "ping"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "openrouter": {
+    "url": "https://openrouter.ai/api/v1/responses",
+    "method": "POST",
+    "headers": {
+      "authorization": "Bearer test-key-not-real",
+      "content-type": "application/json"
+    },
+    "body": {
+      "model": "openai/gpt-4o-mini",
+      "input": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "input_text",
+              "text": "ping"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "deepseek": {
+    "url": "https://api.deepseek.com/chat/completions",
+    "method": "POST",
+    "headers": {
+      "authorization": "Bearer test-key-not-real",
+      "content-type": "application/json"
+    },
+    "body": {
+      "model": "deepseek-chat",
+      "messages": [
+        {
+          "role": "user",
+          "content": "ping"
+        }
+      ]
+    }
+  },
+  "gemini": {
+    "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+    "method": "POST",
+    "headers": {
+      "content-type": "application/json",
+      "x-goog-api-key": "test-key-not-real"
+    },
+    "body": {
+      "generationConfig": {},
+      "contents": [
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "ping"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
