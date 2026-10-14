@@ -1,4 +1,6 @@
+"use client";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "@/i18n/client";
 
 // The only way into SkillKlan Job: from the SkillKlan cabinet. There is no
 // password here to type, so the page just sends people back to the cabinet —
@@ -10,30 +12,25 @@ export default function CabinetSignin({
   cabinetUrl: string | null;
   failed: boolean;
 }) {
+  const t = useTranslations("auth");
   return (
     <div className="mx-auto w-full max-w-md px-4">
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold tracking-tight">SkillKlan Job</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Track your job search, powered by AI
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">{t("tagline")}</p>
       </div>
 
       <div className="rounded-xl border bg-card p-6 shadow-xs">
-        <h2 className="text-xl font-semibold">Sign in from your cabinet</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Open your SkillKlan cabinet and press “SkillKlan Job” — you will be
-          signed in here automatically.
-        </p>
+        <h2 className="text-xl font-semibold">{t("heading")}</h2>
+        <p className="mt-2 text-sm text-muted-foreground">{t("body")}</p>
         {failed && (
           <p role="alert" className="mt-4 text-sm text-destructive">
-            That sign-in did not go through. Open SkillKlan Job from your
-            cabinet again.
+            {t("failed")}
           </p>
         )}
         {cabinetUrl && (
           <Button asChild className="mt-6 w-full">
-            <a href={cabinetUrl}>Open the cabinet</a>
+            <a href={cabinetUrl}>{t("openCabinet")}</a>
           </Button>
         )}
       </div>

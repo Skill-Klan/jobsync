@@ -1,3 +1,4 @@
+import type { Messages } from "@/i18n/messages";
 import {
   LayoutDashboard,
   SquareCheckBig,
@@ -368,56 +369,62 @@ export const DISCOVERY_STATUSES = [
   { label: "Dismissed", value: "dismissed" },
 ] as const;
 
-export const SIDEBAR_LINKS = [
+// Labels are message keys (`nav.*`, src/i18n/messages) — the menu speaks the user's language.
+export const SIDEBAR_LINKS: {
+  icon: typeof LayoutDashboard;
+  route: string;
+  labelKey: keyof Messages["nav"];
+  devOnly?: boolean;
+}[] = [
   {
     icon: LayoutDashboard,
     route: "/dashboard",
-    label: "Dashboard",
+    labelKey: "dashboard",
   },
   {
     icon: BriefcaseBusiness,
     route: "/dashboard/myjobs",
-    label: "Jobs",
+    labelKey: "jobs",
   },
   {
     icon: CalendarCheck,
     route: "/dashboard/interviews",
-    label: "Interviews",
+    labelKey: "interviews",
   },
   {
     icon: Zap,
     route: "/dashboard/automations",
-    label: "Automations",
+    labelKey: "automations",
   },
   {
     icon: SquareCheckBig,
     route: "/dashboard/tasks",
-    label: "Tasks",
+    labelKey: "tasks",
   },
   {
     icon: CalendarClock,
     route: "/dashboard/activities",
-    label: "Activities",
+    labelKey: "activities",
   },
   {
     icon: BookOpen,
     route: "/dashboard/questions",
-    label: "Questions",
+    labelKey: "questions",
   },
   {
     icon: UserRound,
     route: "/dashboard/profile",
-    label: "Profile",
+    labelKey: "profile",
   },
   {
     icon: Sheet,
     route: "/dashboard/admin",
-    label: "Library",
+    labelKey: "library",
   },
   {
     icon: Wrench,
     route: "/dashboard/developer",
-    label: "Developer Options",
+    labelKey: "developer",
     devOnly: true,
   },
 ];

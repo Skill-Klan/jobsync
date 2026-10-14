@@ -13,19 +13,22 @@ import { SIDEBAR_LINKS } from "@/lib/constants";
 import SidebarToggle from "./SidebarToggle";
 import { AgentChatTrigger } from "./AgentChatTrigger";
 import { NotificationBell } from "./notifications/NotificationBell";
+import { getTranslations } from "@/i18n/server";
 
 async function Header() {
+  const t = await getTranslations("nav");
+  const tc = await getTranslations("common");
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
       <Sheet>
         <SheetTrigger asChild>
           <Button size="icon" variant="outline" className="sm:hidden">
             <PanelLeft className="h-5 w-5" />
-            <span className="sr-only">Toggle Menu</span>
+            <span className="sr-only">{tc("toggleMenu")}</span>
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="sm:max-w-xs">
-          <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+          <SheetTitle className="sr-only">{tc("navigationMenu")}</SheetTitle>
           <nav className="grid gap-6 text-lg font-medium">
             <SheetClose asChild>
               <Link
@@ -42,13 +45,13 @@ async function Header() {
                 return null;
               }
               return (
-                <SheetClose asChild key={item.label}>
+                <SheetClose asChild key={item.route}>
                   <Link
                     href={item.route}
                     className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
                   >
                     <item.icon className="h-5 w-5" />
-                    {item.label}
+                    {t(item.labelKey)}
                   </Link>
                 </SheetClose>
               );
@@ -58,7 +61,7 @@ async function Header() {
       </Sheet>
       <SidebarToggle />
       <h1 className="font-semibold">
-        SkillKlan Job<span className="hidden sm:inline"> - Job Search Assistant</span>
+        SkillKlan Job<span className="hidden sm:inline"> - {tc("appSubtitle")}</span>
       </h1>
       <div className="relative ml-auto flex-1 md:grow-0">
         {/* <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />

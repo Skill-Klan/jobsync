@@ -16,6 +16,8 @@ import UserAvatar from "./UserAvatar";
 import { SupportDialog } from "./SupportDialog";
 import { useNotifications } from "@/context/NotificationContext";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "@/i18n/client";
+import { LocaleSwitcher } from "./LocaleSwitcher";
 
 interface ProfileDropdownProps {
   user: any;
@@ -30,9 +32,10 @@ export function ProfileDropdown({
 }: ProfileDropdownProps) {
   const [supportDialogOpen, setSupportDialogOpen] = useState(false);
   const { summary } = useNotifications();
+  const t = useTranslations("account");
   // Name first: people signed in from the cabinet carry a placeholder email
   // (src/skillklan/cabinetUser.ts) that means nothing to them.
-  const label = user?.name || user?.email || "My Account";
+  const label = user?.name || user?.email || t("myAccount");
 
   return (
     <>
@@ -42,7 +45,7 @@ export function ProfileDropdown({
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                aria-label="User menu"
+                aria-label={t("userMenu")}
                 className="navlink h-10 w-full text-muted-foreground hover:text-foreground"
               >
                 <span className="relative flex h-full w-14 shrink-0 items-center justify-center">
@@ -57,7 +60,7 @@ export function ProfileDropdown({
                           summary.unreadErrors > 0 ? "bg-destructive" : "bg-primary"
                         )}
                       />
-                      <span className="sr-only">Unread notifications</span>
+                      <span className="sr-only">{t("unreadNotifications")}</span>
                     </>
                   )}
                 </span>
@@ -80,13 +83,13 @@ export function ProfileDropdown({
           <DropdownMenuItem asChild>
             <Link href="/dashboard/settings" className="cursor-pointer">
               <Settings className="w-5 mr-2" />
-              Settings
+              {t("settings")}
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link href="/dashboard/notifications" className="cursor-pointer">
               <Bell className="w-5 mr-2" />
-              <span className="flex-1">Notifications</span>
+              <span className="flex-1">{t("notifications")}</span>
               {summary.unread > 0 && (
                 <span
                   className={cn(
@@ -104,14 +107,16 @@ export function ProfileDropdown({
             className="cursor-pointer"
           >
             <Info className="w-5 mr-2" />
-            Support
+            {t("support")}
           </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <LocaleSwitcher />
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild className="cursor-pointer">
             <form action={signOutAction}>
               <button type="submit" className="flex w-full items-center">
                 <PowerIcon className="w-5 mr-2" />
-                <div className="hidden md:block">Logout</div>
+                <div className="hidden md:block">{t("logout")}</div>
               </button>
             </form>
           </DropdownMenuItem>
