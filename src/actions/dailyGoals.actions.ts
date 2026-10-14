@@ -20,6 +20,7 @@ import {
   type GoalTargetsByMonth,
 } from "@/models/dailyGoals.model";
 import { defaultUserSettings } from "@/models/userSettings.model";
+import { getTranslations } from "@/i18n/server";
 
 type Failure = { success: false; message: string };
 
@@ -83,12 +84,13 @@ async function computeStreaks(
 export async function getGoalStreaks(): Promise<
   { success: true; data: GoalStreaks } | Failure
 > {
+  const t = await getTranslations("activities");
   try {
     const user = await requireUser();
     const targets = await loadTargetsOrDefaults(user.id);
     return { success: true, data: await computeStreaks(user.id, targets) };
   } catch (error) {
-    const { message } = handleError(error, "Failed to load goal streaks.");
+    const { message } = handleError(error, t("goals.streaksFailed"));
     return { success: false, message };
   }
 }
@@ -96,6 +98,7 @@ export async function getGoalStreaks(): Promise<
 export async function getDailyGoalValues(
   month: string,
 ): Promise<{ success: true; data: GoalMonthData } | Failure> {
+  const t = await getTranslations("activities");
   try {
     const user = await requireUser();
     const { minMonth, maxMonth } = goalMonthRange(
@@ -103,7 +106,7 @@ export async function getDailyGoalValues(
     );
     // Client-supplied: only the browsable window is queryable
     if (!isValidMonth(month) || month < minMonth || month > maxMonth) {
-      return { success: false, message: "Invalid month." };
+      return { success: false, message: t("goals.invalidMonth") };
     }
     const { start, end } = monthBounds(month);
     const [values, targets] = await Promise.all([
@@ -113,7 +116,7 @@ export async function getDailyGoalValues(
     return { success: true, data: { values, targets } };
   } catch (error) {
     // handleError types success as boolean; re-wrap to keep the union narrow.
-    const { message } = handleError(error, "Failed to load daily goals.");
+    const { message } = handleError(error, t("goals.loadFailed"));
     return { success: false, message };
   }
 }
@@ -129,13 +132,14 @@ export async function updateGoalTargets(input: {
     }
   | Failure
 > {
+  const t = await getTranslations("activities");
   try {
     const user = await requireUser();
     // Only the current month is writable, so history can't be edited
     if (input.month !== format(new Date(), "yyyy-MM")) {
       return {
         success: false,
-        message: "The month has changed — reload the page.",
+        message: t("goals.monthChanged"),
       };
     }
     const parsed = GoalTargetsSchema.safeParse({
@@ -143,7 +147,7 @@ export async function updateGoalTargets(input: {
       hours: input.hours,
     });
     if (!parsed.success) {
-      return { success: false, message: "Invalid goal targets." };
+      return { success: false, message: t("goals.invalidTargets") };
     }
     const { settings, targets: current } = await loadStoredTargets(user.id);
     const targets = { ...current, [input.month]: parsed.data };
@@ -166,7 +170,7 @@ export async function updateGoalTargets(input: {
     }
     return { success: true, data: { targets, streaks } };
   } catch (error) {
-    const { message } = handleError(error, "Failed to save daily goals.");
+    const { message } = handleError(error, t("goals.saveFailed"));
     return { success: false, message };
   }
 }

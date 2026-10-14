@@ -1,1 +1,104 @@
-{}
+{
+  "status": {
+    "in-progress": "У роботі",
+    "complete": "Виконано",
+    "needs-attention": "Потребує уваги",
+    "cancelled": "Скасовано"
+  },
+  "sidebar": {
+    "expand": "Розгорнути панель",
+    "collapse": "Згорнути панель",
+    "title": "Типи активностей",
+    "all": "Усі"
+  },
+  "toolbar": {
+    "title": "Завдання",
+    "recordsLabel": "завдань",
+    "searchPlaceholder": "Пошук завдань…",
+    "status": "Статус",
+    "filterByStatus": "Фільтр за статусом",
+    "groupBy": "Групувати",
+    "groupNone": "Без групування",
+    "groupCreatedDate": "Дата створення",
+    "groupDueDate": "Термін",
+    "groupUpdatedDate": "Дата оновлення",
+    "groupActivityType": "Тип активності",
+    "newTask": "Нове завдання"
+  },
+  "container": {
+    "deleted": "Завдання видалено",
+    "activityStarted": "Активність розпочато із завдання",
+    "statusUpdated": "Статус завдання оновлено",
+    "empty": "Завдань не знайдено. Створіть перше завдання, щоб почати."
+  },
+  "table": {
+    "markInProgress": "Повернути в роботу",
+    "markComplete": "Позначити як виконане",
+    "edit": "Редагувати «{title}»",
+    "hasDescription": "Є опис",
+    "toggleMenu": "Відкрити меню",
+    "actions": "Дії",
+    "editTask": "Редагувати завдання",
+    "changeStatus": "Змінити статус",
+    "startActivity": "Почати активність",
+    "delete": "Видалити",
+    "complete": "Виконано",
+    "title": "Назва",
+    "activityType": "Тип активності",
+    "status": "Статус",
+    "priority": "Пріоритет",
+    "percentComplete": "% виконання",
+    "noActivityType": "Без типу активності",
+    "today": "Сьогодні",
+    "deleteItem": "це завдання",
+    "dueGroup": {
+      "overdue": "Прострочені",
+      "today": "Сьогодні",
+      "tomorrow": "Завтра",
+      "thisWeek": "Цього тижня",
+      "later": "Пізніше",
+      "noDueDate": "Без терміну"
+    }
+  },
+  "form": {
+    "addTitle": "Додати завдання",
+    "editTitle": "Редагувати завдання",
+    "addDescription": "Додайте нове завдання, щоб відстежувати його.",
+    "editDescription": "Оновіть дані завдання.",
+    "created": "Завдання створено",
+    "updated": "Завдання оновлено",
+    "title": "Назва *",
+    "titlePlaceholder": "Введіть назву завдання",
+    "activityType": "Тип активності",
+    "status": "Статус",
+    "statusSelect": "статус завдання",
+    "priority": "Пріоритет: {value}",
+    "priorityLow": "Низький (0)",
+    "priorityHigh": "Високий (10)",
+    "percentComplete": "% виконання: {value}%",
+    "dueDate": "Термін",
+    "createdAt": "Створено",
+    "updatedAt": "Оновлено",
+    "notAvailable": "Немає",
+    "description": "Опис",
+    "cancel": "Скасувати",
+    "saveAndStart": "Зберегти й почати",
+    "save": "Зберегти"
+  },
+  "errors": {
+    "notFound": "Завдання не знайдено",
+    "startFromClosed": "Не можна почати активність із виконаного чи скасованого завдання.",
+    "startWithoutType": "Щоб почати активність, укажіть у завданні тип активності.",
+    "activityRunning": "У вас уже йде активність. Зупиніть її, перш ніж почати нову.",
+    "startFailed": "Не вдалося почати активність із завдання.",
+    "createFailed": "Не вдалося створити завдання.",
+    "idRequired": "Для оновлення потрібен ідентифікатор завдання",
+    "updateFailed": "Не вдалося оновити завдання.",
+    "statusFailed": "Не вдалося оновити статус завдання.",
+    "linkedActivity": "Не можна видалити завдання, до якого привʼязана активність. Спершу видаліть активність.",
+    "deleteFailed": "Не вдалося видалити завдання.",
+    "listFailed": "Не вдалося завантажити список завдань.",
+    "fetchFailed": "Не вдалося завантажити завдання.",
+    "countsFailed": "Не вдалося завантажити типи активностей із кількістю завдань."
+  }
+}

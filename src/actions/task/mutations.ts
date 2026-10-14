@@ -5,6 +5,7 @@ import { TaskStatus } from "@/models/task.model";
 import { AddTaskFormSchema } from "@/models/addTaskForm.schema";
 import { z } from "zod";
 import { requireUser } from "../shared";
+import { getTranslations } from "@/i18n/server";
 
 const WITH_ACTIVITY_TYPE = {
   activityType: true,
@@ -13,6 +14,7 @@ const WITH_ACTIVITY_TYPE = {
 export const createTask = async (
   data: z.infer<typeof AddTaskFormSchema>
 ): Promise<any | undefined> => {
+  const t = await getTranslations("tasks");
   try {
     const user = await requireUser();
 
@@ -34,7 +36,7 @@ export const createTask = async (
 
     return { success: true, data: task };
   } catch (error) {
-    const msg = "Failed to create task.";
+    const msg = t("errors.createFailed");
     return handleError(error, msg);
   }
 };
@@ -42,11 +44,12 @@ export const createTask = async (
 export const updateTask = async (
   data: z.infer<typeof AddTaskFormSchema>
 ): Promise<any | undefined> => {
+  const t = await getTranslations("tasks");
   try {
     const user = await requireUser();
 
     if (!data.id) {
-      throw new Error("Task ID is required for update");
+      throw new Error(t("errors.idRequired"));
     }
 
     const validatedData = AddTaskFormSchema.parse(data);
@@ -70,7 +73,7 @@ export const updateTask = async (
 
     return { success: true, data: task };
   } catch (error) {
-    const msg = "Failed to update task.";
+    const msg = t("errors.updateFailed");
     return handleError(error, msg);
   }
 };
@@ -79,6 +82,7 @@ export const updateTaskStatus = async (
   taskId: string,
   status: TaskStatus
 ): Promise<any | undefined> => {
+  const t = await getTranslations("tasks");
   try {
     const user = await requireUser();
 
@@ -95,7 +99,7 @@ export const updateTaskStatus = async (
 
     return { success: true, data: task };
   } catch (error) {
-    const msg = "Failed to update task status.";
+    const msg = t("errors.statusFailed");
     return handleError(error, msg);
   }
 };
@@ -103,6 +107,7 @@ export const updateTaskStatus = async (
 export const deleteTaskById = async (
   taskId: string
 ): Promise<any | undefined> => {
+  const t = await getTranslations("tasks");
   try {
     const user = await requireUser();
 
@@ -119,14 +124,13 @@ export const deleteTaskById = async (
     });
 
     if (!task) {
-      return { success: false, message: "Task not found" };
+      return { success: false, message: t("errors.notFound") };
     }
 
     if (task.activities.length > 0) {
       return {
         success: false,
-        message:
-          "Cannot delete task with linked activity. Remove the activity first.",
+        message: t("errors.linkedActivity"),
       };
     }
 
@@ -139,7 +143,7 @@ export const deleteTaskById = async (
 
     return { success: true };
   } catch (error) {
-    const msg = "Failed to delete task.";
+    const msg = t("errors.deleteFailed");
     return handleError(error, msg);
   }
 };

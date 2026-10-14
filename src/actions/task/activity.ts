@@ -2,10 +2,12 @@
 import prisma from "@/lib/db";
 import { handleError } from "@/lib/utils";
 import { requireUser } from "../shared";
+import { getTranslations } from "@/i18n/server";
 
 export const startActivityFromTask = async (
   taskId: string
 ): Promise<any | undefined> => {
+  const t = await getTranslations("tasks");
   try {
     const user = await requireUser();
 
@@ -17,20 +19,20 @@ export const startActivityFromTask = async (
     });
 
     if (!task) {
-      return { success: false, message: "Task not found" };
+      return { success: false, message: t("errors.notFound") };
     }
 
     if (task.status === "complete" || task.status === "cancelled") {
       return {
         success: false,
-        message: "Cannot start an activity from a completed or cancelled task.",
+        message: t("errors.startFromClosed"),
       };
     }
 
     if (!task.activityTypeId) {
       return {
         success: false,
-        message: "Task must have an activity type to start an activity.",
+        message: t("errors.startWithoutType"),
       };
     }
 
@@ -44,8 +46,7 @@ export const startActivityFromTask = async (
     if (runningActivity) {
       return {
         success: false,
-        message:
-          "You already have a running activity. Please stop it before starting a new one.",
+        message: t("errors.activityRunning"),
       };
     }
 
@@ -67,7 +68,7 @@ export const startActivityFromTask = async (
 
     return { success: true, data: activity };
   } catch (error) {
-    const msg = "Failed to start activity from task.";
+    const msg = t("errors.startFailed");
     return handleError(error, msg);
   }
 };

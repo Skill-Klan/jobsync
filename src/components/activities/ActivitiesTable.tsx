@@ -17,12 +17,18 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
-import { format } from "date-fns";
 import { Activity, ActivityType } from "@/models/activity.model";
 import { deleteActivityById } from "@/actions/activity.actions";
 import { toastSuccess, toastError } from "@/lib/toast";
 import { useMemo, useState } from "react";
 import { DeleteAlertDialog } from "../DeleteAlertDialog";
+import { useFormatDate, useTranslations } from "@/i18n/client";
+import type { DatePattern } from "@/i18n/dates";
+
+// English keeps the locale tokens the table always used ("PP" = Oct 14, 2026,
+// "p" = 3:05 PM); Ukrainian puts the day first and uses 24-hour time.
+const DAY: DatePattern = { en: "PP", uk: "d MMM yyyy" };
+const TIME: DatePattern = { en: "p", uk: "HH:mm" };
 
 interface ActivitiesTableProps {
   activities: Activity[];
@@ -35,12 +41,16 @@ function ActivitiesTable({
   reloadActivities,
   onStartActivity,
 }: ActivitiesTableProps) {
+  const t = useTranslations("activities");
+  const formatDate = useFormatDate();
   const [alertOpen, setAlertOpen] = useState(false);
   const [activityIdToDelete, setActivityIdToDelete] = useState<string>();
   const calculateDuration = (totalMinutes: number) => {
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
-    return totalMinutes === 0 ? "0min" : `${hours}h ${minutes}min`;
+    return totalMinutes === 0
+      ? t("table.durationZero")
+      : t("table.durationValue", { hours, minutes });
   };
 
   const onDeleteActivity = useMemo(
@@ -54,7 +64,7 @@ function ActivitiesTable({
   const deleteActivity = async () => {
     const { success, message } = await deleteActivityById(activityIdToDelete!);
     if (success) {
-      toastSuccess(`Activity has been deleted successfully`);
+      toastSuccess(t("table.deleted"));
       reloadActivities();
     } else {
       toastError(message);
@@ -65,22 +75,22 @@ function ActivitiesTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="hidden md:table-cell">Date</TableHead>
-            <TableHead>Activity</TableHead>
+            <TableHead className="hidden md:table-cell">{t("table.date")}</TableHead>
+            <TableHead>{t("table.activity")}</TableHead>
             <TableHead className="whitespace-nowrap">
-              Project
+              {t("table.project")}
               <br />
-              (Activity Type)
+              {t("table.projectHint")}
             </TableHead>
             <TableHead className="hidden md:table-cell whitespace-nowrap">
-              Start Time
+              {t("table.startTime")}
             </TableHead>
             <TableHead className="hidden md:table-cell whitespace-nowrap">
-              End Time
+              {t("table.endTime")}
             </TableHead>
-            <TableHead>Duration</TableHead>
+            <TableHead>{t("table.duration")}</TableHead>
             <TableHead>
-              <span>Actions</span>
+              <span>{t("table.actions")}</span>
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -93,8 +103,8 @@ function ActivitiesTable({
               >
                 <TableCell className="hidden md:table-cell w-[120px]">
                   {activity.startTime
-                    ? format(activity.startTime, "PP")
-                    : "N/A"}
+                    ? formatDate(activity.startTime, DAY)
+                    : t("table.notAvailable")}
                 </TableCell>
                 <TableCell className="font-medium">
                   {activity.activityName}
@@ -103,10 +113,10 @@ function ActivitiesTable({
                   {(activity.activityType as ActivityType)?.label}
                 </TableCell>
                 <TableCell className="hidden md:table-cell whitespace-nowrap">
-                  {format(activity.startTime, "p")}
+                  {formatDate(activity.startTime, TIME)}
                 </TableCell>
                 <TableCell className="hidden md:table-cell whitespace-nowrap">
-                  {format(activity.endTime!, "p")}
+                  {formatDate(activity.endTime!, TIME)}
                 </TableCell>
                 <TableCell>
                   {activity.startTime &&
@@ -123,31 +133,31 @@ function ActivitiesTable({
                           variant="ghost"
                         >
                           <MoreVertical className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
+                          <span className="sr-only">{t("table.toggleMenu")}</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-[200px]">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuLabel>{t("table.actions")}</DropdownMenuLabel>
                         <DropdownMenuGroup>
                           <DropdownMenuItem
                             className="cursor-pointer text-green-600"
                             onClick={() => onStartActivity(activity.id!)}
                           >
                             <CirclePlay className="mr-2 h-4 w-4" />
-                            Start Activity
+                            {t("table.startActivity")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-red-600 cursor-pointer"
                             onClick={() => onDeleteActivity(activity.id!)}
                           >
                             <Trash className="mr-2 h-4 w-4" />
-                            Delete
+                            {t("table.delete")}
                           </DropdownMenuItem>
                         </DropdownMenuGroup>
                       </DropdownMenuContent>
                     </DropdownMenu>
                     <Button
-                      title="Start Activity"
+                      title={t("table.startActivity")}
                       aria-haspopup="true"
                       size="icon"
                       variant="ghost"
@@ -166,7 +176,7 @@ function ActivitiesTable({
         </TableBody>
       </Table>
       <DeleteAlertDialog
-        pageTitle="activity"
+        pageTitle={t("table.deleteItem")}
         open={alertOpen}
         onOpenChange={setAlertOpen}
         onDelete={deleteActivity}

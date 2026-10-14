@@ -7,11 +7,13 @@ import {
   clampBreakMinutes,
   requireUser,
 } from "./shared";
+import { getTranslations } from "@/i18n/server";
 
 export const startBreak = async (
   activityId: string,
   plannedMinutes: number,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("activities");
   try {
     const user = await requireUser();
 
@@ -20,11 +22,11 @@ export const startBreak = async (
     });
 
     if (!activity) {
-      throw new Error("Activity not found");
+      throw new Error(t("errors.notFound"));
     }
 
     if (activity.breakStartedAt) {
-      return { success: false, message: "A break is already in progress." };
+      return { success: false, message: t("errors.breakInProgress") };
     }
 
     const updated = await prisma.activity.update({
@@ -38,7 +40,7 @@ export const startBreak = async (
 
     return { activity: updated, success: true };
   } catch (error) {
-    const msg = "Failed to start break. ";
+    const msg = t("errors.breakStartFailed");
     return handleError(error, msg);
   }
 };
@@ -46,6 +48,7 @@ export const startBreak = async (
 export const endBreak = async (
   activityId: string,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("activities");
   try {
     const user = await requireUser();
 
@@ -55,7 +58,7 @@ export const endBreak = async (
     });
 
     if (!activity) {
-      throw new Error("Activity not found");
+      throw new Error(t("errors.notFound"));
     }
 
     // Resuming twice (two tabs, or a retry) must not double-count.
@@ -76,7 +79,7 @@ export const endBreak = async (
 
     return { activity: updated, success: true };
   } catch (error) {
-    const msg = "Failed to end break. ";
+    const msg = t("errors.breakEndFailed");
     return handleError(error, msg);
   }
 };
@@ -85,6 +88,7 @@ export const updateBreakLength = async (
   activityId: string,
   plannedMinutes: number,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("activities");
   try {
     const user = await requireUser();
 
@@ -93,7 +97,7 @@ export const updateBreakLength = async (
     });
 
     if (!activity?.breakStartedAt) {
-      return { success: false, message: "No break is in progress." };
+      return { success: false, message: t("errors.noBreak") };
     }
 
     const updated = await prisma.activity.update({
@@ -104,7 +108,7 @@ export const updateBreakLength = async (
 
     return { activity: updated, success: true };
   } catch (error) {
-    const msg = "Failed to update break length. ";
+    const msg = t("errors.breakLengthFailed");
     return handleError(error, msg);
   }
 };

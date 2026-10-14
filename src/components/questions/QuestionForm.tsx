@@ -30,6 +30,7 @@ import {
 import { Input } from "../ui/input";
 import TiptapEditor from "../TiptapEditor";
 import { TagInput } from "../myjobs/TagInput";
+import { useTranslations } from "@/i18n/client";
 
 type QuestionFormProps = {
   availableTags: Tag[];
@@ -48,6 +49,7 @@ export function QuestionForm({
   dialogOpen,
   setDialogOpen,
 }: QuestionFormProps) {
+  const t = useTranslations("questions");
   const [isPending, startTransition] = useTransition();
   const [localAvailableTags, setLocalAvailableTags] =
     useState<Tag[]>(availableTags);
@@ -98,7 +100,7 @@ export function QuestionForm({
         : await createQuestion(data);
 
       if (success) {
-        toastSuccess(`Question has been ${editQuestion ? "updated" : "created"} successfully`);
+        toastSuccess(editQuestion ? t("form.updated") : t("form.created"));
         reset();
         setDialogOpen(false);
         resetEditQuestion();
@@ -109,10 +111,10 @@ export function QuestionForm({
     });
   }
 
-  const pageTitle = editQuestion ? "Edit Question" : "Add Question";
+  const pageTitle = editQuestion ? t("form.editTitle") : t("form.addTitle");
   const pageDescription = editQuestion
-    ? "Update this question in your question bank."
-    : "Add a question to your question bank.";
+    ? t("form.editDescription")
+    : t("form.addDescription");
 
   const closeDialog = () => {
     reset();
@@ -140,9 +142,9 @@ export function QuestionForm({
                 name="question"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Question *</FormLabel>
+                    <FormLabel>{t("form.question")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter interview question" {...field} />
+                      <Input placeholder={t("form.questionPlaceholder")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -154,7 +156,7 @@ export function QuestionForm({
                 name="tagIds"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Skill Tags</FormLabel>
+                    <FormLabel>{t("form.tags")}</FormLabel>
                     <FormControl>
                       <TagInput
                         availableTags={localAvailableTags}
@@ -172,7 +174,7 @@ export function QuestionForm({
                 name="answer"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Answer *</FormLabel>
+                    <FormLabel>{t("form.answer")}</FormLabel>
                     <FormControl>
                       <TiptapEditor field={field} />
                     </FormControl>
@@ -188,10 +190,10 @@ export function QuestionForm({
                   className="mt-2 md:mt-0"
                   onClick={closeDialog}
                 >
-                  Cancel
+                  {t("form.cancel")}
                 </Button>
                 <Button type="submit">
-                  Save
+                  {t("form.save")}
                   {isPending && (
                     <Loader className="h-4 w-4 shrink-0 spinner ml-2" />
                   )}

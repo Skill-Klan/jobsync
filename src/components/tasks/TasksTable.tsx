@@ -60,6 +60,8 @@ import {
 } from "@/models/task.model";
 import { DeleteAlertDialog } from "../DeleteAlertDialog";
 import { getDescriptionExcerpt, hasDescription } from "@/lib/tasks/description";
+import { useFormatDate, useTranslations } from "@/i18n/client";
+import { DATE_PATTERNS } from "@/i18n/dates";
 
 type TasksTableProps = {
   tasks: Task[];
@@ -105,35 +107,36 @@ const priorityConfig: Record<
   },
 };
 
+// Keys of `tasks.table.dueGroup`, in display order.
 type DateGroup =
-  | "Overdue"
-  | "Today"
-  | "Tomorrow"
-  | "This Week"
-  | "Later"
-  | "No Due Date";
+  | "overdue"
+  | "today"
+  | "tomorrow"
+  | "thisWeek"
+  | "later"
+  | "noDueDate";
 
 type CreatedDateGroup = string; // Format: "YYYY-MM-DD"
 type UpdatedDateGroup = string; // Format: "YYYY-MM-DD"
 
 function getDateGroup(dueDate: Date | null | undefined): DateGroup {
-  if (!dueDate) return "No Due Date";
+  if (!dueDate) return "noDueDate";
   const date = new Date(dueDate);
-  if (isPast(date) && !isToday(date)) return "Overdue";
-  if (isToday(date)) return "Today";
-  if (isTomorrow(date)) return "Tomorrow";
-  if (isThisWeek(date)) return "This Week";
-  return "Later";
+  if (isPast(date) && !isToday(date)) return "overdue";
+  if (isToday(date)) return "today";
+  if (isTomorrow(date)) return "tomorrow";
+  if (isThisWeek(date)) return "thisWeek";
+  return "later";
 }
 
 function groupTasksByDate(tasks: Task[]): Record<DateGroup, Task[]> {
   const groups: Record<DateGroup, Task[]> = {
-    Overdue: [],
-    Today: [],
-    Tomorrow: [],
-    "This Week": [],
-    Later: [],
-    "No Due Date": [],
+    overdue: [],
+    today: [],
+    tomorrow: [],
+    thisWeek: [],
+    later: [],
+    noDueDate: [],
   };
 
   tasks.forEach((task) => {
@@ -144,11 +147,14 @@ function groupTasksByDate(tasks: Task[]): Record<DateGroup, Task[]> {
   return groups;
 }
 
-function groupTasksByActivityType(tasks: Task[]): Record<string, Task[]> {
+function groupTasksByActivityType(
+  tasks: Task[],
+  noTypeLabel: string,
+): Record<string, Task[]> {
   const groups: Record<string, Task[]> = {};
 
   tasks.forEach((task) => {
-    const key = task.activityType?.label || "No Activity Type";
+    const key = task.activityType?.label || noTypeLabel;
     if (!groups[key]) {
       groups[key] = [];
     }
@@ -200,6 +206,8 @@ function TasksTable({
   onStartActivity,
   groupBy = "none",
 }: TasksTableProps) {
+  const t = useTranslations("tasks");
+  const formatDate = useFormatDate();
   const [alertOpen, setAlertOpen] = useState(false);
   const [taskIdToDelete, setTaskIdToDelete] = useState("");
 
@@ -232,8 +240,8 @@ function TasksTable({
           )}
           aria-label={
             task.status === "complete"
-              ? "Mark as in progress"
-              : "Mark as complete"
+              ? t("table.markInProgress")
+              : t("table.markComplete")
           }
         >
           {task.status === "complete" && <Check className="h-3 w-3" />}
@@ -249,7 +257,7 @@ function TasksTable({
           <button
             onClick={() => editTask(task.id)}
             className="text-left hover:underline cursor-pointer"
-            aria-label={`Edit ${task.title}`}
+            aria-label={t("table.edit", { title: task.title })}
           >
             {task.title}
           </button>
@@ -258,7 +266,7 @@ function TasksTable({
               <TooltipTrigger asChild>
                 <AlignLeft
                   className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
-                  aria-label="Has description"
+                  aria-label={t("table.hasDescription")}
                   data-testid="task-description-indicator"
                 />
               </TooltipTrigger>
@@ -274,7 +282,7 @@ function TasksTable({
       </TableCell>
       <TableCell className="hidden md:table-cell py-1 px-2">
         <StatusBadge
-          label={TASK_STATUSES[task.status]}
+          label={t(`status.${task.status}`)}
           color={TASK_STATUS_BADGE_COLORS[task.status]}
           className="w-[110px] whitespace-nowrap justify-center"
         />
@@ -310,24 +318,24 @@ function TasksTable({
               data-testid="task-actions-menu-btn"
             >
               <MoreVertical className="h-4 w-4" />
-              <span className="sr-only">Toggle menu</span>
+              <span className="sr-only">{t("table.toggleMenu")}</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-[200px]">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuLabel>{t("table.actions")}</DropdownMenuLabel>
             <DropdownMenuGroup>
               <DropdownMenuItem
                 className="cursor-pointer"
                 onClick={() => editTask(task.id)}
               >
                 <Pencil className="mr-2 h-4 w-4" />
-                Edit Task
+                {t("table.editTask")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
                   <Tags className="mr-2 h-4 w-4" />
-                  Change Status
+                  {t("table.changeStatus")}
                 </DropdownMenuSubTrigger>
                 <DropdownMenuPortal>
                   <DropdownMenuSubContent className="p-0">
@@ -339,7 +347,7 @@ function TasksTable({
                           onSelect={() => onChangeTaskStatus(task.id, status)}
                           disabled={status === task.status}
                         >
-                          <span>{TASK_STATUSES[status]}</span>
+                          <span>{t(`status.${status}`)}</span>
                         </DropdownMenuItem>
                       ),
                     )}
@@ -352,7 +360,7 @@ function TasksTable({
                 onClick={() => onStartActivity(task.id)}
               >
                 <CirclePlay className="mr-2 h-4 w-4" />
-                Start Activity
+                {t("table.startActivity")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -360,7 +368,7 @@ function TasksTable({
                 onClick={() => onDeleteTask(task.id)}
               >
                 <Trash className="mr-2 h-4 w-4" />
-                Delete
+                {t("table.delete")}
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>
@@ -368,7 +376,7 @@ function TasksTable({
       </TableCell>
       <TableCell className="hidden sm:table-cell py-1 px-1">
         <Button
-          title="Start Activity"
+          title={t("table.startActivity")}
           aria-haspopup="true"
           size="icon"
           variant="ghost"
@@ -388,22 +396,22 @@ function TasksTable({
     <TableHeader>
       <TableRow>
         <TableHead className="w-[24px] h-9 px-1">
-          <span className="sr-only">Complete</span>
+          <span className="sr-only">{t("table.complete")}</span>
         </TableHead>
-        <TableHead className="h-9 px-2">Title</TableHead>
-        <TableHead className="h-9 px-2">Activity Type</TableHead>
-        <TableHead className="hidden md:table-cell h-9 px-2">Status</TableHead>
+        <TableHead className="h-9 px-2">{t("table.title")}</TableHead>
+        <TableHead className="h-9 px-2">{t("table.activityType")}</TableHead>
+        <TableHead className="hidden md:table-cell h-9 px-2">{t("table.status")}</TableHead>
         <TableHead className="hidden md:table-cell h-9 px-2 text-center">
-          Priority
+          {t("table.priority")}
         </TableHead>
         <TableHead className="hidden md:table-cell h-9 px-2 text-center">
-          % Complete
+          {t("table.percentComplete")}
         </TableHead>
         <TableHead className="h-9 px-1">
-          <span className="sr-only">Actions</span>
+          <span className="sr-only">{t("table.actions")}</span>
         </TableHead>
         <TableHead className="hidden sm:table-cell h-9 px-1">
-          <span className="sr-only">Start Activity</span>
+          <span className="sr-only">{t("table.startActivity")}</span>
         </TableHead>
       </TableRow>
     </TableHeader>
@@ -423,7 +431,7 @@ function TasksTable({
         </div>
       ))}
       <DeleteAlertDialog
-        pageTitle="task"
+        pageTitle={t("table.deleteItem")}
         open={alertOpen}
         onOpenChange={setAlertOpen}
         onDelete={() => deleteTask(taskIdToDelete)}
@@ -433,13 +441,15 @@ function TasksTable({
 
   const formatDateLabel = (dateStr: string) => {
     const date = parse(dateStr, "yyyy-MM-dd", new Date());
-    return isToday(date) ? "Today" : format(date, "MMM d, yyyy");
+    return isToday(date)
+      ? t("table.today")
+      : formatDate(date, DATE_PATTERNS.date);
   };
 
   if (tasks.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
-        No tasks found. Create your first task to get started.
+        {t("container.empty")}
       </div>
     );
   }
@@ -447,23 +457,25 @@ function TasksTable({
   if (groupBy === "dueDate") {
     const groupedTasks = groupTasksByDate(tasks);
     const groupOrder: DateGroup[] = [
-      "Overdue",
-      "Today",
-      "Tomorrow",
-      "This Week",
-      "Later",
-      "No Due Date",
+      "overdue",
+      "today",
+      "tomorrow",
+      "thisWeek",
+      "later",
+      "noDueDate",
     ];
 
     return renderGroupedTables(
       groupOrder
         .filter((group) => groupedTasks[group].length > 0)
-        .map((group) => [group, groupedTasks[group]]),
+        .map((group) => [t(`table.dueGroup.${group}`), groupedTasks[group]]),
     );
   }
 
   if (groupBy === "activityType") {
-    return renderGroupedTables(Object.entries(groupTasksByActivityType(tasks)));
+    return renderGroupedTables(
+      Object.entries(groupTasksByActivityType(tasks, t("table.noActivityType"))),
+    );
   }
 
   if (groupBy === "createdDate" || groupBy === "updatedDate") {
@@ -487,7 +499,7 @@ function TasksTable({
         <TableBody>{tasks.map(renderTaskRow)}</TableBody>
       </Table>
       <DeleteAlertDialog
-        pageTitle="task"
+        pageTitle={t("table.deleteItem")}
         open={alertOpen}
         onOpenChange={setAlertOpen}
         onDelete={() => deleteTask(taskIdToDelete)}

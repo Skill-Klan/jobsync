@@ -9,10 +9,12 @@ import {
   breakMinutesSince,
   requireUser,
 } from "./shared";
+import { getTranslations } from "@/i18n/server";
 
 export const startActivityById = async (
   activityId: string
 ): Promise<any | undefined> => {
+  const t = await getTranslations("activities");
   try {
     const user = await requireUser();
 
@@ -27,7 +29,7 @@ export const startActivityById = async (
     if (existingActive) {
       return {
         success: false,
-        message: "An activity is already in progress. Stop it before starting a new one.",
+        message: t("errors.alreadyRunning"),
       };
     }
 
@@ -39,7 +41,7 @@ export const startActivityById = async (
     });
 
     if (!activity) {
-      throw new Error("Activity not found");
+      throw new Error(t("errors.notFound"));
     }
     const { activityName, activityTypeId, description } = activity;
 
@@ -56,7 +58,7 @@ export const startActivityById = async (
     });
     return { newActivity, success: true };
   } catch (error) {
-    const msg = "Failed to start activity. ";
+    const msg = t("errors.startFailed");
     return handleError(error, msg);
   }
 };
@@ -65,6 +67,7 @@ export const stopActivityById = async (
   activityId: string,
   endTime: Date,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("activities");
   try {
     const user = await requireUser();
 
@@ -75,7 +78,7 @@ export const stopActivityById = async (
     });
 
     if (!activity) {
-      throw new Error("Activity not found");
+      throw new Error(t("errors.notFound"));
     }
 
     // Time spent away is never billed as work, even if the user never resumed.
@@ -116,12 +119,13 @@ export const stopActivityById = async (
     revalidatePath("/dashboard");
     return { activity: stopped, success: true, discarded: false };
   } catch (error) {
-    const msg = "Failed to stop activity. ";
+    const msg = t("errors.stopFailed");
     return handleError(error, msg);
   }
 };
 
 export const getCurrentActivity = async (): Promise<any | undefined> => {
+  const t = await getTranslations("activities");
   try {
     const user = await requireUser();
 
@@ -139,7 +143,7 @@ export const getCurrentActivity = async (): Promise<any | undefined> => {
 
     return { activity, success: true };
   } catch (error) {
-    const msg = "Failed to get current activity. ";
+    const msg = t("errors.currentFailed");
     return handleError(error, msg);
   }
 };
