@@ -32,6 +32,14 @@ export default defineConfig({
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: "http://localhost:3737",
+    // skillklan: the app is Ukrainian by default (D29); these scenarios assert
+    // English text, so they run with the language switch set to English.
+    storageState: {
+      cookies: [
+        { name: "sk_locale", value: "en", domain: "localhost", path: "/", expires: -1, httpOnly: true, secure: false, sameSite: "Lax" },
+      ],
+      origins: [],
+    },
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",

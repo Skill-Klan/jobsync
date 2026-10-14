@@ -10,6 +10,7 @@ import { usePathname } from "next/navigation";
 import { useSidebar } from "@/context/SidebarContext";
 import { cn } from "@/lib/utils";
 import { CurrentUser } from "@/models/user.model";
+import { useTranslations } from "@/i18n/client";
 
 interface SidebarProps {
   user: CurrentUser | null;
@@ -19,6 +20,7 @@ interface SidebarProps {
 function Sidebar({ user, signOutAction }: SidebarProps) {
   const path = usePathname();
   const { expanded } = useSidebar();
+  const t = useTranslations("nav");
   const isOnDashboard = path === "/dashboard";
 
   return (
@@ -64,8 +66,8 @@ function Sidebar({ user, signOutAction }: SidebarProps) {
             }
             return (
               <NavLink
-                key={item.label}
-                label={item.label}
+                key={item.route}
+                label={t(item.labelKey)}
                 Icon={item.icon}
                 route={item.route}
                 pathname={path}

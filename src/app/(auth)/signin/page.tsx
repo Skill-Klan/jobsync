@@ -2,10 +2,12 @@ import { Metadata } from "next";
 import AuthCard from "@/components/auth/AuthCard";
 import CabinetSignin from "@/components/auth/CabinetSignin";
 import { isDevPasswordLoginEnabled } from "@/skillklan/devPasswordLogin";
+import { getTranslations } from "@/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Sign In",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("auth");
+  return { title: t("signinTitle") };
+}
 
 // SkillKlan Job has no password sign-in: people come in from the cabinet
 // (/auth/cabinet). The upstream form stays for local development only.
