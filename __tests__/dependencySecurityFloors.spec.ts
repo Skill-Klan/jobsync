@@ -22,6 +22,9 @@ const FLOORS: Floor[] = [
   { pkg: "sharp", min: "0.35.5", advisories: ["GHSA-rgj7-g3m4-5g8c", "GHSA-wq5f-xc86-pv6w"] },
   // Event-loop DoS from huge section offsets in an indexed source map.
   { pkg: "source-map-js", min: "1.2.2", advisories: ["GHSA-68fv-2mgg-jv7q"] },
+  // WebSocket DoS (unrequested subprotocol, deflate error) and response
+  // splitting through the retry interceptor.
+  { pkg: "undici", min: "6.28.1", advisories: ["GHSA-rfgv-xxqx-mfg5", "GHSA-3wwx-pv8p-q78v", "GHSA-r53p-7pc4-xj5r"] },
 ];
 
 const lock = JSON.parse(
