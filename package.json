@@ -20,9 +20,9 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@ai-sdk/deepseek": "^2.0.4",
-    "@ai-sdk/google": "^3.0.53",
-    "@ai-sdk/openai": "^3.0.2",
+    "@ai-sdk/deepseek": "^2.0.57",
+    "@ai-sdk/google": "^3.0.111",
+    "@ai-sdk/openai": "^3.0.99",
     "@ai-sdk/react": "^3.0.242",
     "@hookform/resolvers": "^5.2.2",
     "@nivo/bar": "^0.99.0",

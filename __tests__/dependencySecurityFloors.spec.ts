@@ -27,6 +27,9 @@ const FLOORS: Floor[] = [
   { pkg: "undici", min: "6.28.1", advisories: ["GHSA-rfgv-xxqx-mfg5", "GHSA-3wwx-pv8p-q78v", "GHSA-r53p-7pc4-xj5r"] },
   // Quadratic linkify paths: a few hundred KB of markdown blocks the event loop.
   { pkg: "markdown-it", min: "14.3.1", advisories: ["GHSA-253c-mchw-3w2r"] },
+  // Uncontrolled resource consumption. Old copies came pinned by the
+  // provider packages (@ai-sdk/openai, deepseek, google), not by `ai`.
+  { pkg: "@ai-sdk/provider-utils", min: "4.0.33", advisories: ["GHSA-866g-f22w-33x8"] },
   // Dev tooling below: never in the image, but it runs on CI and on our machines.
   // CPU DoS: maxTotalMergeKeys did not bound empty merge sources.
   { pkg: "js-yaml", min: "4.3.2", advisories: ["GHSA-2883-xcg3-v3hh"] },
