@@ -21,6 +21,7 @@ import { deleteActivityTypeById } from "@/actions/activity.actions";
 import { toastSuccess, toastError } from "@/lib/toast";
 import { DeleteAlertDialog } from "../DeleteAlertDialog";
 import { AlertDialog } from "@/models/alertDialog.model";
+import { useTranslations } from "@/i18n/client";
 
 type ActivityTypeRow = {
   id: string;
@@ -39,6 +40,7 @@ function ActivityTypesTable({
   activityTypes,
   reloadActivityTypes,
 }: ActivityTypesTableProps) {
+  const t = useTranslations("library");
   const [alert, setAlert] = useState<AlertDialog>({
     openState: false,
     deleteAction: false,
@@ -50,16 +52,18 @@ function ActivityTypesTable({
 
     if (activityCount > 0 || taskCount > 0) {
       const links = [
-        activityCount > 0 ? `${activityCount} activity(ies)` : "",
-        taskCount > 0 ? `${taskCount} task(s)` : "",
+        activityCount > 0
+          ? t("activityTypes.activitiesCount", { count: activityCount })
+          : "",
+        taskCount > 0 ? t("activityTypes.tasksCount", { count: taskCount }) : "",
       ]
         .filter(Boolean)
-        .join(" and ");
+        .join(` ${t("shared.and")} `);
 
       setAlert({
         openState: true,
-        title: "Activity type is in use!",
-        description: `This activity type is linked to ${links} and cannot be deleted.`,
+        title: t("activityTypes.inUseTitle"),
+        description: t("activityTypes.inUse", { links }),
         deleteAction: false,
       });
     } else {
@@ -75,7 +79,7 @@ function ActivityTypesTable({
     if (!id) return;
     const { success, message } = await deleteActivityTypeById(id);
     if (success) {
-      toastSuccess("Activity type has been deleted successfully");
+      toastSuccess(t("activityTypes.deleted"));
       reloadActivityTypes();
     } else {
       toastError(message);
@@ -92,12 +96,12 @@ function ActivityTypesTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Label</TableHead>
-            <TableHead className="hidden sm:table-cell">Value</TableHead>
-            <TableHead># Activities</TableHead>
-            <TableHead># Tasks</TableHead>
-            <TableHead>Total Hours</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead>{t("activityTypes.label")}</TableHead>
+            <TableHead className="hidden sm:table-cell">{t("shared.value")}</TableHead>
+            <TableHead>{t("activityTypes.activities")}</TableHead>
+            <TableHead>{t("activityTypes.tasks")}</TableHead>
+            <TableHead>{t("activityTypes.totalHours")}</TableHead>
+            <TableHead>{t("shared.actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -114,24 +118,24 @@ function ActivityTypesTable({
                 {at._count?.Tasks ?? 0}
               </TableCell>
               <TableCell className="font-medium">
-                {formatHours(at.totalDuration)} hrs
+                {t("activityTypes.hours", { hours: formatHours(at.totalDuration) })}
               </TableCell>
               <TableCell>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button aria-haspopup="true" size="icon" variant="ghost">
                       <MoreVertical className="h-4 w-4" />
-                      <span className="sr-only">Toggle menu</span>
+                      <span className="sr-only">{t("shared.toggleMenu")}</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuLabel>{t("shared.actions")}</DropdownMenuLabel>
                     <DropdownMenuItem
                       className="text-red-600 cursor-pointer"
                       onClick={() => onDelete(at)}
                     >
                       <Trash className="mr-2 h-4 w-4" />
-                      Delete
+                      {t("shared.delete")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -141,7 +145,7 @@ function ActivityTypesTable({
         </TableBody>
       </Table>
       <DeleteAlertDialog
-        pageTitle="activity type"
+        pageTitle={t("activityTypes.deleteItem")}
         open={alert.openState}
         onOpenChange={() => setAlert({ openState: false, deleteAction: false })}
         onDelete={() => deleteType(alert.itemId)}

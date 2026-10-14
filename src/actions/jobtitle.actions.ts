@@ -5,6 +5,7 @@ import { requireUser } from "./shared";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { canonicalizeEntityValue } from "@/lib/jobs/canonicalize";
 import { getReferenceEntityList } from "./referenceList";
+import { getTranslations } from "@/i18n/server";
 
 export const getAllJobTitles = async (): Promise<any | undefined> => {
   try {
@@ -49,6 +50,7 @@ export const getJobTitleList = async (
 export const createJobTitle = async (
   label: string
 ): Promise<any | undefined> => {
+  const t = await getTranslations("library");
   try {
     const user = await requireUser();
 
@@ -62,7 +64,7 @@ export const createJobTitle = async (
 
     return upsertedTitle;
   } catch (error) {
-    const msg = "Failed to create job title. ";
+    const msg = t("errors.jobTitle.createFailed");
     return handleError(error, msg);
   }
 };
@@ -70,6 +72,7 @@ export const createJobTitle = async (
 export const deleteJobTitleById = async (
   jobTitleId: string
 ): Promise<any | undefined> => {
+  const t = await getTranslations("library");
   try {
     const user = await requireUser();
 
@@ -79,9 +82,7 @@ export const deleteJobTitleById = async (
       },
     });
     if (experiences > 0) {
-      throw new Error(
-        `Job title cannot be deleted due to its use in experience section of one of the resume! `
-      );
+      throw new Error(t("errors.jobTitle.inResume"));
     }
     const jobs = await prisma.job.count({
       where: {
@@ -91,9 +92,7 @@ export const deleteJobTitleById = async (
     });
 
     if (jobs > 0) {
-      throw new Error(
-        `Job title cannot be deleted due to ${jobs} number of associated jobs! `
-      );
+      throw new Error(t("errors.jobTitle.hasJobs", { count: jobs }));
     }
 
     const res = await prisma.jobTitle.delete({
@@ -104,7 +103,7 @@ export const deleteJobTitleById = async (
     });
     return { res, success: true };
   } catch (error) {
-    const msg = "Failed to delete job title.";
+    const msg = t("errors.jobTitle.deleteFailed");
     return handleError(error, msg);
   }
 };

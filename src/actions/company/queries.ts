@@ -109,7 +109,7 @@ const COMPANY_JOB_SELECT = {
   JobTitle: { select: { label: true } },
   Status: { select: { label: true, value: true } },
   Location: { select: { label: true } },
-  JobSource: { select: { label: true } },
+  JobSource: { select: { label: true, value: true } },
 };
 
 // null covers both a missing id and another user's company, so the page's 404

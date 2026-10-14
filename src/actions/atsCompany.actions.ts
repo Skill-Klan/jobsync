@@ -7,6 +7,11 @@ import greenhouseSeed from "@/lib/scraper/greenhouse/companies.json";
 import leverSeed from "@/lib/scraper/lever/companies.json";
 import ashbySeed from "@/lib/scraper/ashby/companies.json";
 import type { JobBoard, LeverHost } from "@/models/automation.model";
+import { getTranslations } from "@/i18n/server";
+
+// What a person reads is in their language; the translator is passed to
+// the helpers below, which cannot await it themselves.
+type LibraryT = Awaited<ReturnType<typeof getTranslations<"library">>>;
 
 // `host` is present (optional) on Lever entries only; Greenhouse entries omit it.
 type SeedCompany = { name: string; token: string; host?: LeverHost };
@@ -66,9 +71,10 @@ export async function resolveAtsBoard(
   const user = await getCurrentUser();
   if (!user) return { success: false, message: "Not authenticated" };
 
-  if (provider === "greenhouse") return resolveGreenhouse(input);
-  if (provider === "lever") return resolveLever(input);
-  if (provider === "ashby") return resolveAshby(input);
+  const t = await getTranslations("library");
+  if (provider === "greenhouse") return resolveGreenhouse(t, input);
+  if (provider === "lever") return resolveLever(t, input);
+  if (provider === "ashby") return resolveAshby(t, input);
   return { success: false, message: "Unsupported provider" };
 }
 
@@ -91,12 +97,15 @@ function extractGreenhouseToken(input: string): string | null {
   return null;
 }
 
-async function resolveGreenhouse(input: string): Promise<ResolveResult> {
+async function resolveGreenhouse(
+  t: LibraryT,
+  input: string,
+): Promise<ResolveResult> {
   const token = extractGreenhouseToken(input);
   if (!token) {
     return {
       success: false,
-      message: "Paste a boards.greenhouse.io link or a board token",
+      message: t("errors.board.pasteGreenhouse"),
     };
   }
 
@@ -108,25 +117,28 @@ async function resolveGreenhouse(input: string): Promise<ResolveResult> {
     if (response.status === 404) {
       return {
         success: false,
-        message: `No Greenhouse board found for '${token}'`,
+        message: t("errors.board.notFound", { provider: "Greenhouse", token }),
       };
     }
     if (!response.ok) {
       return {
         success: false,
-        message: `Could not validate board (${response.status})`,
+        message: t("errors.board.validateFailed", { status: String(response.status) }),
       };
     }
 
     const data: { name?: string } = await response.json();
     const name = data.name?.trim();
     if (!name) {
-      return { success: false, message: "Board has no company name" };
+      return { success: false, message: t("errors.board.noName") };
     }
 
     return { success: true, name, token };
   } catch {
-    return { success: false, message: "Could not reach Greenhouse" };
+    return {
+      success: false,
+      message: t("errors.board.unreachable", { provider: "Greenhouse" }),
+    };
   }
 }
 
@@ -174,26 +186,35 @@ async function probeLeverBoard(
   return res.ok;
 }
 
-async function resolveLever(input: string): Promise<ResolveResult> {
+async function resolveLever(
+  t: LibraryT,
+  input: string,
+): Promise<ResolveResult> {
   const extracted = extractLeverToken(input);
   if (!extracted) {
     return {
       success: false,
-      message: "Paste a jobs.lever.co link or a token",
+      message: t("errors.board.pasteLink", { host: "jobs.lever.co" }),
     };
   }
 
   const { token } = extracted;
   // Defense-in-depth: reject a malformed token before any fetch.
   if (!ATS_TOKEN_REGEX.test(token)) {
-    return { success: false, message: `Invalid Lever token '${token}'` };
+    return {
+      success: false,
+      message: t("errors.board.invalidToken", { provider: "Lever", token }),
+    };
   }
 
   try {
     let host: LeverHost;
     if (extracted.host === "eu") {
       if (!(await probeLeverBoard(token, "eu"))) {
-        return { success: false, message: `No Lever board found for '${token}'` };
+        return {
+          success: false,
+          message: t("errors.board.notFound", { provider: "Lever", token }),
+        };
       }
       host = "eu";
     } else {
@@ -203,7 +224,10 @@ async function resolveLever(input: string): Promise<ResolveResult> {
       } else if (await probeLeverBoard(token, "eu")) {
         host = "eu";
       } else {
-        return { success: false, message: `No Lever board found for '${token}'` };
+        return {
+          success: false,
+          message: t("errors.board.notFound", { provider: "Lever", token }),
+        };
       }
     }
 
@@ -211,7 +235,10 @@ async function resolveLever(input: string): Promise<ResolveResult> {
     const name = seeded?.name ?? humanizeToken(token);
     return { success: true, name, token, host };
   } catch {
-    return { success: false, message: "Could not reach Lever" };
+    return {
+      success: false,
+      message: t("errors.board.unreachable", { provider: "Lever" }),
+    };
   }
 }
 
@@ -233,18 +260,24 @@ function extractAshbyToken(input: string): string | null {
   return null;
 }
 
-async function resolveAshby(input: string): Promise<ResolveResult> {
+async function resolveAshby(
+  t: LibraryT,
+  input: string,
+): Promise<ResolveResult> {
   const token = extractAshbyToken(input);
   if (!token) {
     return {
       success: false,
-      message: "Paste a jobs.ashbyhq.com link or a token",
+      message: t("errors.board.pasteLink", { host: "jobs.ashbyhq.com" }),
     };
   }
 
   // Defense-in-depth: reject a malformed token before any fetch.
   if (!ATS_TOKEN_REGEX.test(token)) {
-    return { success: false, message: `Invalid Ashby token '${token}'` };
+    return {
+      success: false,
+      message: t("errors.board.invalidToken", { provider: "Ashby", token }),
+    };
   }
 
   try {
@@ -254,18 +287,24 @@ async function resolveAshby(input: string): Promise<ResolveResult> {
     res.body?.cancel(); // status is all we need; skip the full board payload
 
     if (res.status === 404) {
-      return { success: false, message: `No Ashby board found for '${token}'` };
+      return {
+        success: false,
+        message: t("errors.board.notFound", { provider: "Ashby", token }),
+      };
     }
     if (!res.ok) {
       return {
         success: false,
-        message: `Could not validate board (${res.status})`,
+        message: t("errors.board.validateFailed", { status: String(res.status) }),
       };
     }
 
     const seeded = (ashbySeed as SeedCompany[]).find((c) => c.token === token);
     return { success: true, name: seeded?.name ?? humanizeToken(token), token };
   } catch {
-    return { success: false, message: "Could not reach Ashby" };
+    return {
+      success: false,
+      message: t("errors.board.unreachable", { provider: "Ashby" }),
+    };
   }
 }

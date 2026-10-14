@@ -24,6 +24,7 @@ import Link from "next/link";
 import { AlertDialog } from "@/models/alertDialog.model";
 import { toastSuccess, toastError } from "@/lib/toast";
 import { deleteJobLocationById } from "@/actions/jobLocation.actions";
+import { useTranslations } from "@/i18n/client";
 
 type JobLocationsTableProps = {
   jobLocations: JobLocation[];
@@ -34,6 +35,7 @@ function JobLocationsTable({
   jobLocations,
   reloadJobLocations,
 }: JobLocationsTableProps) {
+  const t = useTranslations("library");
   const [alert, setAlert] = useState<AlertDialog>({
     openState: false,
     deleteAction: false,
@@ -43,10 +45,8 @@ function JobLocationsTable({
     if (totalJobs > 0) {
       setAlert({
         openState: true,
-        title: "Associated jobs exist!",
-        description: `This location has ${totalJobs} associated job${
-          totalJobs === 1 ? "" : "s"
-        } (applied or not). Remove or reassign them before deleting this location.`,
+        title: t("shared.associatedJobs"),
+        description: t("locations.blocked", { count: totalJobs }),
         deleteAction: false,
       });
     } else {
@@ -61,7 +61,7 @@ function JobLocationsTable({
     if (locationId) {
       const { success, message } = await deleteJobLocationById(locationId);
       if (success) {
-        toastSuccess(`Job location has been deleted successfully`);
+        toastSuccess(t("locations.deleted"));
         reloadJobLocations();
       } else {
         toastError(message);
@@ -73,13 +73,13 @@ function JobLocationsTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Location</TableHead>
-            <TableHead className="hidden sm:table-cell">Value</TableHead>
-            <TableHead>Total Jobs</TableHead>
-            <TableHead>Jobs Applied</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead>{t("locations.header")}</TableHead>
+            <TableHead className="hidden sm:table-cell">{t("shared.value")}</TableHead>
+            <TableHead>{t("shared.totalJobs")}</TableHead>
+            <TableHead>{t("shared.jobsApplied")}</TableHead>
+            <TableHead>{t("shared.actions")}</TableHead>
             <TableHead>
-              <span className="sr-only">Actions</span>
+              <span className="sr-only">{t("shared.actions")}</span>
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -120,18 +120,18 @@ function JobLocationsTable({
                     <DropdownMenuTrigger asChild>
                       <Button aria-haspopup="true" size="icon" variant="ghost">
                         <MoreVertical className="h-4 w-4" />
-                        <span className="sr-only">Toggle menu</span>
+                        <span className="sr-only">{t("shared.toggleMenu")}</span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuLabel>{t("shared.actions")}</DropdownMenuLabel>
                       {location._count?.jobsApplied ? (
                         <DropdownMenuItem className="cursor-pointer" asChild>
                           <Link
                             href={`/dashboard/myjobs?location=${encodeURIComponent(location.value)}&applied=true`}
                           >
                             <Briefcase className="mr-2 h-4 w-4" />
-                            View Jobs
+                            {t("shared.viewJobs")}
                           </Link>
                         </DropdownMenuItem>
                       ) : null}
@@ -140,7 +140,7 @@ function JobLocationsTable({
                         onClick={() => onDeleteJobLocation(location)}
                       >
                         <Trash className="mr-2 h-4 w-4" />
-                        Delete
+                        {t("shared.delete")}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -151,7 +151,7 @@ function JobLocationsTable({
         </TableBody>
       </Table>
       <DeleteAlertDialog
-        pageTitle="location"
+        pageTitle={t("locations.deleteItem")}
         open={alert.openState}
         onOpenChange={() => setAlert({ openState: false, deleteAction: false })}
         onDelete={() => deleteJobLocation(alert.itemId!)}

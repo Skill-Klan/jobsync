@@ -6,6 +6,11 @@ import { APP_CONSTANTS } from "@/lib/constants";
 import { resolveJobStageType } from "@/lib/jobs/resolve";
 import { canonicalizeEntityValue } from "@/lib/jobs/canonicalize";
 import { jobFieldsForStage } from "./jobStage/shared";
+import { getLabel, getTranslations } from "@/i18n/server";
+
+// What a person reads is in their language; the translator is passed to
+// the helpers below, which cannot await it themselves.
+type LibraryT = Awaited<ReturnType<typeof getTranslations<"library">>>;
 
 export const getAllJobStageTypes = async (): Promise<any | undefined> => {
   try {
@@ -51,12 +56,12 @@ export const getJobStageTypeList = async (
   }
 };
 
-const assertStatusExists = async (statusId: string) => {
+const assertStatusExists = async (t: LibraryT, statusId: string) => {
   const status = await prisma.jobStatus.findUnique({
     where: { id: statusId },
     select: { id: true, label: true, value: true },
   });
-  if (!status) throw new Error("Job status not found");
+  if (!status) throw new Error(t("errors.stage.statusNotFound"));
   return status;
 };
 
@@ -73,9 +78,10 @@ export const createJobStageType = async (
   label: string,
   statusId: string,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("library");
   try {
     const user = await requireUser();
-    await assertStatusExists(statusId);
+    await assertStatusExists(t, statusId);
 
     // resolveJobStageType returns an existing type by name and ignores the
     // requested status, which would report success having done nothing.
@@ -85,18 +91,27 @@ export const createJobStageType = async (
         createdBy: user.id,
         NOT: { statusId },
       },
-      select: { label: true, Status: { select: { label: true } } },
+      select: {
+        label: true,
+        value: true,
+        Status: { select: { label: true, value: true } },
+      },
     });
     if (clash) {
+      // Seeded stages and statuses are named by the glossary, like on screen
+      const labelOf = await getLabel();
       throw new Error(
-        `"${clash.label}" already exists under the ${clash.Status.label} status.`,
+        t("errors.stage.exists", {
+          stage: labelOf("jobStage", clash),
+          status: labelOf("jobStatus", clash.Status),
+        }),
       );
     }
 
     const data = await resolveJobStageType(label, user.id, statusId);
     return { success: true, data };
   } catch (error) {
-    return handleError(error, "Failed to create stage type.");
+    return handleError(error, t("errors.stage.createFailed"));
   }
 };
 
@@ -106,21 +121,20 @@ export const updateJobStageType = async (
   statusId: string,
   sortOrder: number,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("library");
   try {
     const user = await requireUser();
-    const status = await assertStatusExists(statusId);
+    const status = await assertStatusExists(t, statusId);
 
     const existing = await prisma.jobStageType.findFirst({
       where: { id, createdBy: user.id },
       select: { value: true, statusId: true },
     });
-    if (!existing) throw new Error("Stage type not found");
+    if (!existing) throw new Error(t("errors.stage.notFound"));
 
     const statusChanged = existing.statusId !== statusId;
     if (statusChanged && (await isStatusNamedType(existing.value))) {
-      throw new Error(
-        `"${label.trim()}" is the stage the status menus resolve to, so its status cannot be changed.`,
-      );
+      throw new Error(t("errors.stage.statusLocked", { label: label.trim() }));
     }
 
     // value is left alone on rename: it is the reverse-lookup key that a
@@ -162,13 +176,14 @@ export const updateJobStageType = async (
 
     return { success: true };
   } catch (error) {
-    return handleError(error, "Failed to update stage type.");
+    return handleError(error, t("errors.stage.updateFailed"));
   }
 };
 
 export const deleteJobStageTypeById = async (
   id: string,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("library");
   try {
     const user = await requireUser();
 
@@ -178,9 +193,7 @@ export const deleteJobStageTypeById = async (
       where: { stageTypeId: id, Job: { userId: user.id } },
     });
     if (stages > 0) {
-      throw new Error(
-        `Stage type cannot be deleted due to ${stages} job stage${stages === 1 ? "" : "s"} using it! `,
-      );
+      throw new Error(t("errors.stage.hasStages", { count: stages }));
     }
 
     const res = await prisma.jobStageType.delete({
@@ -188,6 +201,6 @@ export const deleteJobStageTypeById = async (
     });
     return { res, success: true };
   } catch (error) {
-    return handleError(error, "Failed to delete stage type.");
+    return handleError(error, t("errors.stage.deleteFailed"));
   }
 };

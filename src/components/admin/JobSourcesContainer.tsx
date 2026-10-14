@@ -9,8 +9,10 @@ import { getJobSourceList } from "@/actions/jobSource.actions";
 import Loading from "../Loading";
 import { Button } from "../ui/button";
 import { RecordsCount } from "../RecordsCount";
+import { useTranslations } from "@/i18n/client";
 
 function JobSourcesContainer() {
+  const t = useTranslations("library");
   const [sources, setSources] = useState<JobSource[]>([]);
   const [totalJobSources, setTotalJobSources] = useState<number>(0);
   const [page, setPage] = useState<number>(1);
@@ -47,9 +49,9 @@ function JobSourcesContainer() {
         <Card x-chunk="dashboard-06-chunk-0">
           <ResponsiveCardHeader>
             <div className="flex items-baseline gap-2">
-              <CardTitle>Job Sources</CardTitle>
+              <CardTitle>{t("sources.title")}</CardTitle>
               {!loading && totalJobSources > 0 && (
-                <RecordsCount count={sources.length} total={totalJobSources} label="job sources" />
+                <RecordsCount count={sources.length} total={totalJobSources} label={t("sources.records")} />
               )}
             </div>
             <div className="flex flex-wrap items-center justify-end gap-2 sm:ml-auto">
@@ -74,7 +76,7 @@ function JobSourcesContainer() {
                   disabled={loading}
                   className="btn btn-primary"
                 >
-                  {loading ? "Loading..." : "Load More"}
+                  {loading ? t("shared.loading") : t("shared.loadMore")}
                 </Button>
               </div>
             )}

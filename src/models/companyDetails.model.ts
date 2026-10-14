@@ -12,7 +12,7 @@ export interface CompanyJobRow {
   JobTitle: { label: string };
   Status: { label: string; value: string };
   Location: { label: string } | null;
-  JobSource: { label: string } | null;
+  JobSource: { label: string; value?: string } | null;
 }
 
 export interface CompanyDetails extends Company {

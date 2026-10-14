@@ -24,6 +24,7 @@ import { AlertDialog } from "@/models/alertDialog.model";
 import { DeleteAlertDialog } from "../DeleteAlertDialog";
 import { deleteJobSourceById } from "@/actions/jobSource.actions";
 import { toastSuccess, toastError } from "@/lib/toast";
+import { useLabel, useTranslations } from "@/i18n/client";
 
 type JobSourcesTableProps = {
   jobSources: JobSource[];
@@ -34,6 +35,8 @@ function JobSourcesTable({
   jobSources,
   reloadJobSources,
 }: JobSourcesTableProps) {
+  const t = useTranslations("library");
+  const label = useLabel();
   const [alert, setAlert] = useState<AlertDialog>({
     openState: false,
     deleteAction: false,
@@ -44,10 +47,8 @@ function JobSourcesTable({
     if (totalJobs > 0) {
       setAlert({
         openState: true,
-        title: "Associated jobs exist!",
-        description: `This source has ${totalJobs} associated job${
-          totalJobs === 1 ? "" : "s"
-        } (applied or not). Remove or reassign them before deleting this source.`,
+        title: t("shared.associatedJobs"),
+        description: t("sources.blocked", { count: totalJobs }),
         deleteAction: false,
       });
     } else {
@@ -63,7 +64,7 @@ function JobSourcesTable({
     if (sourceId) {
       const { success, message } = await deleteJobSourceById(sourceId);
       if (success) {
-        toastSuccess(`Job source has been deleted successfully`);
+        toastSuccess(t("sources.deleted"));
         reloadJobSources();
       } else {
         toastError(message);
@@ -76,13 +77,13 @@ function JobSourcesTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Source</TableHead>
-            <TableHead className="hidden sm:table-cell">Value</TableHead>
-            <TableHead>Total Jobs</TableHead>
-            <TableHead>Jobs Applied</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead>{t("sources.header")}</TableHead>
+            <TableHead className="hidden sm:table-cell">{t("shared.value")}</TableHead>
+            <TableHead>{t("shared.totalJobs")}</TableHead>
+            <TableHead>{t("shared.jobsApplied")}</TableHead>
+            <TableHead>{t("shared.actions")}</TableHead>
             <TableHead>
-              <span className="sr-only">Actions</span>
+              <span className="sr-only">{t("shared.actions")}</span>
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -90,7 +91,9 @@ function JobSourcesTable({
           {jobSources.map((source: JobSource) => {
             return (
               <TableRow key={source.id}>
-                <TableCell className="font-medium">{source.label}</TableCell>
+                <TableCell className="font-medium">
+                  {label("jobSource", source)}
+                </TableCell>
                 <TableCell className="font-medium hidden sm:table-cell">
                   {source.value}
                 </TableCell>
@@ -123,18 +126,18 @@ function JobSourcesTable({
                     <DropdownMenuTrigger asChild>
                       <Button aria-haspopup="true" size="icon" variant="ghost">
                         <MoreVertical className="h-4 w-4" />
-                        <span className="sr-only">Toggle menu</span>
+                        <span className="sr-only">{t("shared.toggleMenu")}</span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuLabel>{t("shared.actions")}</DropdownMenuLabel>
                       {source._count?.jobsApplied ? (
                         <DropdownMenuItem className="cursor-pointer" asChild>
                           <Link
                             href={`/dashboard/myjobs?source=${encodeURIComponent(source.value)}&applied=true`}
                           >
                             <Briefcase className="mr-2 h-4 w-4" />
-                            View Jobs
+                            {t("shared.viewJobs")}
                           </Link>
                         </DropdownMenuItem>
                       ) : null}
@@ -143,7 +146,7 @@ function JobSourcesTable({
                         onClick={() => onDeleteJobSource(source)}
                       >
                         <Trash className="mr-2 h-4 w-4" />
-                        Delete
+                        {t("shared.delete")}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -154,7 +157,7 @@ function JobSourcesTable({
         </TableBody>
       </Table>
       <DeleteAlertDialog
-        pageTitle="source"
+        pageTitle={t("sources.deleteItem")}
         open={alert.openState}
         onOpenChange={() => setAlert({ openState: false, deleteAction: false })}
         onDelete={() => deleteJobSource(alert.itemId!)}

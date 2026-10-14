@@ -1,5 +1,5 @@
 "use client";
-import { useTransition, useState } from "react";
+import { useMemo, useTransition, useState } from "react";
 import { Button } from "../ui/button";
 import {
   Dialog,
@@ -24,26 +24,45 @@ import {
 import { Input } from "../ui/input";
 import { toastSuccess, toastError } from "@/lib/toast";
 import { createActivityType } from "@/actions/activity.actions";
+import { useTranslations } from "@/i18n/client";
 
-const AddActivityTypeFormSchema = z.object({
-  label: z
-    .string({ error: "Activity type label is required." })
-    .min(1, { message: "Activity type label cannot be empty." })
-    .max(60, {
-      message: "Activity type label must be 60 characters or fewer.",
-    }),
-});
+// Built per render language: the messages are what the form shows.
+const addActivityTypeFormSchema = (m: {
+  required: string;
+  empty: string;
+  tooLong: string;
+}) =>
+  z.object({
+    label: z
+      .string({ error: m.required })
+      .min(1, { message: m.empty })
+      .max(60, { message: m.tooLong }),
+  });
+
+type AddActivityTypeFormValues = z.infer<
+  ReturnType<typeof addActivityTypeFormSchema>
+>;
 
 type AddActivityTypeProps = {
   reloadActivityTypes: () => void;
 };
 
 function AddActivityType({ reloadActivityTypes }: AddActivityTypeProps) {
+  const t = useTranslations("library");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const schema = useMemo(
+    () =>
+      addActivityTypeFormSchema({
+        required: t("activityTypes.required"),
+        empty: t("activityTypes.empty"),
+        tooLong: t("activityTypes.tooLong"),
+      }),
+    [t],
+  );
 
-  const form = useForm<z.infer<typeof AddActivityTypeFormSchema>>({
-    resolver: zodResolver(AddActivityTypeFormSchema),
+  const form = useForm<AddActivityTypeFormValues>({
+    resolver: zodResolver(schema),
     defaultValues: { label: "" },
   });
 
@@ -54,16 +73,16 @@ function AddActivityType({ reloadActivityTypes }: AddActivityTypeProps) {
     setDialogOpen(true);
   };
 
-  const onSubmit = (values: z.infer<typeof AddActivityTypeFormSchema>) => {
+  const onSubmit = (values: AddActivityTypeFormValues) => {
     startTransition(async () => {
       try {
         await createActivityType(values.label);
-        toastSuccess("Activity type has been added successfully.");
+        toastSuccess(t("activityTypes.added"));
         setDialogOpen(false);
         reset();
         reloadActivityTypes();
       } catch {
-        toastError("Failed to create activity type.");
+        toastError(t("activityTypes.addFailed"));
       }
     });
   };
@@ -78,15 +97,15 @@ function AddActivityType({ reloadActivityTypes }: AddActivityTypeProps) {
       >
         <PlusCircle className="h-3.5 w-3.5" />
         <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-          New Activity Type
+          {t("activityTypes.newType")}
         </span>
       </Button>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add New Activity Type</DialogTitle>
+            <DialogTitle>{t("activityTypes.addTitle")}</DialogTitle>
             <DialogDescription>
-              Add a new activity type to categorize your activities and tasks.
+              {t("activityTypes.addDescription")}
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -96,10 +115,10 @@ function AddActivityType({ reloadActivityTypes }: AddActivityTypeProps) {
                 name="label"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Activity Type Name</FormLabel>
+                    <FormLabel>{t("activityTypes.nameLabel")}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="e.g. Networking, Interview Prep"
+                        placeholder={t("activityTypes.namePlaceholder")}
                         {...field}
                       />
                     </FormControl>
@@ -113,10 +132,10 @@ function AddActivityType({ reloadActivityTypes }: AddActivityTypeProps) {
                   variant="outline"
                   onClick={() => setDialogOpen(false)}
                 >
-                  Cancel
+                  {t("shared.cancel")}
                 </Button>
                 <Button type="submit" disabled={isPending}>
-                  Save
+                  {t("shared.save")}
                   {isPending && (
                     <Loader className="ml-2 h-4 w-4 shrink-0 spinner" />
                   )}

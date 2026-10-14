@@ -4,6 +4,7 @@ import { handleError } from "@/lib/utils";
 import { requireUser } from "./shared";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { getReferenceEntityList } from "./referenceList";
+import { getTranslations } from "@/i18n/server";
 
 export const getJobSourceList = async (
   page: number = 1,
@@ -33,6 +34,7 @@ export const getJobSourceList = async (
 export const deleteJobSourceById = async (
   jobSourceId: string
 ): Promise<any | undefined> => {
+  const t = await getTranslations("library");
   try {
     const user = await requireUser();
 
@@ -44,9 +46,7 @@ export const deleteJobSourceById = async (
     });
 
     if (jobs > 0) {
-      throw new Error(
-        `Job source cannot be deleted due to ${jobs} number of associated jobs! `
-      );
+      throw new Error(t("errors.source.hasJobs", { count: jobs }));
     }
 
     const res = await prisma.jobSource.delete({
@@ -57,7 +57,7 @@ export const deleteJobSourceById = async (
     });
     return { res, success: true };
   } catch (error) {
-    const msg = "Failed to delete job source.";
+    const msg = t("errors.source.deleteFailed");
     return handleError(error, msg);
   }
 };

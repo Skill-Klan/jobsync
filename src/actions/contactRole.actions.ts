@@ -4,6 +4,7 @@ import { handleError } from "@/lib/utils";
 import { requireUser } from "./shared";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { resolveContactRole } from "@/lib/jobs/resolve";
+import { getTranslations } from "@/i18n/server";
 
 export const getAllContactRoles = async (): Promise<any | undefined> => {
   try {
@@ -51,18 +52,20 @@ export const getContactRoleList = async (
 export const createContactRole = async (
   label: string,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("library");
   try {
     const user = await requireUser();
     const role = await resolveContactRole(label, user.id);
     return { success: true, data: role };
   } catch (error) {
-    return handleError(error, "Failed to create contact role.");
+    return handleError(error, t("errors.role.createFailed"));
   }
 };
 
 export const deleteContactRoleById = async (
   roleId: string,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("library");
   try {
     const user = await requireUser();
 
@@ -72,9 +75,7 @@ export const deleteContactRoleById = async (
       where: { roleId, Job: { userId: user.id } },
     });
     if (links > 0) {
-      throw new Error(
-        `Role cannot be deleted due to ${links} contact${links === 1 ? "" : "s"} linked to jobs with this role! `,
-      );
+      throw new Error(t("errors.role.hasLinks", { count: links }));
     }
 
     // Contact.roleId is SetNull, so without this guard deleting a role would
@@ -83,9 +84,7 @@ export const deleteContactRoleById = async (
       where: { roleId, createdBy: user.id },
     });
     if (holders > 0) {
-      throw new Error(
-        `Role cannot be deleted due to ${holders} contact${holders === 1 ? "" : "s"} having it as their role! `,
-      );
+      throw new Error(t("errors.role.hasHolders", { count: holders }));
     }
 
     const res = await prisma.contactRole.delete({
@@ -93,6 +92,6 @@ export const deleteContactRoleById = async (
     });
     return { res, success: true };
   } catch (error) {
-    return handleError(error, "Failed to delete contact role.");
+    return handleError(error, t("errors.role.deleteFailed"));
   }
 };

@@ -5,6 +5,7 @@ import { canonicalizeEntityValue } from "@/lib/jobs/canonicalize";
 import type { JobBoard, LeverHost } from "@/models/automation.model";
 import type { Company } from "@/models/job.model";
 import { requireUser } from "../shared";
+import { getTranslations } from "@/i18n/server";
 
 export type WatchBoardResult =
   | { success: true; data: { companyId: string; merged: boolean } }
@@ -38,6 +39,7 @@ export const watchBoardCompany = async (
   board: { name: string; token: string; host?: LeverHost },
   opts?: { confirmMerge?: boolean },
 ): Promise<WatchBoardResult> => {
+  const t = await getTranslations("library");
   try {
     const user = await requireUser();
 
@@ -82,7 +84,10 @@ export const watchBoardCompany = async (
       if (byValue.atsToken) {
         return {
           success: false,
-          message: `${byValue.label} is already linked to its ${byValue.atsProvider} board. A company can hold one board.`,
+          message: t("errors.company.boardTaken", {
+            label: byValue.label,
+            provider: String(byValue.atsProvider),
+          }),
         };
       }
       if (!opts?.confirmMerge) {
@@ -146,7 +151,7 @@ export const watchBoardCompany = async (
       throw error;
     }
   } catch (error) {
-    const msg = "Failed to watch company.";
+    const msg = t("errors.company.watchFailed");
     return handleError(error, msg) as WatchBoardResult;
   }
 };
@@ -157,6 +162,7 @@ export const setCompanyWatched = async (
   companyId: string,
   watched: boolean,
 ): Promise<{ success: boolean; message?: string; data?: Company }> => {
+  const t = await getTranslations("library");
   try {
     const user = await requireUser();
 
@@ -166,7 +172,7 @@ export const setCompanyWatched = async (
     });
     return { success: true, data: res as unknown as Company };
   } catch (error) {
-    const msg = "Failed to update watch status.";
+    const msg = t("errors.company.watchUpdateFailed");
     return handleError(error, msg);
   }
 };

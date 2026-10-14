@@ -16,8 +16,10 @@ import { getAllJobLocations } from "@/actions/jobLocation.actions";
 import { getAllContactRoles } from "@/actions/contactRole.actions";
 import type { Contact, ContactRole } from "@/models/contact.model";
 import type { Company, JobLocation } from "@/models/job.model";
+import { useTranslations } from "@/i18n/client";
 
 function ContactsContainer() {
+  const t = useTranslations("library");
   const [searchTerm, setSearchTerm] = useState("");
   const [roleId, setRoleId] = useState<string | undefined>(undefined);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -61,12 +63,12 @@ function ContactsContainer() {
       <Card x-chunk="dashboard-06-chunk-0">
         <ResponsiveCardHeader>
           <div className="flex items-baseline gap-2">
-            <CardTitle>Contacts</CardTitle>
+            <CardTitle>{t("contacts.title")}</CardTitle>
             {!list.initialLoading && list.total > 0 && (
               <RecordsCount
                 count={list.contacts.length}
                 total={list.total}
-                label="contacts"
+                label={t("contacts.records")}
               />
             )}
           </div>
@@ -79,7 +81,7 @@ function ContactsContainer() {
             <SearchInput
               value={searchTerm}
               onChange={setSearchTerm}
-              placeholder="Search contacts..."
+              placeholder={t("contacts.search")}
             />
             <AddContact
               editContact={editContact}
