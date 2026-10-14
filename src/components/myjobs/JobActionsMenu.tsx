@@ -17,6 +17,7 @@ import {
 import { Button } from "../ui/button";
 import { JobResponse, JobStatus } from "@/models/job.model";
 import { JobStatusMenuItems } from "./JobStatusMenuItems";
+import { useTranslations } from "@/i18n/client";
 
 type JobActionsMenuProps = {
   job: JobResponse;
@@ -32,6 +33,7 @@ export function JobActionsMenu({
   onAddNote,
 }: JobActionsMenuProps) {
   const router = useRouter();
+  const t = useTranslations("jobs");
 
   return (
     <DropdownMenu>
@@ -43,31 +45,31 @@ export function JobActionsMenu({
           data-testid="job-actions-menu-btn"
         >
           <MoreVertical className="h-4 w-4" />
-          <span className="sr-only">Toggle menu</span>
+          <span className="sr-only">{t("ui.toggleMenu")}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[200px]">
-        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+        <DropdownMenuLabel>{t("ui.actions")}</DropdownMenuLabel>
         <DropdownMenuGroup>
           <DropdownMenuItem
             className="cursor-pointer"
             onClick={() => router.push(`/dashboard/myjobs/${job?.id}`)}
           >
             <ListCollapse className="mr-2 h-4 w-4" />
-            View Details
+            {t("ui.viewDetails")}
           </DropdownMenuItem>
           <DropdownMenuItem
             className="cursor-pointer"
             onClick={() => onAddNote(job.id)}
           >
             <StickyNote className="mr-2 h-4 w-4" />
-            Add a Note
+            {t("ui.addNote")}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
               <Tags className="mr-2 h-4 w-4" />
-              Change status
+              {t("ui.changeStatus")}
             </DropdownMenuSubTrigger>
             <DropdownMenuPortal>
               <DropdownMenuSubContent className="p-0">

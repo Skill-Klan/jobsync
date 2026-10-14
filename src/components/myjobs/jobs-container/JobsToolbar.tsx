@@ -22,6 +22,7 @@ import {
   JobTitle,
   Tag,
 } from "@/models/job.model";
+import { useTranslations } from "@/i18n/client";
 
 // Presentational: the Jobs card header — title/count, active filter chips,
 // view toggle, search, filter popover, export and Add Job.
@@ -86,12 +87,13 @@ export function JobsToolbar({
   resetEditJob: () => void;
   addJobInitialOpen: boolean;
 }) {
+  const t = useTranslations("jobs");
   const [exportOpen, setExportOpen] = useState(false);
 
   return (
     <CardHeader className="flex-row flex-wrap justify-between items-center gap-3">
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <CardTitle>Jobs</CardTitle>
+        <CardTitle>{t("list.title")}</CardTitle>
         {!initialLoading && totalJobs > 0 && (
           <RecordsCount count={jobsCount} total={totalJobs} label="jobs" />
         )}
@@ -139,18 +141,18 @@ export function JobsToolbar({
           variant="outline"
           className="h-8 w-8 p-0"
           disabled={initialLoading}
-          title="Reload jobs"
+          title={t("list.reload")}
           onClick={onReload}
         >
           <RefreshCw
             className={`h-3.5 w-3.5 ${initialLoading ? "animate-spin" : ""}`}
           />
-          <span className="sr-only">Reload jobs</span>
+          <span className="sr-only">{t("list.reload")}</span>
         </Button>
         <SearchInput
           value={searchTerm}
           onChange={onSearchTermChange}
-          placeholder="Search jobs..."
+          placeholder={t("list.search")}
         />
         <JobsFilterPopover
           statuses={statuses}
@@ -164,11 +166,11 @@ export function JobsToolbar({
           variant="outline"
           className="h-8 w-8 p-0"
           disabled={initialLoading}
-          title="Export jobs"
+          title={t("list.export")}
           onClick={() => setExportOpen(true)}
         >
           <Download className="h-3.5 w-3.5" />
-          <span className="sr-only">Export jobs</span>
+          <span className="sr-only">{t("list.export")}</span>
         </Button>
         <AddJob
           jobStatuses={statuses}
@@ -183,13 +185,13 @@ export function JobsToolbar({
         />
       </div>
       <DeleteAlertDialog
-        pageTitle="jobs"
+        pageTitle={t("deleteItem.jobs")}
         open={exportOpen}
         onOpenChange={setExportOpen}
         onDelete={onDownload}
-        alertTitle="Export jobs?"
-        alertDescription="This downloads your jobs as a file."
-        actionLabel="Export"
+        alertTitle={t("list.exportTitle")}
+        alertDescription={t("list.exportDescription")}
+        actionLabel={t("list.exportAction")}
         actionVariant="default"
       />
       <JobsFilterChips

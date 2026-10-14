@@ -6,10 +6,12 @@ import { getAllCompanies } from "@/actions/company.actions";
 import { getAllJobTitles } from "@/actions/jobtitle.actions";
 import { getAllJobLocations } from "@/actions/jobLocation.actions";
 import { getAllTags } from "@/actions/tag.actions";
+import { getTranslations } from "@/i18n/server";
 
-export const metadata: Metadata = {
-  title: "My Jobs | SkillKlan Job",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("jobs");
+  return { title: t("page.title") };
+}
 
 async function MyJobs() {
   const [statuses, companies, titles, locations, sources, tags] =

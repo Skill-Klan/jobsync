@@ -2,6 +2,7 @@
 import { Check } from "lucide-react";
 import { DropdownMenuItem } from "../ui/dropdown-menu";
 import { JobStatus } from "@/models/job.model";
+import { useLabel } from "@/i18n/client";
 
 type JobStatusMenuItemsProps = {
   jobStatuses: JobStatus[];
@@ -16,6 +17,7 @@ export function JobStatusMenuItems({
   currentStatusId,
   onSelectStatus,
 }: JobStatusMenuItemsProps) {
+  const label = useLabel();
   return (
     <>
       {jobStatuses.map((status) => (
@@ -30,7 +32,7 @@ export function JobStatusMenuItems({
               <Check className="h-4 w-4" />
             </span>
           )}
-          <span>{status.label}</span>
+          <span>{label("jobStatus", status)}</span>
         </DropdownMenuItem>
       ))}
     </>

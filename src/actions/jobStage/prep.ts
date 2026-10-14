@@ -3,6 +3,7 @@ import prisma from "@/lib/db";
 import { handleError } from "@/lib/utils";
 import { requireUser } from "../shared";
 import { assertInterviewStage, assertStageOwned } from "./shared";
+import { jobsError } from "../job/errorMessages";
 
 const PREP_INCLUDE = {
   Question: { select: { id: true, question: true, tags: true } },
@@ -15,7 +16,7 @@ export const addStagePrepQuestions = async (
   try {
     const user = await requireUser();
     const ids = [...new Set(questionIds)].filter(Boolean);
-    if (ids.length === 0) throw new Error("Pick at least one question");
+    if (ids.length === 0) throw new Error(await jobsError("pickQuestion"));
 
     const [stage, owned] = await Promise.all([
       assertStageOwned(stageId, user.id),
@@ -25,8 +26,8 @@ export const addStagePrepQuestions = async (
     ]);
     // Kind before ownership: the stage is already known to be the caller's,
     // and "Applied is not an interview stage" is the message that helps.
-    assertInterviewStage(stage);
-    if (owned !== ids.length) throw new Error("Question not found");
+    await assertInterviewStage(stage);
+    if (owned !== ids.length) throw new Error(await jobsError("questionNotFound"));
 
     // SQLite has no skipDuplicates, so the already-linked ids are subtracted
     // here rather than left to the unique index.
@@ -49,7 +50,7 @@ export const addStagePrepQuestions = async (
     });
     return { success: true, data };
   } catch (error) {
-    return handleError(error, "Failed to add questions to the prep list.");
+    return handleError(error, await jobsError("addPrep"));
   }
 };
 
@@ -65,10 +66,10 @@ export const removeStagePrepQuestion = async (
         Question: { createdBy: user.id },
       },
     });
-    if (res.count === 0) throw new Error("Prep question not found");
+    if (res.count === 0) throw new Error(await jobsError("prepQuestionNotFound"));
     return { success: true };
   } catch (error) {
-    return handleError(error, "Failed to remove the prep question.");
+    return handleError(error, await jobsError("removePrep"));
   }
 };
 
@@ -86,7 +87,7 @@ export const setPrepQuestionAsked = async (
       },
       data: { asked, askedAt: asked ? new Date() : null },
     });
-    if (res.count === 0) throw new Error("Prep question not found");
+    if (res.count === 0) throw new Error(await jobsError("prepQuestionNotFound"));
 
     const data = await prisma.jobStagePrepQuestion.findFirst({
       where: { id: linkId },
@@ -94,6 +95,6 @@ export const setPrepQuestionAsked = async (
     });
     return { success: true, data };
   } catch (error) {
-    return handleError(error, "Failed to update the prep question.");
+    return handleError(error, await jobsError("updatePrep"));
   }
 };

@@ -5,6 +5,7 @@ import { JobTabEmptyState } from "../JobTabEmptyState";
 import { StageHistoryList } from "./StageHistoryList";
 import { StageDetailPanel } from "./StageDetailPanel";
 import { terminalStagesFor } from "./stageDisplay";
+import { useTranslations } from "@/i18n/client";
 
 type JobTimelineTabProps = {
   stages: JobStage[];
@@ -31,15 +32,16 @@ export function JobTimelineTab({
   onAddPrepQuestions,
   onChanged,
 }: JobTimelineTabProps) {
+  const t = useTranslations("jobs");
   // A job restored from a pre-feature backup is permanently stageless, so
   // this is a supported state, not a transient one.
   if (stages.length === 0) {
     return (
       <JobTabEmptyState
         icon={CalendarClock}
-        title="No stages recorded yet"
-        description="Add the first stage to start this job's timeline. Its status stays as it is until a stage sets it."
-        actionLabel="Add stage"
+        title={t("timeline.emptyTitle")}
+        description={t("timeline.emptyDescription")}
+        actionLabel={t("timeline.addStage")}
         onAction={onAddStage}
         actionTestId="timeline-add-stage-btn"
       />

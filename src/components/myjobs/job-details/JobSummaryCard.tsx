@@ -1,6 +1,5 @@
 "use client";
 
-import { format } from "date-fns";
 import Link from "next/link";
 import { ExternalLink, FileText, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -11,12 +10,15 @@ import { DownloadFileButton } from "@/components/profile/DownloadFileButton";
 import { BADGE_COLORS, getJobStatusBadgeColor } from "@/lib/badge-colors";
 import { cn, formatUrl } from "@/lib/utils";
 import type { JobMatchData } from "@/models/ai.schemas";
-import {
-  JobResponse,
-  JobStatus,
-  getJobTypeLabel,
-  getWorkplaceTypeLabel,
-} from "@/models/job.model";
+import { JobResponse, JobStatus } from "@/models/job.model";
+import { APP_CONSTANTS } from "@/lib/constants";
+import { useFormatDate, useLabel, useLocale, useTranslations } from "@/i18n/client";
+import { JOB_DATE, useJobTypeLabels } from "../useJobTypeLabels";
+
+const RECOMMENDATIONS = ["strong match", "good match", "partial match", "weak match"] as const;
+type Recommendation = (typeof RECOMMENDATIONS)[number];
+const isRecommendation = (value: string): value is Recommendation =>
+  (RECOMMENDATIONS as readonly string[]).includes(value);
 
 type JobSummaryCardProps = {
   job: JobResponse;
@@ -29,6 +31,12 @@ export function JobSummaryCard({
   currentStatus,
   matchData,
 }: JobSummaryCardProps) {
+  const t = useTranslations("jobs");
+  const label = useLabel();
+  const locale = useLocale();
+  const formatDate = useFormatDate();
+  const types = useJobTypeLabels();
+  const recommendation = matchData?.recommendation;
   const expired =
     job.dueDate &&
     new Date() > new Date(job.dueDate) &&
@@ -39,61 +47,73 @@ export function JobSummaryCard({
       <CardContent className="pt-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
-            <p className="text-sm text-muted-foreground">Status</p>
+            <p className="text-sm text-muted-foreground">{t("summary.status")}</p>
             <div className="mt-1 flex flex-wrap items-center gap-2">
               {expired ? (
-                <StatusBadge label="Expired" color="amber" />
+                <StatusBadge
+                  label={label("jobStatus", { value: "expired" })}
+                  color="amber"
+                />
               ) : (
                 <StatusBadge
-                  label={currentStatus?.label ?? ""}
+                  label={currentStatus ? label("jobStatus", currentStatus) : ""}
                   color={getJobStatusBadgeColor(currentStatus?.value ?? "")}
                 />
               )}
             </div>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Job Type</p>
+            <p className="text-sm text-muted-foreground">{t("summary.jobType")}</p>
             <p className="mt-1 font-medium">
-              {getJobTypeLabel(job.jobType)}
+              {types.jobType(job.jobType)}
               {job.workplaceType &&
-                ` · ${getWorkplaceTypeLabel(job.workplaceType)}`}
+                ` · ${types.workplaceType(job.workplaceType)}`}
             </p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Salary Range</p>
+            <p className="text-sm text-muted-foreground">{t("summary.salary")}</p>
             <p className="mt-1 font-medium">{job.salaryRange || "-"}</p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Source</p>
-            <p className="mt-1 font-medium">{job.JobSource?.label ?? "-"}</p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Applied</p>
+            <p className="text-sm text-muted-foreground">{t("summary.source")}</p>
             <p className="mt-1 font-medium">
-              {job.appliedDate
-                ? format(new Date(job.appliedDate), "PP")
-                : job.applied
-                  ? "Yes, no date"
-                  : "Not applied"}
+              {job.JobSource ? label("jobSource", job.JobSource) : "-"}
             </p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">AI Match</p>
+            <p className="text-sm text-muted-foreground">{t("summary.applied")}</p>
+            <p className="mt-1 font-medium">
+              {job.appliedDate
+                ? formatDate(new Date(job.appliedDate), JOB_DATE)
+                : job.applied
+                  ? t("summary.appliedNoDate")
+                  : t("summary.notApplied")}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">{t("summary.match")}</p>
             {job.matchScore != null && matchData?.analyzed !== false ? (
               <div className="mt-1 flex flex-wrap items-center gap-2">
                 <CircularScore score={job.matchScore} size="sm" />
-                {matchData?.recommendation && (
-                  <Badge variant="outline" className="capitalize">
-                    {matchData.recommendation}
+                {recommendation && (
+                  // English shows the stored lowercase words title-cased by
+                  // CSS; Ukrainian is written in sentence case.
+                  <Badge
+                    variant="outline"
+                    className={locale === "en" ? "capitalize" : undefined}
+                  >
+                    {isRecommendation(recommendation)
+                      ? t(`summary.recommendation.${recommendation}`)
+                      : recommendation}
                   </Badge>
                 )}
               </div>
             ) : (
-              <p className="mt-1 font-medium">Not matched</p>
+              <p className="mt-1 font-medium">{t("summary.notMatched")}</p>
             )}
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Resume</p>
+            <p className="text-sm text-muted-foreground">{t("summary.resume")}</p>
             <div className="mt-1 font-medium">
               {job.Resume?.File?.filePath ? (
                 DownloadFileButton(
@@ -116,10 +136,10 @@ export function JobSummaryCard({
             </div>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Added</p>
+            <p className="text-sm text-muted-foreground">{t("summary.added")}</p>
             <div className="mt-1 flex flex-wrap items-center gap-2">
               <span className="font-medium">
-                {job.createdAt ? format(new Date(job.createdAt), "PP") : "-"}
+                {job.createdAt ? formatDate(new Date(job.createdAt), JOB_DATE) : "-"}
               </span>
               {job.createdVia && (
                 <Badge
@@ -127,7 +147,9 @@ export function JobSummaryCard({
                   className={cn("gap-1", BADGE_COLORS.violet)}
                 >
                   <Sparkles className="h-3.5 w-3.5" />
-                  via {job.createdVia}
+                  {job.createdVia === APP_CONSTANTS.AGENT_CHAT_CREATED_VIA
+                    ? t("summary.viaChat")
+                    : t("summary.via", { source: job.createdVia })}
                 </Badge>
               )}
             </div>

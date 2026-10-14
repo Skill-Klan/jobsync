@@ -18,6 +18,7 @@ import { JobStatusMenuItems } from "@/components/myjobs/JobStatusMenuItems";
 import type { JobStatus } from "@/models/job.model";
 import type { JobStage } from "@/models/jobStage.model";
 import { isInterviewStage } from "./stageDisplay";
+import { useLabel, useTranslations } from "@/i18n/client";
 
 type UpdateStatusMenuProps = {
   targetStage: JobStage | null;
@@ -38,13 +39,17 @@ export function UpdateStatusMenu({
   onLinkInterviewers,
   onAddPrepQuestions,
 }: UpdateStatusMenuProps) {
+  const t = useTranslations("jobs");
+  const label = useLabel();
   // Disabled with a visible reason rather than hidden: an item that comes and
   // goes as you change tabs is harder to learn than one that greys out.
   const reason = !targetStage
-    ? "Add a stage first"
+    ? t("updateStatus.needStage")
     : isInterviewStage(targetStage)
       ? null
-      : `${targetStage.StageType.label} is not an interview stage`;
+      : t("updateStatus.notInterview", {
+          stage: label("jobStage", targetStage.StageType),
+        });
 
   const items: {
     key: string;
@@ -53,9 +58,9 @@ export function UpdateStatusMenu({
     onSelect: () => void;
     reason: string | null;
   }[] = [
-    { key: "add", label: "Add Stage", icon: Plus, onSelect: onAddStage, reason: null },
-    { key: "link", label: "Add Interviewers", icon: Users, onSelect: onLinkInterviewers, reason },
-    { key: "prep", label: "Add to Prep List", icon: HelpCircle, onSelect: onAddPrepQuestions, reason },
+    { key: "add", label: t("updateStatus.addStage"), icon: Plus, onSelect: onAddStage, reason: null },
+    { key: "link", label: t("interviewers.add"), icon: Users, onSelect: onLinkInterviewers, reason },
+    { key: "prep", label: t("updateStatus.addToPrep"), icon: HelpCircle, onSelect: onAddPrepQuestions, reason },
   ];
 
   return (
@@ -68,19 +73,19 @@ export function UpdateStatusMenu({
         >
           <Tags className="h-4 w-4 sm:mr-2" />
           <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-            Update Status
+            {t("updateStatus.title")}
           </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[200px]">
-        <DropdownMenuLabel>Update Status</DropdownMenuLabel>
+        <DropdownMenuLabel>{t("updateStatus.title")}</DropdownMenuLabel>
         <DropdownMenuGroup>
           {/* Moved out of the ⋮ menu: one control answers "where is this job
               now", instead of two with near-identical names. */}
           <DropdownMenuSub>
             <DropdownMenuSubTrigger className="cursor-pointer">
               <Tags className="mr-2 h-4 w-4" />
-              Change status
+              {t("ui.changeStatus")}
             </DropdownMenuSubTrigger>
             <DropdownMenuPortal>
               <DropdownMenuSubContent className="p-0">

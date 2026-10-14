@@ -1,5 +1,7 @@
 import prisma from "@/lib/db";
 import { APPLIED_STATUS_VALUES } from "@/lib/constants";
+import { jobsError } from "../job/errorMessages";
+import { getLabel, getTranslations } from "@/i18n/server";
 
 export { sortStages } from "@/lib/jobs/sortStages";
 
@@ -58,7 +60,13 @@ export type StageOwnerRow = {
   jobId: string;
   occurredAt: Date | null;
   isCurrent: boolean;
-  StageType: { id: string; label: string; statusId: string; Status: { value: string } };
+  StageType: {
+    id: string;
+    label: string;
+    value: string;
+    statusId: string;
+    Status: { value: string };
+  };
 };
 
 // JobStage has no ownership column, so the chain is the only check there is.
@@ -77,22 +85,24 @@ export async function assertStageOwned(
         select: {
           id: true,
           label: true,
+          value: true,
           statusId: true,
           Status: { select: { value: true } },
         },
       },
     },
   });
-  if (!stage) throw new Error("Stage not found");
+  if (!stage) throw new Error(await jobsError("stageNotFound"));
   return stage;
 }
 
 // The gate is on stage KIND and never on stage timing: preparing for an
 // interview a week out is the primary case (spec decision 10).
-export function assertInterviewStage(stage: StageOwnerRow): void {
+export async function assertInterviewStage(stage: StageOwnerRow): Promise<void> {
   if (stage.StageType.Status.value !== "interview") {
+    const [t, label] = await Promise.all([getTranslations("jobs"), getLabel()]);
     throw new Error(
-      `"${stage.StageType.label}" is not an interview stage, so it has no interviewers or prep list.`,
+      t("errors.notInterviewStage", { stage: label("jobStage", stage.StageType) }),
     );
   }
 }
@@ -130,7 +140,7 @@ export async function promoteStage(
     where: { id: stageId, Job: { userId } },
     data: { isCurrent: true },
   });
-  if (promoted.count === 0) throw new Error("Stage not found");
+  if (promoted.count === 0) throw new Error(await jobsError("stageNotFound"));
 }
 
 // The derived-status invariant: Job.statusId always equals the current
@@ -150,7 +160,7 @@ export async function syncJobFromCurrentStage(
       },
     },
   });
-  if (!stage) throw new Error("Stage not found");
+  if (!stage) throw new Error(await jobsError("stageNotFound"));
 
   const job = await tx.job.findFirst({
     where: { id: jobId, userId },

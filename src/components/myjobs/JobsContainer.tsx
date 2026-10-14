@@ -29,6 +29,7 @@ import { downloadJobsList } from "./jobs-container/downloadJobsCsv";
 import { JobsToolbar } from "./jobs-container/JobsToolbar";
 import { EMPTY_JOB_FACETS, hasJobFacets } from "@/lib/jobs/jobFacets";
 import { Button } from "../ui/button";
+import { useTranslations } from "@/i18n/client";
 
 type MyJobsProps = {
   statuses: JobStatus[];
@@ -48,6 +49,7 @@ function JobsContainer({
   tags,
 }: MyJobsProps) {
   const router = useRouter();
+  const t = useTranslations("jobs");
   const [editJob, setEditJob] = useState(null);
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [noteJobId, setNoteJobId] = useState("");
@@ -99,7 +101,7 @@ function JobsContainer({
   const onDeleteJob = async (jobId: string) => {
     const { res, success, message } = await deleteJobById(jobId);
     if (success) {
-      toastSuccess(`Job has been deleted successfully`);
+      toastSuccess(t("list.deleted"));
     } else {
       toastError(message);
     }
@@ -119,7 +121,7 @@ function JobsContainer({
     const { success, message } = await updateJobStatus(jobId, jobStatus);
     if (success) {
       router.refresh();
-      toastSuccess(`Job has been updated successfully`);
+      toastSuccess(t("list.updated"));
     } else {
       toastError(message);
     }
@@ -164,7 +166,13 @@ function JobsContainer({
             locationValue: locationFilter || undefined,
             sourceValue: sourceFilter || undefined,
           }}
-          onDownload={downloadJobsList}
+          onDownload={() =>
+            downloadJobsList({
+              downloaded: t("list.downloaded"),
+              failed: t("list.downloadFailed"),
+              unknownError: t("list.unknownError"),
+            })
+          }
           statuses={statuses}
           companies={companies}
           titles={titles}
@@ -182,13 +190,13 @@ function JobsContainer({
             jobs.length === 0 &&
             hasJobFacets(facets) && (
             <div className="flex flex-col items-center gap-2 py-10 text-sm text-muted-foreground">
-              <p>No jobs match these filters.</p>
+              <p>{t("list.noMatches")}</p>
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => applyFacets(EMPTY_JOB_FACETS)}
               >
-                Clear all
+                {t("ui.clearAll")}
               </Button>
             </div>
           )}

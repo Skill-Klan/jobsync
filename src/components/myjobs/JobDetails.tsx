@@ -47,6 +47,7 @@ import { AddStageDialog } from "@/components/AddStageDialog";
 import { LinkInterviewersDialog } from "./job-details/timeline/LinkInterviewersDialog";
 import { AddPrepQuestionsDialog } from "./job-details/timeline/AddPrepQuestionsDialog";
 import type { JobStage, JobStageTypeRef } from "@/models/jobStage.model";
+import { useTranslations } from "@/i18n/client";
 
 const JOB_DETAIL_TABS = [
   "description",
@@ -78,6 +79,7 @@ function JobDetails({
   tags,
   stageTypes,
 }: JobDetailsProps) {
+  const t = useTranslations("jobs");
   const {
     open: openChat,
     clear: clearChat,
@@ -130,6 +132,8 @@ function JobDetails({
     }
   }, [job.matchData]);
 
+  // The chat request below is a prompt to the assistant, not interface text:
+  // it stays English until the AI prompts are translated (D31).
   const jobLabel = `${job.JobTitle?.label ?? "this job"}${
     job.Company?.label ? ` at ${job.Company.label}` : ""
   }`;
@@ -166,9 +170,9 @@ function JobDetails({
   // Regenerate all key on this one reason.
   const coverLetterBlockedReason =
     job.descriptionCompleteness === "title-only"
-      ? "Add a job description first"
+      ? t("details.needDescription")
       : chatBusy
-        ? "The assistant is busy"
+        ? t("ui.assistantBusy")
         : undefined;
 
   const onEditJob = () => {
@@ -190,7 +194,7 @@ function JobDetails({
       await reloadStages();
       // applied/appliedDate may have changed too, and they come from the prop.
       router.refresh();
-      toastSuccess(`Job has been updated successfully`);
+      toastSuccess(t("list.updated"));
     } else {
       toastError(message);
     }
@@ -199,7 +203,7 @@ function JobDetails({
   const onDeleteJob = async () => {
     const { success, message } = await deleteJobById(job.id);
     if (success) {
-      toastSuccess(`Job has been deleted successfully`);
+      toastSuccess(t("list.deleted"));
       router.push("/dashboard/myjobs");
     } else {
       toastError(message);
@@ -240,19 +244,21 @@ function JobDetails({
 
         <Tabs value={activeTab} onValueChange={handleTabChange}>
           <TabsList className="w-full justify-start overflow-x-auto">
-            <TabsTrigger value="description">Description</TabsTrigger>
+            <TabsTrigger value="description">
+              {t("details.tabs.description")}
+            </TabsTrigger>
             <TabsTrigger value="timeline">
-              Timeline
+              {t("details.tabs.timeline")}
               {stages.length > 0 && (
                 <Badge variant="secondary" className="ml-2">
                   {stages.length}
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="match">AI Match</TabsTrigger>
-            <TabsTrigger value="letter">Cover Letter</TabsTrigger>
+            <TabsTrigger value="match">{t("details.tabs.match")}</TabsTrigger>
+            <TabsTrigger value="letter">{t("details.tabs.letter")}</TabsTrigger>
             <TabsTrigger value="contacts">
-              Contacts
+              {t("details.tabs.contacts")}
               {contactLinks.length > 0 && (
                 <Badge variant="secondary" className="ml-2">
                   {contactLinks.length}
@@ -260,7 +266,7 @@ function JobDetails({
               )}
             </TabsTrigger>
             <TabsTrigger value="notes">
-              Notes
+              {t("details.tabs.notes")}
               {notesCount > 0 && (
                 <Badge variant="secondary" className="ml-2">
                   {notesCount}
@@ -280,12 +286,12 @@ function JobDetails({
               ) : (
                 <JobTabEmptyState
                   icon={Sparkles}
-                  title="No match analysis yet"
-                  description="Run an AI match to see how your resume lines up with this posting, and where the gaps are."
-                  actionLabel="Match with AI"
+                  title={t("details.noMatchTitle")}
+                  description={t("details.noMatchDescription")}
+                  actionLabel={t("details.matchWithAi")}
                   onAction={onMatch}
                   actionDisabled={chatBusy}
-                  actionTitle={chatBusy ? "The assistant is busy" : undefined}
+                  actionTitle={chatBusy ? t("ui.assistantBusy") : undefined}
                 />
               )}
             </Card>
@@ -383,7 +389,7 @@ function JobDetails({
         onAdded={() => void reloadStages()}
       />
       <DeleteAlertDialog
-        pageTitle="job"
+        pageTitle={t("deleteItem.job")}
         open={deleteAlertOpen}
         onOpenChange={setDeleteAlertOpen}
         onDelete={onDeleteJob}
@@ -395,16 +401,15 @@ function JobDetails({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Clear the assistant conversation?</AlertDialogTitle>
+            <AlertDialogTitle>{t("details.clearChatTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              A job is waiting for your approval in the assistant. Starting this
-              clears the conversation, and that job will not be saved.
+              {t("details.clearChatDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("ui.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={() => void startChat(pendingChatMessage)}>
-              Clear and continue
+              {t("details.clearAndContinue")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

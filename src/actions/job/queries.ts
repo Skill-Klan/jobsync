@@ -14,6 +14,7 @@ import { APP_CONSTANTS } from "@/lib/constants";
 import { requireUser } from "../shared";
 import { hideUnanalyzedScore, UNANALYZED_MATCH_MARKER } from "./shared";
 import { STAGE_DETAIL_INCLUDE } from "../jobStage/shared";
+import { jobsError } from "./errorMessages";
 
 const JOB_LIST_SELECT = {
   id: true,
@@ -255,7 +256,7 @@ export const getJobsList = async (
     );
     return { success: true, data: data.map(hideUnanalyzedScore), total };
   } catch (error) {
-    const msg = "Failed to fetch jobs list. ";
+    const msg = await jobsError("fetchJobs");
     return handleError(error, msg);
   }
 };
@@ -295,7 +296,7 @@ export const getJobFilterCounts = async (
     );
     return { success: true, data: { total, statusCounts, acceptedDiscovered } };
   } catch (error) {
-    const msg = "Failed to count jobs. ";
+    const msg = await jobsError("countJobs");
     return handleError(error, msg);
   }
 };
@@ -340,7 +341,7 @@ export const getJobDetails = async (
 ): Promise<any | undefined> => {
   try {
     if (!jobId) {
-      throw new Error("Please provide job id");
+      throw new Error(await jobsError("jobIdMissing"));
     }
     const user = await requireUser();
 
@@ -353,7 +354,7 @@ export const getJobDetails = async (
     });
     return { job, success: true };
   } catch (error) {
-    const msg = "Failed to fetch job details. ";
+    const msg = await jobsError("fetchJob");
     return handleError(error, msg);
   }
 };

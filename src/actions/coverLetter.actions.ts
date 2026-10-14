@@ -5,6 +5,7 @@ import { handleError } from "@/lib/utils";
 import { requireUser } from "./shared";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { buildCoverLetterTitle } from "@/lib/coverLetterTitle";
+import { jobsError } from "./job/errorMessages";
 
 // html:false escapes raw HTML in the model output before it is ever stored,
 // so the saved document is the same shape a hand-written letter produces.
@@ -54,7 +55,7 @@ export const getCoverLetterList = async (
     ]);
     return { data, total, success: true };
   } catch (error) {
-    const msg = "Failed to get cover letter list.";
+    const msg = await jobsError("fetchCoverLetters");
     return handleError(error, msg);
   }
 };
@@ -77,7 +78,7 @@ export const createCoverLetter = async (
     });
 
     if (titleExists) {
-      throw new Error("Cover letter title already exists!");
+      throw new Error(await jobsError("coverLetterTitleExists"));
     }
 
     const profile = await prisma.profile.findFirst({
@@ -105,7 +106,7 @@ export const createCoverLetter = async (
 
     return { success: true, data: res };
   } catch (error) {
-    const msg = "Failed to create cover letter.";
+    const msg = await jobsError("createCoverLetter");
     return handleError(error, msg);
   }
 };
@@ -125,7 +126,7 @@ export const updateCoverLetter = async (
 
     return { success: true, data: res };
   } catch (error) {
-    const msg = "Failed to update cover letter.";
+    const msg = await jobsError("updateCoverLetter");
     return handleError(error, msg);
   }
 };
@@ -142,7 +143,7 @@ export const deleteCoverLetterById = async (
 
     return { success: true };
   } catch (error) {
-    const msg = "Failed to delete cover letter.";
+    const msg = await jobsError("deleteCoverLetter");
     return handleError(error, msg);
   }
 };
@@ -158,7 +159,7 @@ export const generateCoverLetterForJob = async (
       !markdown ||
       markdown.trim().length < APP_CONSTANTS.MIN_COVER_LETTER_CHARS
     ) {
-      throw new Error("Generated cover letter was too short to save.");
+      throw new Error(await jobsError("coverLetterTooShort"));
     }
 
     const job = await prisma.job.findUnique({
@@ -167,7 +168,7 @@ export const generateCoverLetterForJob = async (
     });
 
     if (!job) {
-      throw new Error("Job not found");
+      throw new Error(await jobsError("jobNotFound"));
     }
 
     const profile = await prisma.profile.findFirst({
@@ -175,7 +176,7 @@ export const generateCoverLetterForJob = async (
     });
 
     if (!profile) {
-      throw new Error("No profile found for this user.");
+      throw new Error(await jobsError("noProfile"));
     }
 
     const existing = await prisma.coverLetter.findMany({
@@ -206,7 +207,7 @@ export const generateCoverLetterForJob = async (
 
     return { success: true, data: { id: created.id, title: created.title } };
   } catch (error) {
-    const msg = "Failed to save generated cover letter.";
+    const msg = await jobsError("saveGeneratedLetter");
     return handleError(error, msg);
   }
 };

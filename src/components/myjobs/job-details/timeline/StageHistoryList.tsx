@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import type { JobStage, JobStageTypeRef } from "@/models/jobStage.model";
 import { formatStageDate } from "./stageDisplay";
+import { useLabel, useLocale, useTranslations } from "@/i18n/client";
 
 type StageHistoryListProps = {
   stages: JobStage[];
@@ -61,12 +62,15 @@ export function StageHistoryList({
   onSelect,
   onAddStage,
 }: StageHistoryListProps) {
+  const t = useTranslations("jobs");
+  const label = useLabel();
+  const locale = useLocale();
   const currentIndex = stages.findIndex((s) => s.id === currentStageId);
 
   return (
     <div className="rounded-lg border bg-card p-2.5">
       <h3 className="px-2.5 py-2 text-xs font-bold tracking-wide text-muted-foreground">
-        STAGE HISTORY
+        {t("timeline.history")}
       </h3>
 
       {/* The complete history lives here, and only here: every stage is
@@ -99,7 +103,7 @@ export function StageHistoryList({
                     isCurrent && "font-extrabold text-emerald-600 dark:text-emerald-400",
                   )}
                 >
-                  {stage.StageType.label}
+                  {label("jobStage", stage.StageType)}
                 </span>
                 <span
                   className={cn(
@@ -109,9 +113,11 @@ export function StageHistoryList({
                       : "text-muted-foreground",
                   )}
                 >
-                  {formatStageDate(stage.occurredAt)}
+                  {formatStageDate(stage.occurredAt, locale)}
                 </span>
-                {isCurrent && <span className="sr-only">Current stage</span>}
+                {isCurrent && (
+                  <span className="sr-only">{t("timeline.currentStage")}</span>
+                )}
               </button>
             </li>
           );
@@ -128,7 +134,7 @@ export function StageHistoryList({
               nextReached={false}
             />
             <span className="flex-1 truncate text-[13px] font-semibold">
-              {type.label}
+              {label("jobStage", type)}
             </span>
             <span className="text-xs">—</span>
           </li>
@@ -142,7 +148,7 @@ export function StageHistoryList({
         data-testid="timeline-add-stage-btn"
       >
         <Plus className="mr-1.5 h-3.5 w-3.5" />
-        Add stage
+        {t("timeline.addStage")}
       </Button>
     </div>
   );

@@ -16,6 +16,7 @@ import { createContact, getAllContacts } from "@/actions/contact.actions";
 import { linkStageInterviewer } from "@/actions/jobStage.actions";
 import type { JobStage } from "@/models/jobStage.model";
 import { stageHeading, stageInitials } from "./stageDisplay";
+import { useLocale, useTranslations } from "@/i18n/client";
 
 type ContactRow = {
   id: string;
@@ -57,6 +58,8 @@ export function LinkInterviewersDialog({
   onOpenChange,
   onLinked,
 }: LinkInterviewersDialogProps) {
+  const t = useTranslations("jobs");
+  const locale = useLocale();
   const [contacts, setContacts] = useState<ContactRow[]>([]);
   const [search, setSearch] = useState("");
   const [linkedIds, setLinkedIds] = useState<string[]>([]);
@@ -101,7 +104,7 @@ export function LinkInterviewersDialog({
     startTransition(async () => {
       const res = await linkStageInterviewer(stage.id, contactId);
       toastActionResult(res, {
-        success: "Interviewer has been linked successfully",
+        success: t("linkInterviewers.linked"),
         onSuccess: () => {
           setLinkedIds((prev) => [...prev, contactId]);
           setLinkedCount((n) => n + 1);
@@ -114,7 +117,7 @@ export function LinkInterviewersDialog({
     startTransition(async () => {
       const res = await createContact(contactPayload(newContact));
       toastActionResult(res, {
-        success: "Contact has been created successfully",
+        success: t("linkInterviewers.contactCreated"),
         onSuccess: () => {
           const row: ContactRow = {
             id: res.data.id,
@@ -132,15 +135,15 @@ export function LinkInterviewersDialog({
 
   const doneLabel =
     linkedCount === 0
-      ? "Done"
-      : `Done — ${linkedCount} interviewer${linkedCount === 1 ? "" : "s"} linked`;
+      ? t("ui.done")
+      : t("linkInterviewers.doneCount", { count: linkedCount });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[520px] max-h-[720px] overflow-hidden">
         <DialogHeader>
-          <DialogTitle>Add and Link Interviewers</DialogTitle>
-          <DialogDescription>{stageHeading(stage)}</DialogDescription>
+          <DialogTitle>{t("linkInterviewers.title")}</DialogTitle>
+          <DialogDescription>{stageHeading(stage, locale)}</DialogDescription>
         </DialogHeader>
 
         <div className="max-h-[60vh] space-y-4 overflow-y-auto p-1">
@@ -148,7 +151,7 @@ export function LinkInterviewersDialog({
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               className="pl-9"
-              placeholder="Search contacts by name or company…"
+              placeholder={t("linkInterviewers.search")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -157,7 +160,7 @@ export function LinkInterviewersDialog({
           <ul className="overflow-hidden rounded-lg border">
             {visible.length === 0 && (
               <li className="px-3.5 py-4 text-[13px] text-muted-foreground">
-                No contacts match that search.
+                {t("linkInterviewers.noMatches")}
               </li>
             )}
             {visible.map((contact, index) => {
@@ -187,7 +190,9 @@ export function LinkInterviewersDialog({
                   </span>
                   {isLinked ? (
                     <span
-                      aria-label={`${contact.label} is already linked`}
+                      aria-label={t("linkInterviewers.alreadyLinked", {
+                        name: contact.label,
+                      })}
                       className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-300"
                     >
                       <Check className="h-3.5 w-3.5" />
@@ -199,8 +204,10 @@ export function LinkInterviewersDialog({
                       disabled={isPending}
                       onClick={() => link(contact.id)}
                     >
-                      <span className="sr-only">Add {contact.label}</span>
-                      <span aria-hidden="true">Add</span>
+                      <span className="sr-only">
+                        {t("linkInterviewers.addName", { name: contact.label })}
+                      </span>
+                      <span aria-hidden="true">{t("ui.add")}</span>
                     </Button>
                   )}
                 </li>
@@ -209,19 +216,21 @@ export function LinkInterviewersDialog({
           </ul>
 
           <div className="space-y-3 rounded-lg border border-dashed p-3.5">
-            <p className="text-[13px] font-semibold">Add a new contact</p>
+            <p className="text-[13px] font-semibold">
+              {t("linkInterviewers.newContact")}
+            </p>
             <div className="grid grid-cols-2 gap-3">
               <Input
-                placeholder="Full name"
-                aria-label="Full name"
+                placeholder={t("linkInterviewers.fullName")}
+                aria-label={t("linkInterviewers.fullName")}
                 value={newContact.name}
                 onChange={(e) =>
                   setNewContact((v) => ({ ...v, name: e.target.value }))
                 }
               />
               <Input
-                placeholder="Role / title"
-                aria-label="Role / title"
+                placeholder={t("linkInterviewers.roleTitle")}
+                aria-label={t("linkInterviewers.roleTitle")}
                 value={newContact.title}
                 onChange={(e) =>
                   setNewContact((v) => ({ ...v, title: e.target.value }))
@@ -230,8 +239,8 @@ export function LinkInterviewersDialog({
               <div className="col-span-2">
                 <Input
                   type="email"
-                  placeholder="Email"
-                  aria-label="Email"
+                  placeholder={t("linkInterviewers.email")}
+                  aria-label={t("linkInterviewers.email")}
                   value={newContact.email}
                   onChange={(e) =>
                     setNewContact((v) => ({ ...v, email: e.target.value }))
@@ -245,14 +254,14 @@ export function LinkInterviewersDialog({
               disabled={isPending || !newContact.name.trim()}
               onClick={addAndLink}
             >
-              Add Contact
+              {t("linkInterviewers.addContact")}
             </Button>
           </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("ui.cancel")}
           </Button>
           <Button onClick={() => onOpenChange(false)}>{doneLabel}</Button>
         </DialogFooter>

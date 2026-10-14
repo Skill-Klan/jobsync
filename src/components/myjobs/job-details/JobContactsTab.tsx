@@ -1,6 +1,5 @@
 "use client";
 import { useRef, useState } from "react";
-import { format } from "date-fns";
 import { PlusCircle, Trash, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,6 +19,8 @@ import type {
 import type { Company, JobLocation } from "@/models/job.model";
 import { JobTabEmptyState } from "./JobTabEmptyState";
 import { AddJobContactForm } from "./AddJobContactForm";
+import { useFormatDate, useLabel, useTranslations } from "@/i18n/client";
+import { JOB_DATE } from "../useJobTypeLabels";
 
 type JobContactsTabProps = {
   jobId: string;
@@ -36,6 +37,9 @@ export function JobContactsTab({
   companies = [],
   locations = [],
 }: JobContactsTabProps) {
+  const t = useTranslations("jobs");
+  const label = useLabel();
+  const formatDate = useFormatDate();
   const [showForm, setShowForm] = useState(false);
   const [contacts, setContacts] = useState<ContactRef[]>([]);
   const [roles, setRoles] = useState<ContactRole[]>([]);
@@ -66,7 +70,7 @@ export function JobContactsTab({
     const res = await removeJobContact(removeTarget.id);
     setRemoveTarget(null);
     toastActionResult(res, {
-      success: "Contact has been unlinked from this job",
+      success: t("contacts.unlinked"),
       onSuccess: reload,
     });
   };
@@ -82,7 +86,7 @@ export function JobContactsTab({
             onClick={openForm}
           >
             <PlusCircle className="h-3.5 w-3.5" />
-            Add Contact
+            {t("contacts.add")}
           </Button>
         </div>
       )}
@@ -106,9 +110,9 @@ export function JobContactsTab({
       {links.length === 0 && !showForm && (
         <JobTabEmptyState
           icon={Users}
-          title="No contacts on this job"
-          description="Link the recruiter, the panel, or a reference you named for this application."
-          actionLabel="Add Contact"
+          title={t("contacts.emptyTitle")}
+          description={t("contacts.emptyDescription")}
+          actionLabel={t("contacts.add")}
           onAction={openForm}
         />
       )}
@@ -131,7 +135,7 @@ export function JobContactsTab({
                   {row.Contact.Company.label}
                 </span>
               )}
-              <Badge variant="secondary">{row.Role.label}</Badge>
+              <Badge variant="secondary">{label("contactRole", row.Role)}</Badge>
               {row.Contact?.email && (
                 <a
                   href={`mailto:${row.Contact.email}`}
@@ -160,14 +164,16 @@ export function JobContactsTab({
               )}
               {row.Contact?.lastContactedAt && (
                 <span className="text-muted-foreground">
-                  Last contacted {format(row.Contact.lastContactedAt, "PP")}
+                  {t("contacts.lastContacted", {
+                    date: formatDate(row.Contact.lastContactedAt, JOB_DATE),
+                  })}
                 </span>
               )}
               <Button
                 variant="ghost"
                 size="icon"
                 className="ml-auto cursor-pointer"
-                aria-label={`Remove ${row.Contact?.name}`}
+                aria-label={t("contacts.remove", { name: row.Contact?.name ?? "" })}
                 onClick={() => setRemoveTarget(row)}
               >
                 <Trash className="h-4 w-4 text-red-600" />
@@ -178,11 +184,11 @@ export function JobContactsTab({
       )}
 
       <DeleteAlertDialog
-        pageTitle="contact link"
+        pageTitle={t("deleteItem.contactLink")}
         open={!!removeTarget}
         onOpenChange={(open) => !open && setRemoveTarget(null)}
         onDelete={onRemove}
-        alertDescription="Removing this only unlinks the contact from this job. The contact itself is kept."
+        alertDescription={t("contacts.unlinkDescription")}
       />
     </div>
   );

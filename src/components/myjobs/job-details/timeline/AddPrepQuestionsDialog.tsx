@@ -20,6 +20,7 @@ import { getAllTags } from "@/actions/tag.actions";
 import type { Tag } from "@/models/job.model";
 import type { JobStage } from "@/models/jobStage.model";
 import { stageHeading } from "./stageDisplay";
+import { useLocale, useTranslations } from "@/i18n/client";
 
 type BankQuestion = { id: string; question: string; tags: Tag[] };
 
@@ -44,6 +45,8 @@ export function AddPrepQuestionsDialog({
   onOpenChange,
   onAdded,
 }: AddPrepQuestionsDialogProps) {
+  const t = useTranslations("jobs");
+  const locale = useLocale();
   const [bank, setBank] = useState<BankQuestion[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [search, setSearch] = useState("");
@@ -98,7 +101,7 @@ export function AddPrepQuestionsDialog({
         tagIds: newTagIds,
       });
       toastActionResult(res, {
-        success: "Question has been added to your bank",
+        success: t("prepDialog.added"),
         onSuccess: () => {
           // Banked and selected in one click: the user asked for it here.
           setBank((prev) => [res.data, ...prev]);
@@ -117,7 +120,7 @@ export function AddPrepQuestionsDialog({
     startTransition(async () => {
       const res = await addStagePrepQuestions(stage.id, selected);
       toastActionResult(res, {
-        success: "Prep list has been updated successfully",
+        success: t("prepDialog.updated"),
         onSuccess: () => {
           onAdded();
           onOpenChange(false);
@@ -128,30 +131,27 @@ export function AddPrepQuestionsDialog({
 
   const doneLabel =
     selected.length === 0
-      ? "Done"
-      : `Done — ${selected.length} question${
-          selected.length === 1 ? "" : "s"
-        } added to prep list`;
+      ? t("ui.done")
+      : t("prepDialog.doneCount", { count: selected.length });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[760px] max-h-[800px] overflow-hidden">
         <DialogHeader>
-          <DialogTitle>Add Questions to Prep List</DialogTitle>
-          <DialogDescription>{stageHeading(stage)}</DialogDescription>
+          <DialogTitle>{t("prepDialog.title")}</DialogTitle>
+          <DialogDescription>{stageHeading(stage, locale)}</DialogDescription>
         </DialogHeader>
 
         <div className="max-h-[60vh] space-y-4 overflow-y-auto p-1">
           <p className="text-[13px] text-muted-foreground">
-            Select questions you expect to be asked. After the interview, check
-            them off as &quot;asked&quot; from the Timeline tab.
+            {t("prepDialog.intro")}
           </p>
 
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               className="pl-9"
-              placeholder="Search question bank…"
+              placeholder={t("prepDialog.search")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -170,7 +170,7 @@ export function AddPrepQuestionsDialog({
                     <span className="truncate">{q.question}</span>
                     <button
                       type="button"
-                      aria-label={`Remove ${q.question}`}
+                      aria-label={t("prepDialog.remove", { question: q.question })}
                       className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full hover:bg-primary/20"
                       onClick={() => toggle(id, false)}
                     >
@@ -185,7 +185,7 @@ export function AddPrepQuestionsDialog({
           <ul className="overflow-hidden rounded-lg border">
             {visible.length === 0 && (
               <li className="px-3.5 py-4 text-[13px] text-muted-foreground">
-                No questions match that search.
+                {t("prepDialog.noMatches")}
               </li>
             )}
             {visible.map((q, index) => {
@@ -228,7 +228,7 @@ export function AddPrepQuestionsDialog({
                   </div>
                   {isLinked && (
                     <span className="shrink-0 text-[11px] text-muted-foreground">
-                      On prep list
+                      {t("prepDialog.onList")}
                     </span>
                   )}
                 </li>
@@ -237,15 +237,17 @@ export function AddPrepQuestionsDialog({
           </ul>
 
           <div className="space-y-3 rounded-lg border border-dashed p-3.5">
-            <p className="text-[13px] font-semibold">Add a new question</p>
+            <p className="text-[13px] font-semibold">
+              {t("prepDialog.newQuestion")}
+            </p>
             <Input
-              placeholder="Type a new interview question…"
-              aria-label="New question"
+              placeholder={t("prepDialog.newPlaceholder")}
+              aria-label={t("prepDialog.newLabel")}
               value={newQuestion}
               onChange={(e) => setNewQuestion(e.target.value)}
             />
             <div className="space-y-1.5">
-              <p className="text-[13px] font-medium">Skill Tags</p>
+              <p className="text-[13px] font-medium">{t("prepDialog.skillTags")}</p>
               <TagInput
                 availableTags={tags}
                 selectedTagIds={newTagIds}
@@ -259,14 +261,14 @@ export function AddPrepQuestionsDialog({
               disabled={isPending || !newQuestion.trim()}
               onClick={addQuestion}
             >
-              Add Question
+              {t("prepDialog.addQuestion")}
             </Button>
           </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("ui.cancel")}
           </Button>
           <Button onClick={submit} disabled={isPending}>
             {doneLabel}
