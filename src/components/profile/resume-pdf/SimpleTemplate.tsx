@@ -63,7 +63,7 @@ export function SimpleResumeDocument({
   return (
     <Document
       author={`${ContactInfo?.firstName ?? ""} ${ContactInfo?.lastName ?? ""}`.trim()}
-      creator="jobsync.ca"
+      creator="SkillKlan Job"
       producer="react-pdf"
       title={resume.title}
     >
