@@ -2,7 +2,16 @@
 
 import { RadialChartComponent } from "@/components/RadialChartSvg";
 import { Badge } from "@/components/ui/badge";
-import type { JobMatchScores } from "@/models/ai.schemas";
+import type { JobMatchRecommendation, JobMatchScores } from "@/models/ai.schemas";
+import { useLocale, useTranslations } from "@/i18n/client";
+import { cn } from "@/lib/utils";
+
+const RECOMMENDATION = {
+  "strong match": "strongMatch",
+  "good match": "goodMatch",
+  "partial match": "partialMatch",
+  "weak match": "weakMatch",
+} as const satisfies Record<JobMatchRecommendation, string>;
 
 const recommendationVariant = (recommendation: string) =>
   recommendation === "strong match"
@@ -22,15 +31,24 @@ export function AgentMatchScoreCard({
   scores: JobMatchScores;
   size?: number;
 }) {
+  const t = useTranslations("agent.scores");
+  const locale = useLocale();
+  // The model's own word, translated when it is one of the four we asked for.
+  const recommendation = scores.recommendation;
+  const label = Object.prototype.hasOwnProperty.call(RECOMMENDATION, recommendation)
+    ? t(RECOMMENDATION[recommendation])
+    : recommendation;
   return (
     <div className="flex flex-col items-center rounded-sm border p-3">
       <RadialChartComponent score={scores.matchScore} size={size} />
       {scores.recommendation && (
         <Badge
           variant={recommendationVariant(scores.recommendation)}
-          className="mt-2 capitalize"
+          // English is lower case and capitalised word by word, as before;
+          // Ukrainian is already written in sentence case.
+          className={cn("mt-2", locale === "en" && "capitalize")}
         >
-          {scores.recommendation}
+          {label}
         </Badge>
       )}
     </div>

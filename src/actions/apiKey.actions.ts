@@ -6,6 +6,7 @@ import { requireUser } from "./shared";
 import { handleError } from "@/lib/utils";
 import { encrypt, getLast4 } from "@/lib/encryption";
 import { apiKeySaveSchema } from "@/models/apiKey.schema";
+import { getTranslations } from "@/i18n/server";
 import type {
   ApiKeyClientResponse,
   ApiKeyProvider,
@@ -49,7 +50,8 @@ export async function getUserApiKeys(): Promise<{
       }),
     };
   } catch (error) {
-    return handleError(error, "Failed to fetch API keys") as {
+    const t = await getTranslations("settings.actions");
+    return handleError(error, t("fetchKeysFailed")) as {
       success: boolean;
       message: string;
     };
@@ -129,7 +131,8 @@ export async function saveApiKey(input: {
 
     return { success: true, data: response };
   } catch (error) {
-    return handleError(error, "Failed to save API key") as {
+    const t = await getTranslations("settings.actions");
+    return handleError(error, t("saveKeyFailed")) as {
       success: boolean;
       message: string;
     };
@@ -149,7 +152,8 @@ export async function deleteApiKey(provider: string): Promise<{
 
     return { success: true };
   } catch (error) {
-    return handleError(error, "Failed to delete API key") as {
+    const t = await getTranslations("settings.actions");
+    return handleError(error, t("deleteKeyFailed")) as {
       success: boolean;
       message: string;
     };

@@ -12,10 +12,12 @@ import ProviderModelTable from "./ai-usage-settings/ProviderModelTable";
 import FeatureBreakdown from "./ai-usage-settings/FeatureBreakdown";
 import FailuresCard from "./ai-usage-settings/FailuresCard";
 import RecentCallsTable from "./ai-usage-settings/RecentCallsTable";
+import { useTranslations } from "@/i18n/client";
 
 const RANGES: AiUsageRange[] = [7, 30];
 
 export default function AiUsageSettings() {
+  const t = useTranslations("settings.usage");
   const [range, setRange] = useState<AiUsageRange>(30);
   const [summary, setSummary] = useState<AiUsageSummary | null>(null);
   const [failed, setFailed] = useState(false);
@@ -51,15 +53,12 @@ export default function AiUsageSettings() {
     <div className="@container/ai-usage flex flex-col gap-5">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <h2 className="text-xl font-semibold">AI Usage</h2>
-          <p className="text-sm text-muted-foreground">
-            Tokens, response times and failures across your providers and
-            models.
-          </p>
+          <h2 className="text-xl font-semibold">{t("title")}</h2>
+          <p className="text-sm text-muted-foreground">{t("description")}</p>
         </div>
         <div
           role="group"
-          aria-label="Date range"
+          aria-label={t("rangeAriaLabel")}
           className="flex gap-0.5 rounded-md bg-muted p-1"
         >
           {RANGES.map((r) => (
@@ -75,7 +74,7 @@ export default function AiUsageSettings() {
                   : "text-muted-foreground",
               )}
             >
-              {`${r} days`}
+              {t("rangeDays", { days: r })}
             </button>
           ))}
         </div>
@@ -88,7 +87,7 @@ export default function AiUsageSettings() {
       )}
       {failed && (
         <p className="text-sm text-muted-foreground">
-          Couldn&apos;t load AI usage.
+          {t("loadFailed")}
         </p>
       )}
 
@@ -96,7 +95,7 @@ export default function AiUsageSettings() {
         <div className={cn("flex flex-col gap-5", loading && "opacity-60")}>
           {summary.totals.calls === 0 ? (
             <div className="rounded-lg border px-5 py-10 text-center text-sm text-muted-foreground">
-              {`No AI calls in the last ${summary.rangeDays} days.`}
+              {t("empty", { days: summary.rangeDays })}
             </div>
           ) : (
             <>

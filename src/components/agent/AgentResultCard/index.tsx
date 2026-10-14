@@ -13,12 +13,14 @@ import type {
   AgentMatchJobResult,
   AgentReviewResumeResult,
 } from "@/models/agent.model";
+import { useTranslations } from "@/i18n/client";
 
 export function AgentResultCard({ part }: { part: ToolUIPart }) {
+  const t = useTranslations("agent.results");
   if (part.state === "output-denied") {
     return (
       <div className="rounded-sm border p-3 text-sm text-muted-foreground">
-        Cancelled — nothing was saved.
+        {t("cancelled")}
       </div>
     );
   }
@@ -26,7 +28,7 @@ export function AgentResultCard({ part }: { part: ToolUIPart }) {
   if (part.state === "output-error") {
     return (
       <div className="rounded-sm border p-3 text-sm">
-        That could not be completed. Try asking again.
+        {t("failed")}
       </div>
     );
   }

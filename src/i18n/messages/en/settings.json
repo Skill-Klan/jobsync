@@ -1,1 +1,269 @@
-{}
+{
+  "page": {
+    "title": "Settings"
+  },
+  "sections": {
+    "aiProvider": "AI Provider",
+    "aiUsage": "AI Usage",
+    "apiKeys": "API Keys",
+    "appearance": "Appearance",
+    "data": "Data"
+  },
+  "loadingSettings": "Loading settings...",
+  "save": "Save",
+  "ai": {
+    "title": "AI Provider",
+    "description": "Configure your AI service provider and model.",
+    "providerLabel": "AI Service Provider",
+    "providerAriaLabel": "Select AI provider",
+    "providerPlaceholder": "Select AI Service Provider",
+    "modelLabel": "Model",
+    "modelAriaLabel": "Select Model",
+    "modelPlaceholder": "Select Model",
+    "loadingModels": "Loading models...",
+    "retry": "Retry",
+    "ollamaUnreachable": "Ollama is not reachable.",
+    "fetchFailedLocal": "Failed to fetch {provider} models. Make sure {provider} is running.",
+    "fetchFailedKey": "Failed to fetch {provider} models. Please check your API key in API Keys settings.",
+    "selectModel": "Please select a model to save.",
+    "saved": "AI Settings saved successfully.",
+    "savedTitle": "Saved!",
+    "saveFailed": "Failed to save AI settings."
+  },
+  "appearance": {
+    "title": "Appearance",
+    "description": "Customize the look and feel of the application.",
+    "theme": "Theme",
+    "themeDescription": "Select the theme for the app.",
+    "themeRequired": "Please select a theme.",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "saved": "Your selected theme has been saved.",
+    "saveFailed": "Failed to save display settings."
+  },
+  "apiKeys": {
+    "title": "API Keys",
+    "description": "Manage your API keys for AI providers and external services.",
+    "descriptionStored": "Manage your API keys for AI providers and external services. Keys are encrypted and stored securely.",
+    "loading": "Loading keys...",
+    "providerDescriptions": {
+      "ollama": "Base URL for your Ollama instance",
+      "openai": "Used for GPT models in resume review and job matching",
+      "deepseek": "Used for DeepSeek models in resume review and job matching",
+      "openrouter": "Access 200+ models from multiple providers via OpenRouter",
+      "gemini": "Used for Gemini models in resume review and job matching"
+    },
+    "defaultValue": "Default: {value}",
+    "notConfigured": "Not configured",
+    "checking": "Checking...",
+    "ollamaRunning": "Ollama is running",
+    "ollamaNotRunning": "Ollama is not running",
+    "baseUrl": "Base URL",
+    "apiKey": "API Key",
+    "verifyAndSave": "Verify & Save",
+    "cancel": "Cancel",
+    "updateKey": "Update Key",
+    "addKey": "Add Key",
+    "resetToDefault": "Reset to default",
+    "resetTitle": "Reset {provider} Base URL",
+    "deleteTitle": "Delete API Key",
+    "resetDescription": "Clear the saved {provider} base URL? SkillKlan Job will use the server default, {url}.",
+    "deleteDescription": "Are you sure you want to delete your {provider} key? The system will fall back to the server environment variable if available.",
+    "reset": "Reset",
+    "delete": "Delete",
+    "cannotReach": "Cannot reach {provider}",
+    "verificationFailed": "Verification failed",
+    "couldNotVerify": "Could not verify the key",
+    "keySaved": "{provider} key verified and saved.",
+    "keySavedTitle": "API key saved",
+    "saveFailed": "Failed to save API key",
+    "saveFailedTitle": "Save failed",
+    "unexpectedError": "An unexpected error occurred",
+    "keyRemoved": "{provider} key removed.",
+    "keyDeletedTitle": "API key deleted",
+    "deleteFailed": "Failed to delete API key"
+  },
+  "usage": {
+    "title": "AI Usage",
+    "description": "Tokens, response times and failures across your providers and models.",
+    "rangeAriaLabel": "Date range",
+    "rangeDays": "{days} days",
+    "loadFailed": "Couldn't load AI usage.",
+    "empty": "No AI calls in the last {days} days.",
+    "summary": {
+      "totalTokens": "Total tokens",
+      "inputOutput": "{input}M input · {output}M output",
+      "apiCalls": "API calls",
+      "change": "{change} vs previous {days} days",
+      "chatTurn": "A chat turn counts as one call",
+      "medianResponse": "Median response time",
+      "firstToken": "First token {value} (streamed features)",
+      "failedCalls": "Failed calls",
+      "errorRate": "{rate}% error rate",
+      "failureBreakdown": "{error} error · {truncated} truncated · {interrupted} interrupted · {timedOut} timed out"
+    },
+    "dailyTokens": "Daily tokens by provider",
+    "byProvider": {
+      "title": "By provider and model",
+      "note": "Per call · chat excludes the review, match or letter it started",
+      "providerModel": "Provider / model",
+      "share": "Share of tokens",
+      "nearContextLimit": "{count, plural, one {# call} other {# calls}} near context limit"
+    },
+    "byFeature": {
+      "title": "By feature",
+      "columns": "Tokens · Calls · Median"
+    },
+    "columns": {
+      "tokens": "Tokens",
+      "calls": "Calls",
+      "median": "Median",
+      "firstToken": "First token",
+      "time": "Time",
+      "feature": "Feature",
+      "model": "Model",
+      "input": "Input",
+      "output": "Output",
+      "duration": "Duration",
+      "status": "Status"
+    },
+    "features": {
+      "agent_chat": "Agent chat",
+      "job_match": "Job match",
+      "automations": "Automations",
+      "resume_review": "Resume review",
+      "cover_letter": "Cover letter",
+      "resume_import": "Resume import"
+    },
+    "failures": {
+      "title": "Failures",
+      "ofCalls": "{failures, number} of {calls, number} calls",
+      "stopped": "Stopped by you — not counted as failures",
+      "error": "Provider error",
+      "errorDescription": "Unreachable, rejected key or rate limit",
+      "timedOut": "Timed out",
+      "timedOutDescription": "Hit the time limit before finishing",
+      "truncated": "Truncated",
+      "truncatedDescription": "Hit the output limit before finishing",
+      "interrupted": "Interrupted",
+      "interruptedDescription": "Stream ended early with no error"
+    },
+    "recent": {
+      "title": "Recent calls",
+      "note": "Last {limit} · kept for {days} days"
+    },
+    "statuses": {
+      "ok": "OK",
+      "truncated": "Truncated",
+      "error": "Error",
+      "timedOut": "Timed out",
+      "interrupted": "Interrupted",
+      "stopped": "Stopped"
+    },
+    "time": {
+      "today": "Today {time}",
+      "yesterday": "Yesterday {time}",
+      "seconds": "{value}s"
+    }
+  },
+  "data": {
+    "nothing": "Nothing.",
+    "export": {
+      "title": "Export your data",
+      "description": "Downloads one zip with every job, resume, task, activity and question on this account, plus your uploaded resume files.",
+      "contents": "The file contains <strong>no API keys</strong> and no password, so it is safe to store anywhere. It does contain the<strong> full text</strong> of every job description, note and resume.",
+      "download": "Download backup"
+    },
+    "import": {
+      "title": "Import a backup",
+      "description": "Replaces everything on this account with the contents of the backup. Your API keys are left alone; the agent chat history is cleared.",
+      "fileLabel": "Backup file",
+      "reading": "Reading backup…",
+      "exported": "Exported {date} from SkillKlan Job {version}",
+      "sourceAccount": "Source account: {email}",
+      "differentAccount": "This backup came from a different account ({email}). Importing it will still wipe the account you are signed in to.",
+      "contains": "Backup contains",
+      "replace": "Replace my data with this backup"
+    },
+    "undo": {
+      "title": "Undo an import",
+      "description": "Every import saves your previous data first. If you imported the wrong file, restore the snapshot from just before it.",
+      "snapshot": "{jobs} jobs, {resumes} resumes · {size} MB",
+      "restore": "Restore"
+    },
+    "rollbackDialog": {
+      "title": "Roll back to this snapshot?",
+      "description": "Everything on this account will be replaced with the data from {date}. A snapshot of the current state is saved first, so this is itself undoable.",
+      "cancel": "Cancel",
+      "confirm": "Roll back"
+    },
+    "importDialog": {
+      "title": "Delete this account's data?",
+      "intro": "This cannot be undone. The following will be permanently deleted and replaced with the backup's contents:",
+      "item": "{count} {model}",
+      "itemPlural": "{count} {model}s",
+      "empty": "nothing — this account is empty",
+      "differentAccount": "The backup is from a different account.",
+      "cancel": "Cancel",
+      "confirm": "Delete everything and import"
+    },
+    "toasts": {
+      "unreachable": "Could not reach the server.",
+      "rollbackFailed": "Rollback failed",
+      "rollbackDone": "Your data has been rolled back. Reload the page to see it.",
+      "rollbackDoneTitle": "Rollback complete",
+      "readFailed": "Could not read that backup",
+      "importFailed": "Import failed",
+      "importDone": "Restored {rows} rows and {files} file(s). Re-enter your AI provider API keys and reload the page.",
+      "importDoneWithSnapshot": "Restored {rows} rows and {files} file(s). Your previous data was saved as a snapshot you can restore below. Re-enter your AI provider API keys and reload the page.",
+      "importDoneTitle": "Import complete"
+    },
+    "models": {
+      "Company": "Company",
+      "JobTitle": "JobTitle",
+      "Location": "Location",
+      "JobSource": "JobSource",
+      "Tag": "Tag",
+      "ActivityType": "ActivityType",
+      "ContactRole": "ContactRole",
+      "Profile": "Profile",
+      "File": "File",
+      "Resume": "Resume",
+      "ContactInfo": "ContactInfo",
+      "Summary": "Summary",
+      "ResumeSection": "ResumeSection",
+      "WorkExperience": "WorkExperience",
+      "Education": "Education",
+      "LicenseOrCertification": "LicenseOrCertification",
+      "OtherSection": "OtherSection",
+      "Skill": "Skill",
+      "CoverLetter": "CoverLetter",
+      "Automation": "Automation",
+      "Job": "Job",
+      "Note": "Note",
+      "Contact": "Contact",
+      "JobContact": "JobContact",
+      "Question": "Question",
+      "JobStageType": "JobStageType",
+      "JobStage": "JobStage",
+      "JobStageInterviewer": "JobStageInterviewer",
+      "JobStagePrepQuestion": "JobStagePrepQuestion",
+      "Task": "Task",
+      "Activity": "Activity",
+      "AutomationRun": "AutomationRun",
+      "UserSettings": "UserSettings",
+      "_JobToTag": "_JobToTag",
+      "_QuestionToTag": "_QuestionToTag"
+    }
+  },
+  "actions": {
+    "updateFailed": "Failed to update user settings.",
+    "saveKeyFailed": "Failed to save API key",
+    "deleteKeyFailed": "Failed to delete API key",
+    "fetchFailed": "Failed to fetch user settings.",
+    "fetchKeysFailed": "Failed to fetch API keys",
+    "invalidRange": "Invalid range",
+    "usageFailed": "Failed to load AI usage."
+  }
+}

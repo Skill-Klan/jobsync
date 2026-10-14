@@ -27,8 +27,15 @@ import { XCircle, Loader2, RefreshCw } from "lucide-react";
 import { checkOllamaConnection } from "@/utils/ai.utils";
 import { getUserSettings, updateAiSettings } from "@/actions/userSettings.actions";
 import { useAgentChat } from "@/components/agent/AgentChatProvider";
+import { useTranslations } from "@/i18n/client";
+
+// Kept as data and worded when rendered, so a language switch rewords an
+// error already on screen: the server's own text, or ours by provider kind.
+type ModelsError = { text: string } | { local: boolean; provider: string };
+type ConnectionError = { text?: string };
 
 function AiSettings() {
+  const t = useTranslations("settings");
   const { isOpen: isAgentChatOpen, refreshPreflight } = useAgentChat();
   const [selectedModel, setSelectedModel] = useState<AiModel>(defaultModel);
   const [fetchedModels, setFetchedModels] = useState<string[]>([]);
@@ -36,14 +43,14 @@ function AiSettings() {
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [fetchError, setFetchError] = useState<string>("");
-  const [connectionError, setConnectionError] = useState<string>("");
+  const [fetchError, setFetchError] = useState<ModelsError | null>(null);
+  const [connectionError, setConnectionError] = useState<ConnectionError | null>(null);
 
 
   const setSelectedProvider = (provider: AiProvider) => {
     setSelectedModel({ provider, model: undefined });
-    setFetchError("");
-    setConnectionError("");
+    setFetchError(null);
+    setConnectionError(null);
   };
 
   const setSelectedProviderModel = (model: string) => {
@@ -105,8 +112,8 @@ function AiSettings() {
       const fallback = getFallbackModels(provider);
       let cancelled = false;
       setIsLoadingModels(true);
-      setFetchError("");
-      setConnectionError("");
+      setFetchError(null);
+      setConnectionError(null);
 
       (async () => {
         try {
@@ -115,7 +122,7 @@ function AiSettings() {
             if (!connResult.isConnected) {
               if (!cancelled) {
                 setFetchedModels(fallback);
-                setConnectionError(connResult.error || "Ollama is not reachable.");
+                setConnectionError({ text: connResult.error || undefined });
               }
               return;
             }
@@ -123,10 +130,9 @@ function AiSettings() {
           const response = await fetch(`/api/ai/${entry.modelsEndpoint}`);
           if (!response.ok) {
             const errorData = await response.json().catch(() => null);
-            const errorMsg = errorData?.error
-              || (entry.category === "local"
-                ? `Failed to fetch ${entry.displayName} models. Make sure ${entry.displayName} is running.`
-                : `Failed to fetch ${entry.displayName} models. Please check your API key in API Keys settings.`);
+            const errorMsg: ModelsError = errorData?.error
+              ? { text: errorData.error }
+              : { local: entry.category === "local", provider: entry.displayName };
             if (!cancelled) {
               setFetchError(errorMsg);
               setFetchedModels(fallback);
@@ -148,11 +154,7 @@ function AiSettings() {
           console.error(`Error fetching ${entry.displayName} models:`, error);
           if (!cancelled) {
             setFetchedModels(fallback);
-            setFetchError(
-              entry.category === "local"
-                ? `Failed to fetch ${entry.displayName} models. Make sure ${entry.displayName} is running.`
-                : `Failed to fetch ${entry.displayName} models. Please check your API key in API Keys settings.`,
-            );
+            setFetchError({ local: entry.category === "local", provider: entry.displayName });
           }
         } finally {
           if (!cancelled) setIsLoadingModels(false);
@@ -175,7 +177,7 @@ function AiSettings() {
 
   const saveModelSettings = async () => {
     if (!selectedModel.model) {
-      toastError("Please select a model to save.");
+      toastError(t("ai.selectModel"));
       return;
     }
     setIsSaving(true);
@@ -185,14 +187,14 @@ function AiSettings() {
         model: selectedModel.model,
       });
       if (result.success) {
-        toastSuccess("AI Settings saved successfully.", "Saved!");
+        toastSuccess(t("ai.saved"), t("ai.savedTitle"));
         if (isAgentChatOpen) void refreshPreflight();
       } else {
-        toastError(result.message || "Failed to save AI settings.");
+        toastError(result.message || t("ai.saveFailed"));
       }
     } catch (error) {
       console.error("Error saving AI settings:", error);
-      toastError("Failed to save AI settings.");
+      toastError(t("ai.saveFailed"));
     } finally {
       setIsSaving(false);
     }
@@ -206,18 +208,28 @@ function AiSettings() {
       ? selectedModel.model
       : "";
 
+  const fetchErrorText =
+    fetchError &&
+    ("text" in fetchError
+      ? fetchError.text
+      : t(fetchError.local ? "ai.fetchFailedLocal" : "ai.fetchFailedKey", {
+          provider: fetchError.provider,
+        }));
+  const connectionErrorText =
+    connectionError && (connectionError.text || t("ai.ollamaUnreachable"));
+
   if (isLoadingSettings) {
     return (
       <div className="space-y-4">
         <div>
-          <h3 className="text-lg font-medium">AI Provider</h3>
+          <h3 className="text-lg font-medium">{t("ai.title")}</h3>
           <p className="text-sm text-muted-foreground">
-            Configure your AI service provider and model.
+            {t("ai.description")}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Loader2 className="h-4 w-4 animate-spin" />
-          <span>Loading settings...</span>
+          <span>{t("loadingSettings")}</span>
         </div>
       </div>
     );
@@ -226,14 +238,14 @@ function AiSettings() {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-lg font-medium">AI Provider</h3>
+        <h3 className="text-lg font-medium">{t("ai.title")}</h3>
         <p className="text-sm text-muted-foreground">
-          Configure your AI service provider and model.
+          {t("ai.description")}
         </p>
       </div>
       <div>
         <Label className="my-4" htmlFor="ai-provider">
-          AI Service Provider
+          {t("ai.providerLabel")}
         </Label>
         <Select
           value={selectedModel.provider}
@@ -241,10 +253,10 @@ function AiSettings() {
         >
           <SelectTrigger
             id="ai-provider"
-            aria-label="Select AI provider"
+            aria-label={t("ai.providerAriaLabel")}
             className="w-[180px]"
           >
-            <SelectValue placeholder="Select AI Service Provider" />
+            <SelectValue placeholder={t("ai.providerPlaceholder")} />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
@@ -262,7 +274,7 @@ function AiSettings() {
       </div>
       <div>
         <Label className="my-4" htmlFor="ai-model">
-          Model
+          {t("ai.modelLabel")}
         </Label>
         <div className="flex flex-wrap items-start gap-2">
           <Select
@@ -272,7 +284,7 @@ function AiSettings() {
           >
             <SelectTrigger
               id="ai-model"
-              aria-label="Select Model"
+              aria-label={t("ai.modelAriaLabel")}
               className="w-[180px]"
             >
               {/* a flex row here must nest inside SelectValue's span, which the
@@ -282,10 +294,10 @@ function AiSettings() {
                   isLoadingModels ? (
                     <span className="flex items-center gap-2 whitespace-nowrap">
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      Loading models...
+                      {t("ai.loadingModels")}
                     </span>
                   ) : (
-                    "Select Model"
+                    t("ai.modelPlaceholder")
                   )
                 }
               />
@@ -300,13 +312,13 @@ function AiSettings() {
               </SelectGroup>
             </SelectContent>
           </Select>
-          {fetchError && (
+          {fetchErrorText && (
             <div className="flex items-start gap-1 text-red-600 text-sm mt-2">
               <XCircle className="h-4 w-4 shrink-0 mt-0.5" />
-              <span>{fetchError}</span>
+              <span>{fetchErrorText}</span>
             </div>
           )}
-          {connectionError && (
+          {connectionErrorText && (
             <div className="flex items-start gap-2 mt-2">
               <Button
                 variant="outline"
@@ -316,11 +328,11 @@ function AiSettings() {
                 disabled={isLoadingModels}
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${isLoadingModels ? "animate-spin" : ""}`} />
-                Retry
+                {t("ai.retry")}
               </Button>
               <div className="flex items-start gap-1 text-red-600 text-sm">
                 <XCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                <span>{connectionError}</span>
+                <span>{connectionErrorText}</span>
               </div>
             </div>
           )}
@@ -332,7 +344,7 @@ function AiSettings() {
         disabled={!selectedModel.model || isLoadingModels || isSaving}
       >
         {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Save
+        {t("save")}
       </Button>
     </div>
   );

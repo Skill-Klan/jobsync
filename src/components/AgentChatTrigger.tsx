@@ -3,15 +3,17 @@
 import { MessageSquare, PanelRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAgentChat } from "@/components/agent/AgentChatProvider";
+import { useTranslations } from "@/i18n/client";
 
 export function AgentChatTrigger() {
+  const t = useTranslations("agent.trigger");
   const { isOpen, open, close, approvalPending } = useAgentChat();
 
   return (
     <Button
       variant="outline"
       className="relative"
-      aria-label={isOpen ? "Close assistant" : "Open assistant"}
+      aria-label={isOpen ? t("close") : t("open")}
       onClick={() => (isOpen ? close() : open())}
     >
       {isOpen ? (
@@ -19,7 +21,7 @@ export function AgentChatTrigger() {
       ) : (
         <>
           <MessageSquare className="h-4 w-4" />
-          Chat AI
+          {t("label")}
         </>
       )}
       {/* Deliberately no streaming state: nothing generates while the panel
@@ -27,7 +29,7 @@ export function AgentChatTrigger() {
       {approvalPending && (
         <span
           className="absolute right-1 top-1 h-2 w-2 rounded-full bg-primary"
-          aria-label="Approval pending"
+          aria-label={t("approvalPending")}
         />
       )}
     </Button>

@@ -1,3 +1,8 @@
+import { createTranslator } from "use-intl/core";
+import { useLocale, useTranslations } from "@/i18n/client";
+import type { Locale } from "@/i18n/config";
+import type { Messages } from "@/i18n/messages";
+import enNotifications from "@/i18n/messages/en/notifications.json";
 import type {
   BoardErrorCode,
   BoardPayload,
@@ -6,42 +11,70 @@ import type {
   RunPayload,
 } from "@/models/notification.model";
 
-const BOARD_COPY: Record<BoardErrorCode, string> = {
-  not_found: "returned 404 — the company may have moved ATS.",
-  timeout: "did not respond.",
-  rate_limited: "rate limited the request.",
-  http_error: "returned an error.",
-  parse: "returned data that could not be read.",
-  network: "could not be reached.",
+// The words and date style of one language. The helpers below default to
+// English — what the rows said before translation — so they stay pure and
+// callable without a React tree; components pass the user's own.
+export type NotificationText = {
+  t: ReturnType<typeof createTranslator<Messages, "notifications">>;
+  locale: Locale;
 };
 
-const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
-const monthDay = (d: Date) =>
-  d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+export const ENGLISH_NOTIFICATIONS: NotificationText = {
+  locale: "en",
+  // Only the notifications namespace is read, so only it is bundled here.
+  t: createTranslator({
+    locale: "en",
+    messages: { notifications: enNotifications } as Messages,
+    namespace: "notifications",
+  }),
+};
+
+export function useNotificationText(): NotificationText {
+  return { t: useTranslations("notifications"), locale: useLocale() };
+}
+
+const BOARD_COPY: Record<
+  BoardErrorCode,
+  `board.${"notFound" | "timeout" | "rateLimited" | "httpError" | "parse" | "network"}`
+> = {
+  not_found: "board.notFound",
+  timeout: "board.timeout",
+  rate_limited: "board.rateLimited",
+  http_error: "board.httpError",
+  parse: "board.parse",
+  network: "board.network",
+};
+
+const monthDay = (d: Date, locale: Locale) =>
+  d.toLocaleDateString(locale, { month: "short", day: "numeric" });
 
 export function isErrorNotification(n: NotificationItem): boolean {
   return n.kind !== "run";
 }
 
-export function describeNotification(n: NotificationItem) {
+export function describeNotification(
+  n: NotificationItem,
+  { t, locale }: NotificationText = ENGLISH_NOTIFICATIONS,
+) {
   const base = `/dashboard/automations/${n.automation.id}`;
-  const name = `“${n.automation.name}”`;
+  const name = n.automation.name;
 
   if (n.kind === "board") {
     const p = n.payload as BoardPayload;
     const repeat =
       n.occurrences > 1
-        ? ` Failed on ${n.occurrences} runs since ${monthDay(new Date(n.createdAt))}.`
+        ? ` ${t("board.repeat", { count: n.occurrences, date: monthDay(new Date(n.createdAt), locale) })}`
         : "";
     // The status is the one detail the generic http_error copy would lose.
+    // Matched in the server's own English reason, which is stored, not shown.
     const status = p.code === "http_error" ? p.reason.match(/returned (\d{3})/)?.[1] : undefined;
     return {
       icon: "warn" as const,
-      title: "Job board unreachable",
+      title: t("board.title"),
       lead: `${p.provider} · ${p.companyName}`,
-      detail: ` ${status ? `returned ${status}.` : BOARD_COPY[p.code]}${repeat}`,
+      detail: ` ${status ? t("board.returned", { status }) : t(BOARD_COPY[p.code])}${repeat}`,
       hint: p.reason,
-      link: { label: "Edit watchlist", href: `${base}?edit=1` },
+      link: { label: t("board.editWatchlist"), href: `${base}?edit=1` },
     };
   }
 
@@ -52,29 +85,29 @@ export function describeNotification(n: NotificationItem) {
       : "";
     return {
       icon: "fail" as const,
-      title: "Automation failed",
-      lead: plural(p.jobsSaved, "job") + " saved",
+      title: t("error.title"),
+      lead: t("jobsSaved", { count: p.jobsSaved }),
       // Reasons may already end in a period ("…no longer exists.").
-      detail: ` · ${name} stopped: ${p.reason.replace(/\.$/, "")}${boards}.`,
+      detail: ` · ${t("error.stopped", { name, reason: p.reason.replace(/\.$/, ""), boards })}`,
       hint: null,
-      link: { label: "Open automation", href: `${base}?tab=history` },
+      link: { label: t("error.openAutomation"), href: `${base}?tab=history` },
     };
   }
 
   const p = n.payload as RunPayload;
-  const parts = [` · ${p.jobsSearched} scanned`];
-  if (p.belowThreshold > 0) parts.push(`${p.belowThreshold} below match threshold`);
-  if (p.boardsFailed > 0) parts.push(`${plural(p.boardsFailed, "board")} failed`);
-  if (p.aiError) parts.push("AI unavailable, rest saved without analysis");
+  const parts = [` · ${t("run.scanned", { count: p.jobsSearched })}`];
+  if (p.belowThreshold > 0) parts.push(t("run.belowThreshold", { count: p.belowThreshold }));
+  if (p.boardsFailed > 0) parts.push(t("run.boardsFailed", { count: p.boardsFailed }));
+  if (p.aiError) parts.push(t("run.aiUnavailable"));
   return {
     icon: "run" as const,
-    title: `${name} finished`,
-    lead: p.jobsSaved > 0 ? `${plural(p.jobsSaved, "job")} saved` : "No new jobs",
+    title: t("run.title", { name }),
+    lead: p.jobsSaved > 0 ? t("jobsSaved", { count: p.jobsSaved }) : t("run.noNewJobs"),
     detail: parts.join(" · "),
     hint: null,
     link:
       p.jobsSaved > 0
-        ? { label: `Review ${plural(p.jobsSaved, "new job")}`, href: `${base}?tab=jobs` }
+        ? { label: t("run.review", { count: p.jobsSaved }), href: `${base}?tab=jobs` }
         : null,
   };
 }
@@ -82,37 +115,46 @@ export function describeNotification(n: NotificationItem) {
 const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 const DAY = 24 * 60 * 60 * 1000;
 
-export function formatShortAge(date: Date, now: Date = new Date()): string {
+export function formatShortAge(
+  date: Date,
+  now: Date = new Date(),
+  { t, locale }: NotificationText = ENGLISH_NOTIFICATIONS,
+): string {
   const d = new Date(date);
   const mins = Math.floor((now.getTime() - d.getTime()) / 60000);
   const days = Math.round((startOfDay(now).getTime() - startOfDay(d).getTime()) / DAY);
   if (days === 0) {
-    if (mins < 1) return "now";
-    if (mins < 60) return `${mins}m`;
-    return `${Math.floor(mins / 60)}h`;
+    if (mins < 1) return t("age.now");
+    if (mins < 60) return t("age.minutes", { count: mins });
+    return t("age.hours", { count: Math.floor(mins / 60) });
   }
-  if (days === 1) return "Yesterday";
-  if (days < 7) return d.toLocaleDateString("en-US", { weekday: "short" });
-  return monthDay(d);
+  if (days === 1) return t("age.yesterday");
+  if (days < 7) return d.toLocaleDateString(locale, { weekday: "short" });
+  return monthDay(d, locale);
 }
 
-export function formatClock(date: Date): string {
-  return new Date(date).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+export function formatClock(date: Date, locale: Locale = "en"): string {
+  return new Date(date).toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" });
 }
 
-export function groupByDay(items: NotificationItem[], now: Date = new Date()) {
+const DAY_GROUPS = ["today", "yesterday", "thisWeek", "earlier"] as const;
+
+export function groupByDay(
+  items: NotificationItem[],
+  now: Date = new Date(),
+  { t }: NotificationText = ENGLISH_NOTIFICATIONS,
+) {
   const today = startOfDay(now).getTime();
   // Week starts Monday.
   const weekStart = today - ((now.getDay() + 6) % 7) * DAY;
-  const label = (d: Date) => {
-    const t = startOfDay(new Date(d)).getTime();
-    if (t === today) return "Today";
-    if (t === today - DAY) return "Yesterday";
-    if (t >= weekStart) return "Earlier this week";
-    return "Earlier";
+  const group = (d: Date): (typeof DAY_GROUPS)[number] => {
+    const day = startOfDay(new Date(d)).getTime();
+    if (day === today) return "today";
+    if (day === today - DAY) return "yesterday";
+    if (day >= weekStart) return "thisWeek";
+    return "earlier";
   };
-  const order = ["Today", "Yesterday", "Earlier this week", "Earlier"];
-  return order
-    .map((l) => ({ label: l, items: items.filter((i) => label(i.occurredAt) === l) }))
+  return DAY_GROUPS
+    .map((g) => ({ label: t(`groups.${g}`), items: items.filter((i) => group(i.occurredAt) === g) }))
     .filter((g) => g.items.length > 0);
 }

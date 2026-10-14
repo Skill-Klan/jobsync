@@ -27,20 +27,15 @@ import {
   type AgentPastePart,
   type AgentPastePartData,
 } from "@/models/agent.model";
+import { useTranslations } from "@/i18n/client";
 
 type ComposerPart = TextUIPart | AgentPastePart;
-
-function chipLabel(chip: AgentPastePartData): string {
-  const chars = chip.chars.toLocaleString();
-  return chip.truncated
-    ? `Pasted posting · ${chars} chars (truncated)`
-    : `Pasted posting · ${chars} chars`;
-}
+type ChipLabel = (chip: AgentPastePartData) => string;
 
 // Synthesized at render time only. The wire format stays the custom data part:
 // a real FileUIPart is a standard type, so convertToModelMessages would carry
 // the whole posting to the model and defeat head truncation.
-function chipAttachment(chip: AgentPastePartData): AttachmentData {
+function chipAttachment(chip: AgentPastePartData, chipLabel: ChipLabel): AttachmentData {
   return {
     type: "file",
     id: chip.id,
@@ -60,7 +55,7 @@ function chipId(): string {
   );
 }
 
-function queuedText(parts: UIMessage["parts"]): string {
+function queuedText(parts: UIMessage["parts"], chipLabel: ChipLabel): string {
   const text = parts.find((part) => part.type === "text");
   const chip = parts.find(isAgentPastePart);
   if (text?.type === "text" && text.text) return text.text;
@@ -68,6 +63,9 @@ function queuedText(parts: UIMessage["parts"]): string {
 }
 
 export function AgentChatInput() {
+  const t = useTranslations("agent");
+  const chipLabel: ChipLabel = (chip) =>
+    t(chip.truncated ? "paste.chipTruncated" : "paste.chip", { chars: chip.chars });
   const {
     sendMessage,
     stop,
@@ -148,7 +146,7 @@ export function AgentChatInput() {
             {error.message}
           </AlertDescription>
           <Button
-            aria-label="Dismiss error"
+            aria-label={t("input.dismissError")}
             className="size-6 shrink-0"
             onClick={clearError}
             size="icon"
@@ -165,13 +163,13 @@ export function AgentChatInput() {
           <div className="min-w-0 flex-1">
             <p className="text-xs text-muted-foreground">
               {approvalPending
-                ? "Queued — waiting on your approval above"
-                : "Queued — sends when the current reply finishes"}
+                ? t("input.queuedApproval")
+                : t("input.queuedReply")}
             </p>
-            <p className="truncate">{queuedText(queued.parts)}</p>
+            <p className="truncate">{queuedText(queued.parts, chipLabel)}</p>
           </div>
           <Button
-            aria-label="Remove from queue"
+            aria-label={t("input.removeFromQueue")}
             className="size-6 shrink-0"
             onClick={clearQueued}
             size="icon"
@@ -195,13 +193,13 @@ export function AgentChatInput() {
         {chip ? (
           <PromptInputHeader>
             <Attachments variant="inline">
-              <Attachment data={chipAttachment(chip)}>
+              <Attachment data={chipAttachment(chip, chipLabel)}>
                 <AttachmentPreview />
                 <AttachmentInfo />
                 {/* Not AttachmentRemove: it repeats its label in an sr-only
                     span, so the chip's wording would appear twice. */}
                 <Button
-                  aria-label="Remove pasted content"
+                  aria-label={t("input.removePaste")}
                   className="size-5 shrink-0 rounded p-0 [&_svg]:size-2.5"
                   onClick={() => setChip(undefined)}
                   type="button"
@@ -220,14 +218,14 @@ export function AgentChatInput() {
           key={composerNonce}
           onChange={(event) => setText(event.currentTarget.value)}
           onPaste={onPaste}
-          placeholder="Ask or paste a job posting…"
+          placeholder={t("input.placeholder")}
         />
         <PromptInputFooter>
           <span className="text-xs text-muted-foreground">
-            {approvalPending && !queued ? "Waiting on your approval above" : ""}
+            {approvalPending && !queued ? t("input.waitingApproval") : ""}
           </span>
           <PromptInputSubmit
-            aria-label={isGenerating ? "Stop response" : "Send"}
+            aria-label={isGenerating ? t("input.stop") : t("input.send")}
             disabled={!isGenerating && !canSend}
             className="[&_svg]:size-3.5"
             onStop={onStop}

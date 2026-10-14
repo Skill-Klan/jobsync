@@ -21,22 +21,26 @@ import {
   getUserSettings,
   updateDisplaySettings,
 } from "@/actions/userSettings.actions";
+import { useTranslations } from "@/i18n/client";
 
-const appearanceFormSchema = z.object({
-  theme: z.enum(["light", "dark", "system"], {
-    error: "Please select a theme.",
-  }),
-});
+// Built per render: the message is in the user's language.
+const appearanceFormSchema = (message: string) =>
+  z.object({
+    theme: z.enum(["light", "dark", "system"], {
+      error: message,
+    }),
+  });
 
-type AppearanceFormValues = z.infer<typeof appearanceFormSchema>;
+type AppearanceFormValues = z.infer<ReturnType<typeof appearanceFormSchema>>;
 
 function DisplaySettings() {
+  const t = useTranslations("settings");
   const { setTheme, theme, systemTheme } = useTheme();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
   const form = useForm<AppearanceFormValues>({
-    resolver: zodResolver(appearanceFormSchema),
+    resolver: zodResolver(appearanceFormSchema(t("appearance.themeRequired"))),
     defaultValues: {
       theme: "system",
     },
@@ -73,13 +77,13 @@ function DisplaySettings() {
       const result = await updateDisplaySettings({ theme: data.theme });
       if (result.success) {
         setTheme(data.theme);
-        toastSuccess("Your selected theme has been saved.");
+        toastSuccess(t("appearance.saved"));
       } else {
-        toastError(result.message || "Failed to save display settings.");
+        toastError(result.message || t("appearance.saveFailed"));
       }
     } catch (error) {
       console.error("Error saving display settings:", error);
-      toastError("Failed to save display settings.");
+      toastError(t("appearance.saveFailed"));
     } finally {
       setIsSaving(false);
     }
@@ -89,14 +93,14 @@ function DisplaySettings() {
     return (
       <div className="space-y-4">
         <div>
-          <h3 className="text-lg font-medium">Appearance</h3>
+          <h3 className="text-lg font-medium">{t("appearance.title")}</h3>
           <p className="text-sm text-muted-foreground">
-            Customize the look and feel of the application.
+            {t("appearance.description")}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Loader2 className="h-4 w-4 animate-spin" />
-          <span>Loading settings...</span>
+          <span>{t("loadingSettings")}</span>
         </div>
       </div>
     );
@@ -105,9 +109,9 @@ function DisplaySettings() {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-lg font-medium">Appearance</h3>
+        <h3 className="text-lg font-medium">{t("appearance.title")}</h3>
         <p className="text-sm text-muted-foreground">
-          Customize the look and feel of the application.
+          {t("appearance.description")}
         </p>
       </div>
       <div className="@container">
@@ -118,9 +122,9 @@ function DisplaySettings() {
               name="theme"
               render={({ field }) => (
                 <FormItem className="space-y-1">
-                  <FormLabel>Theme</FormLabel>
+                  <FormLabel>{t("appearance.theme")}</FormLabel>
                   <FormDescription>
-                    Select the theme for the app.
+                    {t("appearance.themeDescription")}
                   </FormDescription>
                   <FormMessage />
                   <RadioGroup
@@ -135,7 +139,7 @@ function DisplaySettings() {
                         </FormControl>
                         <LightThemeElement />
                         <span className="block w-full p-2 text-center font-normal">
-                          Light
+                          {t("appearance.light")}
                         </span>
                       </FormLabel>
                     </FormItem>
@@ -146,7 +150,7 @@ function DisplaySettings() {
                         </FormControl>
                         <DarkThemeElement />
                         <span className="block w-full p-2 text-center font-normal">
-                          Dark
+                          {t("appearance.dark")}
                         </span>
                       </FormLabel>
                     </FormItem>
@@ -161,7 +165,7 @@ function DisplaySettings() {
                           <LightThemeElement />
                         )}
                         <span className="block w-full p-2 text-center font-normal">
-                          System
+                          {t("appearance.system")}
                         </span>
                       </FormLabel>
                     </FormItem>
@@ -172,7 +176,7 @@ function DisplaySettings() {
 
             <Button type="submit" disabled={isSaving}>
               {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save
+              {t("save")}
             </Button>
           </form>
         </Form>

@@ -1,1 +1,269 @@
-{}
+{
+  "page": {
+    "title": "Налаштування"
+  },
+  "sections": {
+    "aiProvider": "AI-провайдер",
+    "aiUsage": "Використання AI",
+    "apiKeys": "API-ключі",
+    "appearance": "Вигляд",
+    "data": "Дані"
+  },
+  "loadingSettings": "Завантаження налаштувань…",
+  "save": "Зберегти",
+  "ai": {
+    "title": "AI-провайдер",
+    "description": "Оберіть сервіс AI і модель.",
+    "providerLabel": "Сервіс AI",
+    "providerAriaLabel": "Оберіть AI-провайдера",
+    "providerPlaceholder": "Оберіть сервіс AI",
+    "modelLabel": "Модель",
+    "modelAriaLabel": "Оберіть модель",
+    "modelPlaceholder": "Оберіть модель",
+    "loadingModels": "Завантаження моделей…",
+    "retry": "Спробувати ще раз",
+    "ollamaUnreachable": "Немає зʼєднання з Ollama.",
+    "fetchFailedLocal": "Не вдалося отримати моделі {provider}. Переконайтеся, що {provider} запущено.",
+    "fetchFailedKey": "Не вдалося отримати моделі {provider}. Перевірте API-ключ у розділі «API-ключі».",
+    "selectModel": "Оберіть модель, щоб зберегти.",
+    "saved": "Налаштування AI збережено.",
+    "savedTitle": "Збережено",
+    "saveFailed": "Не вдалося зберегти налаштування AI."
+  },
+  "appearance": {
+    "title": "Вигляд",
+    "description": "Налаштуйте зовнішній вигляд застосунку.",
+    "theme": "Тема",
+    "themeDescription": "Оберіть тему застосунку.",
+    "themeRequired": "Оберіть тему.",
+    "light": "Світла",
+    "dark": "Темна",
+    "system": "Як у системі",
+    "saved": "Обрану тему збережено.",
+    "saveFailed": "Не вдалося зберегти налаштування вигляду."
+  },
+  "apiKeys": {
+    "title": "API-ключі",
+    "description": "Керуйте API-ключами для AI-провайдерів і зовнішніх сервісів.",
+    "descriptionStored": "Керуйте API-ключами для AI-провайдерів і зовнішніх сервісів. Ключі зашифровано й надійно збережено.",
+    "loading": "Завантаження ключів…",
+    "providerDescriptions": {
+      "ollama": "Адреса вашого сервера Ollama",
+      "openai": "Для моделей GPT у перевірці резюме та оцінці відповідності вакансіям",
+      "deepseek": "Для моделей DeepSeek у перевірці резюме та оцінці відповідності вакансіям",
+      "openrouter": "Доступ до 200+ моделей різних провайдерів через OpenRouter",
+      "gemini": "Для моделей Gemini у перевірці резюме та оцінці відповідності вакансіям"
+    },
+    "defaultValue": "За замовчуванням: {value}",
+    "notConfigured": "Не налаштовано",
+    "checking": "Перевірка…",
+    "ollamaRunning": "Ollama працює",
+    "ollamaNotRunning": "Ollama не запущено",
+    "baseUrl": "Адреса сервера",
+    "apiKey": "API-ключ",
+    "verifyAndSave": "Перевірити й зберегти",
+    "cancel": "Скасувати",
+    "updateKey": "Оновити ключ",
+    "addKey": "Додати ключ",
+    "resetToDefault": "Відновити типову адресу",
+    "resetTitle": "Скинути адресу {provider}",
+    "deleteTitle": "Видалити API-ключ",
+    "resetDescription": "Очистити збережену адресу {provider}? SkillKlan Job використовуватиме типову адресу сервера: {url}.",
+    "deleteDescription": "Справді видалити ключ {provider}? Тоді система використає змінну середовища сервера, якщо її задано.",
+    "reset": "Скинути",
+    "delete": "Видалити",
+    "cannotReach": "Немає зʼєднання з {provider}",
+    "verificationFailed": "Перевірка не пройшла",
+    "couldNotVerify": "Не вдалося перевірити ключ",
+    "keySaved": "Ключ {provider} перевірено й збережено.",
+    "keySavedTitle": "API-ключ збережено",
+    "saveFailed": "Не вдалося зберегти API-ключ",
+    "saveFailedTitle": "Не вдалося зберегти",
+    "unexpectedError": "Сталася неочікувана помилка",
+    "keyRemoved": "Ключ {provider} видалено.",
+    "keyDeletedTitle": "API-ключ видалено",
+    "deleteFailed": "Не вдалося видалити API-ключ"
+  },
+  "usage": {
+    "title": "Використання AI",
+    "description": "Токени, час відповіді та збої за вашими провайдерами й моделями.",
+    "rangeAriaLabel": "Період",
+    "rangeDays": "{days, plural, one {# день} few {# дні} many {# днів} other {# дня}}",
+    "loadFailed": "Не вдалося завантажити дані про використання AI.",
+    "empty": "Жодного AI-виклику за останні {days, plural, one {# день} few {# дні} many {# днів} other {# дня}}.",
+    "summary": {
+      "totalTokens": "Усього токенів",
+      "inputOutput": "{input}M на вході · {output}M на виході",
+      "apiCalls": "Виклики API",
+      "change": "{change} порівняно з попередніми {days, plural, one {# днем} few {# днями} many {# днями} other {# дня}}",
+      "chatTurn": "Один хід у чаті — це один виклик",
+      "medianResponse": "Медіанний час відповіді",
+      "firstToken": "Перший токен — {value} (для потокових функцій)",
+      "failedCalls": "Невдалі виклики",
+      "errorRate": "{rate}% помилок",
+      "failureBreakdown": "помилок: {error} · обрізано: {truncated} · перервано: {interrupted} · тайм-аут: {timedOut}"
+    },
+    "dailyTokens": "Токени за днями й провайдерами",
+    "byProvider": {
+      "title": "За провайдерами й моделями",
+      "note": "На один виклик · чат не враховує перевірку, оцінку чи лист, які він запустив",
+      "providerModel": "Провайдер / модель",
+      "share": "Частка токенів",
+      "nearContextLimit": "{count, plural, one {# виклик} few {# виклики} many {# викликів} other {# виклику}} поблизу ліміту контексту"
+    },
+    "byFeature": {
+      "title": "За функціями",
+      "columns": "Токени · Виклики · Медіана"
+    },
+    "columns": {
+      "tokens": "Токени",
+      "calls": "Виклики",
+      "median": "Медіана",
+      "firstToken": "Перший токен",
+      "time": "Час",
+      "feature": "Функція",
+      "model": "Модель",
+      "input": "Вхід",
+      "output": "Вихід",
+      "duration": "Тривалість",
+      "status": "Статус"
+    },
+    "features": {
+      "agent_chat": "AI-чат",
+      "job_match": "Відповідність вакансії",
+      "automations": "Автопошук",
+      "resume_review": "Перевірка резюме",
+      "cover_letter": "Супровідний лист",
+      "resume_import": "Імпорт резюме"
+    },
+    "failures": {
+      "title": "Збої",
+      "ofCalls": "{failures, number} з {calls, plural, one {# виклику} few {# викликів} many {# викликів} other {# виклику}}",
+      "stopped": "Зупинені вами — не вважаються збоями",
+      "error": "Помилка провайдера",
+      "errorDescription": "Недоступний, ключ відхилено або перевищено ліміт запитів",
+      "timedOut": "Тайм-аут",
+      "timedOutDescription": "Не завершився за відведений час",
+      "truncated": "Обрізано",
+      "truncatedDescription": "Досягнуто ліміту відповіді до завершення",
+      "interrupted": "Перервано",
+      "interruptedDescription": "Потік обірвався раніше без помилки"
+    },
+    "recent": {
+      "title": "Останні виклики",
+      "note": "Останні {limit} · зберігаються {days, plural, one {# день} few {# дні} many {# днів} other {# дня}}"
+    },
+    "statuses": {
+      "ok": "Успішно",
+      "truncated": "Обрізано",
+      "error": "Помилка",
+      "timedOut": "Тайм-аут",
+      "interrupted": "Перервано",
+      "stopped": "Зупинено"
+    },
+    "time": {
+      "today": "Сьогодні {time}",
+      "yesterday": "Вчора {time}",
+      "seconds": "{value} с"
+    }
+  },
+  "data": {
+    "nothing": "Нічого.",
+    "export": {
+      "title": "Експорт даних",
+      "description": "Завантажує один zip-архів з усіма вакансіями, резюме, завданнями, активностями й питаннями цього акаунта, а також із завантаженими файлами резюме.",
+      "contents": "Файл <strong>не містить API-ключів</strong> і пароля, тож його можна зберігати будь-де. Але в ньому є<strong> повний текст</strong> кожного опису вакансії, нотатки й резюме.",
+      "download": "Завантажити резервну копію"
+    },
+    "import": {
+      "title": "Імпорт резервної копії",
+      "description": "Замінює все в цьому акаунті вмістом резервної копії. API-ключі не змінюються; історію AI-чату буде очищено.",
+      "fileLabel": "Файл резервної копії",
+      "reading": "Читання резервної копії…",
+      "exported": "Експортовано {date} із SkillKlan Job {version}",
+      "sourceAccount": "Акаунт-джерело: {email}",
+      "differentAccount": "Цю резервну копію створено в іншому акаунті ({email}). Імпорт однаково зітре дані акаунта, у який ви ввійшли.",
+      "contains": "Вміст резервної копії",
+      "replace": "Замінити мої дані цією резервною копією"
+    },
+    "undo": {
+      "title": "Скасувати імпорт",
+      "description": "Перед кожним імпортом попередні дані зберігаються. Якщо ви імпортували не той файл, відновіть знімок, зроблений перед ним.",
+      "snapshot": "Вакансій: {jobs}, резюме: {resumes} · {size} МБ",
+      "restore": "Відновити"
+    },
+    "rollbackDialog": {
+      "title": "Повернутися до цього знімка?",
+      "description": "Усі дані цього акаунта буде замінено даними від {date}. Спершу зберігається знімок поточного стану, тож і це можна скасувати.",
+      "cancel": "Скасувати",
+      "confirm": "Повернути"
+    },
+    "importDialog": {
+      "title": "Видалити дані цього акаунта?",
+      "intro": "Цю дію не можна скасувати. Буде остаточно видалено й замінено вмістом резервної копії:",
+      "item": "{model}: {count}",
+      "itemPlural": "{model}: {count}",
+      "empty": "нічого — акаунт порожній",
+      "differentAccount": "Резервна копія з іншого акаунта.",
+      "cancel": "Скасувати",
+      "confirm": "Видалити все й імпортувати"
+    },
+    "toasts": {
+      "unreachable": "Не вдалося звʼязатися із сервером.",
+      "rollbackFailed": "Не вдалося повернути дані",
+      "rollbackDone": "Дані повернуто. Перезавантажте сторінку, щоб їх побачити.",
+      "rollbackDoneTitle": "Повернення завершено",
+      "readFailed": "Не вдалося прочитати цю резервну копію",
+      "importFailed": "Імпорт не вдався",
+      "importDone": "Відновлено рядків: {rows}, файлів: {files}. Знову введіть API-ключі AI-провайдерів і перезавантажте сторінку.",
+      "importDoneWithSnapshot": "Відновлено рядків: {rows}, файлів: {files}. Попередні дані збережено як знімок — його можна відновити нижче. Знову введіть API-ключі AI-провайдерів і перезавантажте сторінку.",
+      "importDoneTitle": "Імпорт завершено"
+    },
+    "models": {
+      "Company": "Компанії",
+      "JobTitle": "Посади",
+      "Location": "Локації",
+      "JobSource": "Джерела вакансій",
+      "Tag": "Теги",
+      "ActivityType": "Типи активностей",
+      "ContactRole": "Ролі контактів",
+      "Profile": "Профілі",
+      "File": "Файли",
+      "Resume": "Резюме",
+      "ContactInfo": "Контактні дані",
+      "Summary": "Короткі описи",
+      "ResumeSection": "Розділи резюме",
+      "WorkExperience": "Досвід роботи",
+      "Education": "Освіта",
+      "LicenseOrCertification": "Ліцензії та сертифікати",
+      "OtherSection": "Інші розділи",
+      "Skill": "Навички",
+      "CoverLetter": "Супровідні листи",
+      "Automation": "Автопошуки",
+      "Job": "Вакансії",
+      "Note": "Нотатки",
+      "Contact": "Контакти",
+      "JobContact": "Контакти вакансій",
+      "Question": "Питання",
+      "JobStageType": "Типи етапів",
+      "JobStage": "Етапи вакансій",
+      "JobStageInterviewer": "Інтервʼюери етапів",
+      "JobStagePrepQuestion": "Питання для підготовки",
+      "Task": "Завдання",
+      "Activity": "Активності",
+      "AutomationRun": "Запуски автопошуку",
+      "UserSettings": "Налаштування",
+      "_JobToTag": "Теги вакансій",
+      "_QuestionToTag": "Теги питань"
+    }
+  },
+  "actions": {
+    "updateFailed": "Не вдалося оновити налаштування.",
+    "saveKeyFailed": "Не вдалося зберегти API-ключ",
+    "deleteKeyFailed": "Не вдалося видалити API-ключ",
+    "fetchFailed": "Не вдалося завантажити налаштування.",
+    "fetchKeysFailed": "Не вдалося завантажити API-ключі",
+    "invalidRange": "Неприпустимий період",
+    "usageFailed": "Не вдалося завантажити дані про використання AI."
+  }
+}

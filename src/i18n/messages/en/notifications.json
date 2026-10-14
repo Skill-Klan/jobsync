@@ -1,1 +1,89 @@
-{}
+{
+  "bell": {
+    "ariaLabel": "Notifications",
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "clearAll": "Clear all",
+    "empty": "You’re all caught up.",
+    "viewAll": "View all notifications",
+    "retention": "Kept 30 days"
+  },
+  "tabs": {
+    "all": "All",
+    "unread": "Unread",
+    "errors": "Errors",
+    "runs": "Runs"
+  },
+  "page": {
+    "title": "Notifications",
+    "description": "Automation results and job board errors from the last 30 days.",
+    "markAllRead": "Mark all read",
+    "clearRead": "Clear read",
+    "automation": "Automation",
+    "allAutomations": "All automations",
+    "emptyTitle": "No notifications",
+    "emptyDescription": "Automation results will appear here after the next run.",
+    "loadMore": "Load more",
+    "retention": "Notifications older than 30 days are removed automatically.",
+    "deleteItem": "notification",
+    "deleteReadTitle": "Delete all read notifications?",
+    "deleteReadDescription": "Every read notification is deleted, including ones not loaded on this page. This cannot be undone.",
+    "deleteOneTitle": "Delete this notification?",
+    "deleteOneDescription": "This notification is deleted for good. This cannot be undone."
+  },
+  "row": {
+    "unread": "Unread",
+    "delete": "Delete",
+    "dismiss": "Dismiss",
+    "deleteLabel": "Delete notification",
+    "dismissLabel": "Dismiss notification"
+  },
+  "groups": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "thisWeek": "Earlier this week",
+    "earlier": "Earlier"
+  },
+  "age": {
+    "now": "now",
+    "minutes": "{count}m",
+    "hours": "{count}h",
+    "yesterday": "Yesterday"
+  },
+  "jobsSaved": "{count, plural, one {# job} other {# jobs}} saved",
+  "board": {
+    "title": "Job board unreachable",
+    "returned": "returned {status}.",
+    "notFound": "returned 404 — the company may have moved ATS.",
+    "timeout": "did not respond.",
+    "rateLimited": "rate limited the request.",
+    "httpError": "returned an error.",
+    "parse": "returned data that could not be read.",
+    "network": "could not be reached.",
+    "repeat": "Failed on {count} runs since {date}.",
+    "editWatchlist": "Edit watchlist"
+  },
+  "error": {
+    "title": "Automation failed",
+    "stopped": "“{name}” stopped: {reason}{boards}.",
+    "openAutomation": "Open automation"
+  },
+  "run": {
+    "title": "“{name}” finished",
+    "noNewJobs": "No new jobs",
+    "scanned": "{count} scanned",
+    "belowThreshold": "{count} below match threshold",
+    "boardsFailed": "{count, plural, one {# board} other {# boards}} failed",
+    "aiUnavailable": "AI unavailable, rest saved without analysis",
+    "review": "Review {count, plural, one {# new job} other {# new jobs}}"
+  },
+  "actions": {
+    "updateOne": "Failed to update notification.",
+    "updateAll": "Failed to update notifications.",
+    "deleteOne": "Failed to delete notification.",
+    "clear": "Failed to clear notifications.",
+    "load": "Failed to load notifications.",
+    "loadAutomations": "Failed to load automations.",
+    "dismissOne": "Failed to dismiss notification."
+  }
+}
