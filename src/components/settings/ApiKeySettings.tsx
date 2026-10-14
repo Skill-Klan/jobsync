@@ -353,7 +353,7 @@ function ApiKeySettings() {
                               {isBaseUrl ? (
                                 <>
                                   Clear the saved {provider.name} base URL?
-                                  JobSync will use the server default,{" "}
+                                  SkillKlan Job will use the server default,{" "}
                                   {provider.id === "ollama"
                                     ? defaultOllamaUrl
                                     : provider.placeholder}

@@ -9,13 +9,11 @@ import { SidebarProvider } from "@/context/SidebarContext";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { useNotifications } from "@/context/NotificationContext";
-import { useAppVersion } from "@/hooks/useAppVersion";
 
 vi.mock("next/navigation", () => ({
   usePathname: vi.fn().mockReturnValue("/dashboard"),
 }));
 vi.mock("@/context/NotificationContext", () => ({ useNotifications: vi.fn() }));
-vi.mock("@/hooks/useAppVersion", () => ({ useAppVersion: vi.fn() }));
 
 // clearMocks keeps a mockReturnValue across tests, so reset to the quiet state.
 beforeEach(() => {
@@ -23,7 +21,6 @@ beforeEach(() => {
     summary: { unread: 0, unreadErrors: 0 },
     refresh: vi.fn(),
   });
-  (useAppVersion as any).mockReturnValue({ updateAvailable: false });
 });
 
 const testUser = { id: "1", name: "Test User", email: "test@example.com" };
@@ -118,6 +115,14 @@ describe("Sidebar", () => {
   beforeEach(() => {
     document.cookie = `${APP_CONSTANTS.SIDEBAR_STORAGE_KEY}=; path=/; max-age=0`;
     (usePathname as any).mockReturnValue("/dashboard");
+  });
+
+  // skillklan (owner 2026-10-14): the app is called "SkillKlan Job", not "JobSync".
+  it("shows the SkillKlan Job brand, not JobSync", () => {
+    renderSidebar();
+    const aside = screen.getByRole("complementary");
+    expect(aside.textContent).toContain("SkillKlan Job");
+    expect(aside.textContent).not.toContain("JobSync");
   });
 
   it("renders a link for each nav item", () => {
@@ -236,16 +241,12 @@ describe("SidebarToggle", () => {
 });
 
 describe("ProfileDropdown notifications", () => {
-  beforeEach(() => {
-    (useAppVersion as any).mockReturnValue({ updateAvailable: true });
-  });
   const renderIt = renderSidebar;
 
-  it("red avatar dot for an unread error, replacing the update dot", () => {
+  it("red avatar dot for an unread error", () => {
     (useNotifications as any).mockReturnValue({ summary: { unread: 3, unreadErrors: 1 }, refresh: vi.fn() });
     renderIt();
     expect(screen.getByText("Unread notifications")).toBeInTheDocument();
-    expect(screen.queryByText("Update available")).toBeNull();
     expect(screen.getByTestId("avatar-dot").className).toMatch(/destructive/);
   });
 
@@ -255,10 +256,13 @@ describe("ProfileDropdown notifications", () => {
     expect(screen.getByTestId("avatar-dot").className).toMatch(/primary/);
   });
 
-  it("falls back to the update dot when nothing is unread", () => {
+  // skillklan: the upstream "update available" dot is gone (no upstream release check);
+  // with nothing unread there is no dot at all.
+  it("shows no avatar dot when nothing is unread", () => {
     (useNotifications as any).mockReturnValue({ summary: { unread: 0, unreadErrors: 0 }, refresh: vi.fn() });
     renderIt();
-    expect(screen.getByText("Update available")).toBeInTheDocument();
+    expect(screen.queryByTestId("avatar-dot")).toBeNull();
+    expect(screen.queryByText("Update available")).toBeNull();
   });
 
   it("menu has a Notifications entry with the count", async () => {
