@@ -71,6 +71,7 @@ export type JobMatchData = JobMatchScores & {
   prerankScore?: number; // raw lexical score (internal sort only; NOT shown as %)
   analyzed?: boolean; // true once LLM match has run (auto top-K or on-demand)
   prerankComponents?: PrerankComponents;
-  // Set by the MCP path: how complete the job description was when scored.
+  // How complete the job description was when scored. Only rows written by
+  // the removed MCP save_match_result carry it (e.g. in an imported backup).
   descriptionCompleteness?: DescriptionCompleteness;
 };

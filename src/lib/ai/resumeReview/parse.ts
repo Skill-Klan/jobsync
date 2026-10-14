@@ -1,8 +1,8 @@
 import type { ResumeScores } from "@/models/ai.schemas";
 import { stripThinking } from "@/lib/ai/stripThinking";
 
-// Isomorphic parser shared by the client stream util and the MCP save
-// handler. No `server-only`, no `fetch` — pure text -> result.
+// Isomorphic parser shared by the client stream util and the agent's
+// review_resume tool. No `server-only`, no `fetch` — pure text -> result.
 
 export type ResumeReviewResult = {
   scores?: ResumeScores;

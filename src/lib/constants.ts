@@ -139,29 +139,19 @@ export const APP_CONSTANTS = {
   ASHBY_FETCH_TIMEOUT_MS: 25_000, // per-board AbortController timeout
   ASHBY_FETCH_CONCURRENCY: 5,
 
-  // MCP server settings
-  MCP_DUPLICATE_WINDOW_DAYS: 30,
-  MCP_TOKEN_EXPIRY_PRESETS: [30, 90, 365] as const,
-  MCP_TOKEN_EXPIRY_DEFAULT_DAYS: 90,
-  MCP_TOKEN_MAX_PER_USER: 10,
-  MCP_RATE_LIMIT_MAX: 100,
-  MCP_RATE_LIMIT_WINDOW_MS: 60 * 60 * 1000,
-  MCP_DEFAULT_JOB_TYPE: "Full-time",
-  MCP_DEFAULT_STATUS: "draft",
+  // Jobs added by name (agent chat): same company + title inside this window
+  // counts as a duplicate.
+  JOB_DUPLICATE_WINDOW_DAYS: 30,
+  JOB_DEFAULT_STATUS: "draft",
   // Word-count thresholds for job-description completeness. A real posting
   // runs 300+ words; under 40 is a title/salary stub, not something a fit
   // score can honestly be computed from.
   DESCRIPTION_PARTIAL_MIN_WORDS: 40,
   DESCRIPTION_FULL_MIN_WORDS: 150,
-  MCP_MATCH_PROVIDER_MARKER: "mcp",
-  MCP_REVIEW_MIN_RESUME_LENGTH: 400,
-  // Batch items are processed sequentially and each consumes one unit of the
-  // shared MCP rate-limit budget, so this caps a single call at a sixth of it.
-  MCP_BATCH_MAX_ITEMS: 10,
 
   // Agent chat (in-app tool-calling panel)
   AGENT_CHAT_CREATED_VIA: "chat",
-  // Provenance on Resume.reviewData, alongside the MCP path's "mcp" marker.
+  // Provenance on Resume.reviewData.
   AGENT_CHAT_REVIEW_SURFACE: "chat",
   AGENT_CHAT_MATCH_SURFACE: "chat",
   AGENT_CHAT_MAX_STEPS: 4,

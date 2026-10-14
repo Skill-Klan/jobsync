@@ -3,11 +3,8 @@
 import { useMemo, useState } from "react";
 import MarkdownIt from "markdown-it";
 import { format } from "date-fns";
-import { ChevronDown, Sparkles } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { BADGE_COLORS } from "@/lib/badge-colors";
-import { cn } from "@/lib/utils";
 import {
   Collapsible,
   CollapsibleContent,
@@ -48,19 +45,9 @@ export function ReviewDetails({ reviewData }: ReviewDetailsProps) {
               )}
             </span>
           ) : null}
-          {reviewData.provider === "mcp"
-            ? reviewData.model && (
-                <Badge
-                  variant="outline"
-                  className={cn("gap-1", BADGE_COLORS.violet)}
-                >
-                  <Sparkles className="h-3.5 w-3.5" />
-                  via {reviewData.model}
-                </Badge>
-              )
-            : reviewData.provider
-              ? `using ${reviewData.provider}${reviewData.model ? ` / ${reviewData.model}` : ""}`
-              : null}
+          {reviewData.provider
+            ? `using ${reviewData.provider}${reviewData.model ? ` / ${reviewData.model}` : ""}`
+            : null}
         </div>
       </div>
 

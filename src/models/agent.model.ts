@@ -45,8 +45,7 @@ export type AgentResolvedEntity = {
 };
 
 // What add_job returns to the model AND to the result card. The card composes
-// its own copy from these fields — never from createJobFromNames' message,
-// which is MCP-facing protocol text naming tools the chat does not expose.
+// its own copy from these fields.
 export type AgentAddJobResult = {
   created: boolean;
   jobId?: string;

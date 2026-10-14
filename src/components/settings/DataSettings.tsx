@@ -158,7 +158,7 @@ export default function DataSettings() {
           json.snapshotPath
             ? " Your previous data was saved as a snapshot you can restore below."
             : ""
-        } Re-enter your AI provider API keys, reissue MCP tokens, and reload the page.`,
+        } Re-enter your AI provider API keys and reload the page.`,
         "Import complete",
       );
       setPreflight(null);
@@ -184,8 +184,8 @@ export default function DataSettings() {
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            The file contains <strong>no API keys</strong>, no MCP tokens and no
-            password, so it is safe to store anywhere. It does contain the
+            The file contains <strong>no API keys</strong> and no password, so it
+            is safe to store anywhere. It does contain the
             <strong> full text</strong> of every job description, note and resume.
           </p>
           <Button asChild>
@@ -202,8 +202,7 @@ export default function DataSettings() {
           <CardTitle className="text-lg font-medium">Import a backup</CardTitle>
           <CardDescription>
             Replaces everything on this account with the contents of the backup.
-            Your API keys and MCP tokens are left alone; the agent chat history is
-            cleared.
+            Your API keys are left alone; the agent chat history is cleared.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
