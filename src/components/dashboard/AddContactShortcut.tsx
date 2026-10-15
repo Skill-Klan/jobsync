@@ -9,6 +9,7 @@ import { getAllContactRoles } from "@/actions/contactRole.actions";
 import type { ContactRole } from "@/models/contact.model";
 import type { Company, JobLocation } from "@/models/job.model";
 import { useTranslations } from "@/i18n/client";
+import { QUICK_ACTION_BUTTON, QUICK_ACTION_LABEL } from "./quickActionStyles";
 
 export default function AddContactShortcut() {
   const t = useTranslations("dashboard");
@@ -38,11 +39,11 @@ export default function AddContactShortcut() {
     <>
       <Button
         variant="outline"
-        className="justify-start min-w-0"
+        className={QUICK_ACTION_BUTTON}
         onClick={() => openDialog(true)}
       >
-        <Users className="h-3.5 w-3.5 mr-1 shrink-0" />
-        <span className="min-w-0 truncate">{t("quickActions.addContact")}</span>
+        <Users className="h-3.5 w-3.5 shrink-0" />
+        <span className={QUICK_ACTION_LABEL}>{t("quickActions.addContact")}</span>
       </Button>
       <AddContact
         hideTrigger
