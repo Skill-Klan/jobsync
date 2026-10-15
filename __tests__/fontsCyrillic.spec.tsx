@@ -1,5 +1,5 @@
 // @vitest-environment node
-// Requirement — D33: Ukrainian is drawn in one font. The interface font has
+// Requirement — D33/D38: Ukrainian is drawn in one font. The interface font has
 // every Ukrainian letter, and a resume or cover letter written in Ukrainian
 // comes out of the PDF export readable — in regular, bold and italic. Text is
 // read back from the real PDF the real renderer produced, not from our styles.
@@ -55,10 +55,13 @@ describe("registering the PDF fonts", () => {
     const Font = { register: vi.fn() };
     registerPdfFonts(Font, "https://jobs.example/fonts");
     registerPdfFonts(Font, "https://jobs.example/fonts");
-    expect(Font.register).toHaveBeenCalledTimes(4);
+    // Three families (Inter, Tinos, Cousine) × four faces.
+    expect(Font.register).toHaveBeenCalledTimes(12);
     expect(Font.register).toHaveBeenCalledWith({ family: "Inter-Bold", src: "https://jobs.example/fonts/Inter-Bold.ttf" });
+    expect(Font.register).toHaveBeenCalledWith({ family: "Tinos-Italic", src: "https://jobs.example/fonts/Tinos-Italic.ttf" });
+    expect(Font.register).toHaveBeenCalledWith({ family: "Cousine-BoldItalic", src: "https://jobs.example/fonts/Cousine-BoldItalic.ttf" });
     registerPdfFonts(Font, "/elsewhere");
-    expect(Font.register).toHaveBeenCalledTimes(8);
+    expect(Font.register).toHaveBeenCalledTimes(24);
   });
 });
 
@@ -92,6 +95,20 @@ describe("PDF export in Ukrainian", () => {
     });
   }
 
+  // Times and Courier are drawn by their metric twins with Cyrillic (D38).
+  for (const [font, family] of [["times", "Tinos"], ["courier", "Cousine"]] as const) {
+    it(`resume in the ${font} option draws in ${family}`, async () => {
+      const { blob } = await generateResumePdfBlob(resume, { ...defaultResumeExportSettings, font }, FONTS);
+      const text = (await pdfText(blob)).toLowerCase();
+      for (const phrase of ["Ґанна", "Їжакевич", "жирний", "курсив", "обидва"]) {
+        expect(text).toContain(phrase.toLowerCase());
+      }
+      expect(await embeddedFonts(blob)).toEqual(
+        [`${family}-Bold`, `${family}-BoldItalic`, `${family}-Italic`, `${family}-Regular`],
+      );
+    });
+  }
+
   it("cover letter", async () => {
     const { blob } = await generateCoverLetterPdfBlob(
       { title: "Лист", content: "<p>Шановна командо, <strong>щиро</strong> дякую.</p>" },
@@ -106,8 +123,11 @@ describe("PDF export in Ukrainian", () => {
   });
 
   it("the font files are the ones the app serves", () => {
-    for (const f of ["Inter-Regular.ttf", "Inter-Bold.ttf", "Inter-Italic.ttf", "Inter-BoldItalic.ttf", "LICENSE-Inter.txt"]) {
-      expect(fs.existsSync(path.join(FONTS, f))).toBe(true);
+    for (const family of ["Inter", "Tinos", "Cousine"]) {
+      for (const face of ["Regular", "Bold", "Italic", "BoldItalic"]) {
+        expect(fs.existsSync(path.join(FONTS, `${family}-${face}.ttf`))).toBe(true);
+      }
+      expect(fs.existsSync(path.join(FONTS, `LICENSE-${family}.txt`))).toBe(true);
     }
   });
 });

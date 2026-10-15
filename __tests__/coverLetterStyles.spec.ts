@@ -95,8 +95,8 @@ describe("the settings reach exactly the properties they own", () => {
 
   it("switches the whole font quartet", () => {
     const s = letter({ font: "times" }).styles;
-    expect(s.page.fontFamily).toBe("Times-Roman");
-    expect(s.name.fontFamily).toBe("Times-Bold");
-    expect(s.italic.fontFamily).toBe("Times-Italic");
+    expect(s.page.fontFamily).toBe("Tinos");
+    expect(s.name.fontFamily).toBe("Tinos-Bold");
+    expect(s.italic.fontFamily).toBe("Tinos-Italic");
   });
 });

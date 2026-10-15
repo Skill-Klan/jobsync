@@ -150,32 +150,32 @@ describe("buildProfessionalStyles at the defaults", () => {
 describe("the font setting", () => {
   it("swaps every Simple face to the Times quartet", () => {
     const s = simple({ font: "times" });
-    expect(s.page.fontFamily).toBe("Times-Roman");
-    expect(s.bold.fontFamily).toBe("Times-Bold");
-    expect(s.italic.fontFamily).toBe("Times-Italic");
-    expect(s.boldItalic.fontFamily).toBe("Times-BoldItalic");
-    expect(s.heading.fontFamily).toBe("Times-Bold");
-    expect(s.sectionTitle.fontFamily).toBe("Times-Bold");
-    expect(s.entryTitle.fontFamily).toBe("Times-Bold");
-    expect(s.h2text.fontFamily).toBe("Times-Bold");
-    expect(s.skillCat.fontFamily).toBe("Times-Bold");
+    expect(s.page.fontFamily).toBe("Tinos");
+    expect(s.bold.fontFamily).toBe("Tinos-Bold");
+    expect(s.italic.fontFamily).toBe("Tinos-Italic");
+    expect(s.boldItalic.fontFamily).toBe("Tinos-BoldItalic");
+    expect(s.heading.fontFamily).toBe("Tinos-Bold");
+    expect(s.sectionTitle.fontFamily).toBe("Tinos-Bold");
+    expect(s.entryTitle.fontFamily).toBe("Tinos-Bold");
+    expect(s.h2text.fontFamily).toBe("Tinos-Bold");
+    expect(s.skillCat.fontFamily).toBe("Tinos-Bold");
   });
 
   it("swaps every Professional face to the Courier quartet", () => {
     const s = professional({ font: "courier" });
-    expect(s.page.fontFamily).toBe("Courier");
-    expect(s.bold.fontFamily).toBe("Courier-Bold");
-    expect(s.italic.fontFamily).toBe("Courier-Oblique");
-    expect(s.boldItalic.fontFamily).toBe("Courier-BoldOblique");
-    expect(s.name.fontFamily).toBe("Courier-Bold");
-    expect(s.headline.fontFamily).toBe("Courier");
-    expect(s.contactLine.fontFamily).toBe("Courier");
-    expect(s.sectionHeadingLabel.fontFamily).toBe("Courier-Bold");
-    expect(s.entryTitle.fontFamily).toBe("Courier-Bold");
-    expect(s.entryTitleBlock.fontFamily).toBe("Courier-Bold");
-    expect(s.entryDate.fontFamily).toBe("Courier");
-    expect(s.h2text.fontFamily).toBe("Courier-Bold");
-    expect(s.skillCatLabel.fontFamily).toBe("Courier-Bold");
+    expect(s.page.fontFamily).toBe("Cousine");
+    expect(s.bold.fontFamily).toBe("Cousine-Bold");
+    expect(s.italic.fontFamily).toBe("Cousine-Italic");
+    expect(s.boldItalic.fontFamily).toBe("Cousine-BoldItalic");
+    expect(s.name.fontFamily).toBe("Cousine-Bold");
+    expect(s.headline.fontFamily).toBe("Cousine");
+    expect(s.contactLine.fontFamily).toBe("Cousine");
+    expect(s.sectionHeadingLabel.fontFamily).toBe("Cousine-Bold");
+    expect(s.entryTitle.fontFamily).toBe("Cousine-Bold");
+    expect(s.entryTitleBlock.fontFamily).toBe("Cousine-Bold");
+    expect(s.entryDate.fontFamily).toBe("Cousine");
+    expect(s.h2text.fontFamily).toBe("Cousine-Bold");
+    expect(s.skillCatLabel.fontFamily).toBe("Cousine-Bold");
   });
 
   it("leaves every number alone", () => {

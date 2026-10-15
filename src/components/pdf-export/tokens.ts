@@ -1,5 +1,5 @@
 import type { BaseExportSettings, PdfFont } from "@/models/pdfExport.model";
-import { INTER } from "./fonts";
+import { COUSINE, INTER, TINOS } from "./fonts";
 
 export type FontQuartet = {
   regular: string;
@@ -8,24 +8,13 @@ export type FontQuartet = {
   boldItalic: string;
 };
 
-// The sans option is Inter, shipped in public/fonts (see ./fonts): the
-// standard-14 Helvetica has no Cyrillic. Its stored key stays "helvetica" —
-// people's saved settings hold it. Times and Courier are still the
-// standard-14 families and still have no Cyrillic.
+// Shipped families with Cyrillic (see ./fonts) — the standard-14 ones have
+// none. The stored keys stay as they were, because people's saved settings
+// hold them: "helvetica" draws in Inter, "times" in Tinos, "courier" in Cousine.
 export const FONT_QUARTETS: Record<PdfFont, FontQuartet> = {
   helvetica: INTER,
-  times: {
-    regular: "Times-Roman",
-    bold: "Times-Bold",
-    italic: "Times-Italic",
-    boldItalic: "Times-BoldItalic",
-  },
-  courier: {
-    regular: "Courier",
-    bold: "Courier-Bold",
-    italic: "Courier-Oblique",
-    boldItalic: "Courier-BoldOblique",
-  },
+  times: TINOS,
+  courier: COUSINE,
 };
 
 // Every derived size in every sheet is proportional to this.
