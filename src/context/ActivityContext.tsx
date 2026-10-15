@@ -20,6 +20,7 @@ import {
 import { Activity, ActivityType } from "@/models/activity.model";
 import { toastSuccess, toastError } from "@/lib/toast";
 import { APP_CONSTANTS } from "@/lib/constants";
+import { useTranslations } from "@/i18n/client";
 
 interface ActivityContextType {
   currentActivity: Activity | undefined;
@@ -43,6 +44,7 @@ const netElapsed = (wallMs: number, breakMinutes: number) =>
   Math.max(wallMs - breakMinutes * 60_000, 0);
 
 export function ActivityProvider({ children }: { children: ReactNode }) {
+  const t = useTranslations("activities");
   const [currentActivity, setCurrentActivity] = useState<Activity>();
   const [timeElapsed, setTimeElapsed] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -144,21 +146,21 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
 
       if (discarded) {
         toastError(
-          `Activity not saved because duration was less than ${APP_CONSTANTS.ACTIVITY_MIN_DURATION_MINUTES} minutes`
+          t("context.discarded", { minutes: APP_CONSTANTS.ACTIVITY_MIN_DURATION_MINUTES })
         );
         return true;
       }
 
       toastSuccess(
         autoStop
-          ? `Activity auto-stopped after reaching maximum duration of ${
-              APP_CONSTANTS.ACTIVITY_MAX_DURATION_MINUTES / 60
-            } hours`
-          : "Activity stopped successfully"
+          ? t("context.autoStopped", {
+              hours: APP_CONSTANTS.ACTIVITY_MAX_DURATION_MINUTES / 60,
+            })
+          : t("context.stopped")
       );
       return true;
     },
-    [currentActivity, stopTimer, refreshCurrentActivity]
+    [currentActivity, stopTimer, refreshCurrentActivity, t]
   );
 
   useEffect(() => {
@@ -177,7 +179,7 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
 
       if (success && newActivity) {
         setCurrentActivity(newActivity as Activity);
-        toastSuccess("Activity started successfully");
+        toastSuccess(t("context.started"));
         setIsLoading(false);
         return true;
       } else {
@@ -186,7 +188,7 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
         return false;
       }
     },
-    []
+    [t]
   );
 
   const startBreak = useCallback(

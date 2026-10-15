@@ -107,5 +107,11 @@
     "setCurrent": "Зробити поточним етапом",
     "saveChanges": "Зберегти зміни",
     "add": "Додати етап"
-  }
+  },
+  "records": {
+    "ofTotal": "Показано <strong>1–{count}</strong> з <strong>{total}</strong>",
+    "shown": "Показано <strong>1–{count}</strong>",
+    "defaultLabel": "записів"
+  },
+  "genericError": "Щось пішло не так. Спробуйте ще раз."
 }

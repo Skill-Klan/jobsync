@@ -4,6 +4,7 @@
 // empty, nothing is left untranslated, and every area file is registered.
 import fs from "fs";
 import path from "path";
+import { IntlMessageFormat } from "intl-messageformat";
 import { MESSAGES } from "@/i18n/messages";
 
 type Tree = { [k: string]: string | Tree };
@@ -18,9 +19,37 @@ function leaves(tree: Tree, prefix = ""): Map<string, string> {
   return out;
 }
 
-// ICU argument names: {name}, {count, plural, ...}, {date, date, short}
-function icuArgs(message: string): string[] {
-  return [...message.matchAll(/\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*[,}]/g)].map((m) => m[1]).sort();
+// What the message asks the caller for, as the runtime sees it: use-intl
+// formats with intl-messageformat, so the same parser reads the arguments —
+// {name}, {count, plural, ...}, {date, date, short}, rich-text tags as <tag> —
+// and nothing inside a plural/select branch or a quoted '{literal}' counts.
+type Element = {
+  type: number;
+  value?: unknown;
+  options?: Record<string, { value: Element[] }>;
+  children?: Element[];
+};
+const LITERAL = 0;
+const POUND = 7;
+const TAG = 8;
+
+function collect(elements: Element[], out: Set<string>) {
+  for (const el of elements) {
+    if (el.type === LITERAL || el.type === POUND) continue;
+    if (el.type === TAG) {
+      out.add(`<${el.value}>`);
+      collect(el.children ?? [], out);
+      continue;
+    }
+    out.add(String(el.value));
+    for (const option of Object.values(el.options ?? {})) collect(option.value, out);
+  }
+}
+
+function icuArgs(message: string, locale = "en"): string[] {
+  const out = new Set<string>();
+  collect(new IntlMessageFormat(message, locale).getAst() as Element[], out);
+  return [...out].sort();
 }
 
 const uk = leaves(MESSAGES.uk as unknown as Tree);
@@ -38,9 +67,48 @@ const UK_DROPS_ARGS = new Set<string>([
   "common.comboBox.search",
   "common.comboBox.createOrSearch",
   "common.select.placeholder",
+  // The record counter: English "of 121 jobs", Ukrainian numbers only.
+  "common.records.ofTotal",
+  "common.records.shown",
 ]);
 
+describe("reading ICU arguments", () => {
+  it("finds plain, formatted, plural and select arguments, and tags", () => {
+    expect(icuArgs("Hi {name}, {n, number} on {d, date, short}")).toEqual(["d", "n", "name"]);
+    expect(icuArgs("{count, plural, one {# job by {who}} other {# jobs}}")).toEqual(["count", "who"]);
+    expect(icuArgs("{kind, select, a {A} other {B}}")).toEqual(["kind"]);
+    expect(icuArgs("Go to <settings>Settings</settings>")).toEqual(["<settings>"]);
+  });
+
+  it("does not take a plural branch word for an argument", () => {
+    expect(icuArgs("{count, plural, one {job} other {jobs}}")).toEqual(["count"]);
+  });
+
+  it("does not take a quoted literal for an argument", () => {
+    expect(icuArgs("Type '{name}' here")).toEqual([]);
+    expect(icuArgs("It''s {name}")).toEqual(["name"]);
+  });
+
+  it("names a repeated argument once", () => {
+    expect(icuArgs("{n} of {n}")).toEqual(["n"]);
+  });
+});
+
 describe("dictionaries", () => {
+  it("every message parses in its own language", () => {
+    const broken: string[] = [];
+    for (const [locale, tree] of [["uk", uk], ["en", en]] as const) {
+      for (const [k, v] of tree) {
+        try {
+          new IntlMessageFormat(v, locale);
+        } catch {
+          broken.push(`${locale}:${k}`);
+        }
+      }
+    }
+    expect(broken).toEqual([]);
+  });
+
   it("uk and en have exactly the same keys", () => {
     expect([...uk.keys()].sort()).toEqual([...en.keys()].sort());
   });
@@ -48,8 +116,8 @@ describe("dictionaries", () => {
   it("every message keeps the same ICU arguments in both languages", () => {
     const mismatched = [...en.keys()].filter((k) => {
       if (!uk.has(k)) return false;
-      const ukArgs = icuArgs(uk.get(k)!);
-      const enArgs = icuArgs(en.get(k)!);
+      const ukArgs = icuArgs(uk.get(k)!, "uk");
+      const enArgs = icuArgs(en.get(k)!, "en");
       if (UK_DROPS_ARGS.has(k)) return ukArgs.some((a) => !enArgs.includes(a));
       return ukArgs.join() !== enArgs.join();
     });
