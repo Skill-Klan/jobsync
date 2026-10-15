@@ -90,7 +90,7 @@ describe("Questions in Ukrainian", () => {
         onFilterChange={vi.fn()}
       />,
     );
-    expect(screen.getByText("Теги навичок")).toBeInTheDocument();
+    expect(screen.getByText("Навички")).toBeInTheDocument();
     expect(screen.getByText("5 усього")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Згорнути панель" })).toBeInTheDocument();
     expect(container.textContent).not.toMatch(ENGLISH);
