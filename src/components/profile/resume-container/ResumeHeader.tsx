@@ -4,7 +4,7 @@ import { ArrowLeft, FileDown, MoreVertical, Sparkles, Star } from "lucide-react"
 import type { Resume } from "@/models/profile.model";
 import {
   hasMinResumeSections,
-  warnInsufficientResumeSections,
+  useWarnInsufficientResumeSections,
 } from "@/utils/resumeSections.utils";
 import { Badge } from "../../ui/badge";
 import { Button } from "../../ui/button";
@@ -39,6 +39,7 @@ export function ResumeHeader({
   onSetDefault: () => void;
 }) {
   const t = useTranslations("profile");
+  const warnInsufficientResumeSections = useWarnInsufficientResumeSections();
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-2">
@@ -95,9 +96,7 @@ export function ResumeHeader({
                 className="cursor-pointer"
                 onClick={() => {
                   if (!hasMinResumeSections(resume.ResumeSections?.length)) {
-                    warnInsufficientResumeSections(
-                      "setting this resume as default",
-                    );
+                    warnInsufficientResumeSections("setDefault");
                     return;
                   }
                   onSetDefault();

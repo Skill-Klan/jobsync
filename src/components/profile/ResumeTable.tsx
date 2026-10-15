@@ -40,7 +40,7 @@ import { StatusBadge } from "../StatusBadge";
 import { DOCUMENT_TYPE_BADGE_COLORS } from "@/lib/badge-colors";
 import {
   hasMinResumeSections,
-  warnInsufficientResumeSections,
+  useWarnInsufficientResumeSections,
 } from "@/utils/resumeSections.utils";
 
 // "PP" is what the table showed before translation; Ukrainian puts the day first.
@@ -66,6 +66,7 @@ function DocumentTable({
   defaultResumeId,
 }: DocumentTableProps) {
   const t = useTranslations("profile");
+  const warnInsufficientResumeSections = useWarnInsufficientResumeSections();
   const formatDate = useFormatDate();
   const [alertOpen, setAlertOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<ProfileDocument>();
@@ -103,7 +104,7 @@ function DocumentTable({
   const onSetDefault = (doc: ProfileDocument) => {
     if (!doc.id) return;
     if (!hasMinResumeSections(doc.sectionCount)) {
-      warnInsufficientResumeSections("setting this resume as default");
+      warnInsufficientResumeSections("setDefault");
       return;
     }
     // Confirm whenever a different resume already holds the default. Decided by
@@ -120,7 +121,7 @@ function DocumentTable({
   const onCopyResume = (doc: ProfileDocument) => {
     if (!doc.id) return;
     if (!hasMinResumeSections(doc.sectionCount)) {
-      warnInsufficientResumeSections("creating a copy");
+      warnInsufficientResumeSections("copy");
       return;
     }
     copyResume(doc);

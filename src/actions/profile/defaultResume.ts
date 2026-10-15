@@ -1,10 +1,7 @@
 "use server";
 import prisma from "@/lib/db";
 import { handleError } from "@/lib/utils";
-import {
-  buildInsufficientSectionsMessage,
-  hasMinResumeSections,
-} from "@/lib/resumeSections";
+import { hasMinResumeSections, MIN_SECTIONS } from "@/lib/resumeSections";
 import { getCurrentUser } from "@/utils/user.utils";
 import { requireUser } from "./shared";
 import { getTranslations } from "@/i18n/server";
@@ -37,8 +34,9 @@ export const setDefaultResume = async (
     if (!hasMinResumeSections(owned._count.ResumeSections)) {
       return {
         success: false,
-        message: buildInsufficientSectionsMessage(
-          "setting this resume as default",
+        message: (await getTranslations("common"))(
+          "resumeSections.notEnough.setDefault",
+          MIN_SECTIONS,
         ),
       };
     }

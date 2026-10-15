@@ -7,10 +7,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { buildIncompleteResumeHint } from "@/lib/resumeSections";
+import { MIN_SECTIONS } from "@/lib/resumeSections";
+import { useTranslations } from "@/i18n/client";
 
 export function IncompleteResumeHint() {
-  const hint = buildIncompleteResumeHint();
+  const t = useTranslations("common");
+  const hint = t("resumeSections.incompleteHint", MIN_SECTIONS);
   return (
     <TooltipProvider delayDuration={300}>
       <Tooltip>

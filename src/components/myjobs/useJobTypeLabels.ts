@@ -5,7 +5,8 @@ import { JOB_TYPES, WORKPLACE_TYPES } from "@/models/job.model";
 
 // Job type and workplace are stored as codes (FT, REMOTE); the words shown for
 // them live in the `jobs` dictionary. An unknown or missing code reads as
-// "Not specified", as getJobTypeLabel/getWorkplaceTypeLabel do.
+// "Not specified" (or the fallback given), as getJobTypeLabel/
+// getWorkplaceTypeLabel do.
 type JobTypeCode = keyof typeof JOB_TYPES;
 type WorkplaceCode = keyof typeof WORKPLACE_TYPES;
 
@@ -22,8 +23,10 @@ export function useJobTypeLabels() {
   return {
     jobType: (code?: string | null) =>
       code && isJobType(code) ? t(`jobType.${code}`) : t("notSpecified"),
-    workplaceType: (code?: string | null) =>
-      code && isWorkplace(code) ? t(`workplaceType.${code}`) : t("notSpecified"),
+    workplaceType: (code?: string | null, fallback?: string) =>
+      code && isWorkplace(code)
+        ? t(`workplaceType.${code}`)
+        : (fallback ?? t("notSpecified")),
   };
 }
 
