@@ -78,7 +78,7 @@ export default function GoalRow({
                 </span>
               ) : (
                 <span className="text-xs text-muted-foreground">
-                  {min} to {max}
+                  {t("goals.range", { min, max })}
                 </span>
               )}
             </div>

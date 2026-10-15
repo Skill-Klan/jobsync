@@ -106,7 +106,8 @@
     "notesPlaceholder": "Додайте контекст до цього етапу…",
     "setCurrent": "Зробити поточним етапом",
     "saveChanges": "Зберегти зміни",
-    "add": "Додати етап"
+    "add": "Додати етап",
+    "currentLocked": "Це поточний етап. Щоб зробити поточним інший, позначте його."
   },
   "records": {
     "ofTotal": "Показано <strong>1–{count}</strong> з <strong>{total}</strong>",

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "@/i18n/client";
 import {
   Command,
   CommandEmpty,
@@ -524,6 +525,7 @@ export const PromptInput = ({
   children,
   ...props
 }: PromptInputProps) => {
+  const t = useTranslations("agent.input");
   // Try to use a provider controller if present
   const controller = useOptionalPromptInputController();
   const usingProvider = !!controller;
@@ -907,12 +909,12 @@ export const PromptInput = ({
     <>
       <input
         accept={accept}
-        aria-label="Upload files"
+        aria-label={t("uploadFiles")}
         className="hidden"
         multiple={multiple}
         onChange={handleChange}
         ref={inputRef}
-        title="Upload files"
+        title={t("uploadFiles")}
         type="file"
       />
       <form

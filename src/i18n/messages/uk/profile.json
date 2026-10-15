@@ -207,7 +207,8 @@
       "certificationTitle": "Назва",
       "issuer": "Видавець",
       "issued": "Видано",
-      "expires": "Діє до"
+      "expires": "Діє до",
+      "url": "Посилання"
     },
     "noSectionsTitle": "Розділів не знайдено",
     "noSectionsDescription": "Не вдалося витягти з документа структуровані дані.",
@@ -249,7 +250,8 @@
     "link": "Посилання {number}",
     "linkHint": "(необовʼязково — портфоліо, LinkedIn, GitHub тощо)",
     "linkLabel": "Підпис",
-    "addLink": "+ Додати ще посилання"
+    "addLink": "+ Додати ще посилання",
+    "url": "Посилання"
   },
   "summary": {
     "editTitle": "Редагувати «Про себе»",

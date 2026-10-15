@@ -53,7 +53,7 @@ function AddJobBody({
       <Row label={t("jobTitle")} value={text(input.jobTitle)} />
       <Row label={t("location")} value={text(input.location)} />
       <Row label={t("source")} value={text(input.source)} />
-      <Row label="URL" value={text(input.jobUrl)} />
+      <Row label={t("url")} value={text(input.jobUrl)} />
       <Row label={t("salary")} value={text(input.salaryRange)} />
       <Row label={t("tags")} value={tags} />
       {description ? (

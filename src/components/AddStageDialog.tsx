@@ -356,8 +356,7 @@ export function AddStageDialog({
                   </label>
                   {currentLocked && (
                     <p className="text-xs text-muted-foreground">
-                      This is the current stage — tick the box on another stage
-                      to move it.
+                      {t("stageDialog.currentLocked")}
                     </p>
                   )}
                 </FormItem>
