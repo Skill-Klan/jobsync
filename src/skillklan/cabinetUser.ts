@@ -8,7 +8,8 @@ import type { CabinetIdentity } from "./cabinetApi";
 // The SkillKlan Job account of a person who came in from the cabinet. One
 // account per cabinet id (User.cabinetUserId, unique): the first sign-in
 // creates and seeds it, later ones find it and keep the name in step with the
-// cabinet.
+// cabinet. Every sign-in stamps lastLoginAt — the admin's "who uses SkillKlan
+// Job" (skillklan/adminStats.ts).
 //
 // The backend sends no email on purpose (no personal data across the
 // boundary), so the account gets a stable placeholder on the reserved
@@ -24,12 +25,15 @@ const FALLBACK_NAME = "SkillKlan student";
 export async function findOrCreateCabinetUser(identity: CabinetIdentity) {
   const name = identity.name.trim() || FALLBACK_NAME;
 
+  const lastLoginAt = new Date();
   const existing = await prisma.user.findUnique({
     where: { cabinetUserId: identity.userId },
   });
   if (existing) {
-    if (existing.name === name) return existing;
-    return prisma.user.update({ where: { id: existing.id }, data: { name } });
+    return prisma.user.update({
+      where: { id: existing.id },
+      data: { name, lastLoginAt },
+    });
   }
 
   const password = await bcrypt.hash(crypto.randomBytes(32).toString("hex"), 10);
@@ -43,6 +47,7 @@ export async function findOrCreateCabinetUser(identity: CabinetIdentity) {
           email: cabinetEmail(identity.userId),
           password,
           cabinetUserId: identity.userId,
+          lastLoginAt,
         },
       });
       await seedNewAccount(user.id, tx);

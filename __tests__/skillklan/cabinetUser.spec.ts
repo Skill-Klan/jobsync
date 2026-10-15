@@ -83,6 +83,27 @@ describe("findOrCreateCabinetUser", () => {
     expect(await seededCounts(first.id)).toEqual(before);
   });
 
+  // SkillKlan admin (JA2): "who came in, and when last" — every sign-in, not
+  // just the first one and not only when the name changed.
+  it("every sign-in stamps lastLoginAt — the first, and each later one even with the same name", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    try {
+      vi.setSystemTime(new Date("2026-10-01T08:00:00.000Z"));
+      const first = await findOrCreateCabinetUser({ userId: 110, role: "student", name: "Same Name" });
+      expect(first.lastLoginAt?.toISOString()).toBe("2026-10-01T08:00:00.000Z");
+
+      vi.setSystemTime(new Date("2026-10-09T17:30:00.000Z"));
+      const again = await findOrCreateCabinetUser({ userId: 110, role: "student", name: "Same Name" });
+      expect(again.id).toBe(first.id);
+      const stored = await prisma.user.findUnique({ where: { cabinetUserId: 110 } });
+      expect(stored?.lastLoginAt?.toISOString()).toBe("2026-10-09T17:30:00.000Z");
+      // The account's first sign-in stays where it was.
+      expect(stored?.createdAt.toISOString()).toBe(first.createdAt.toISOString());
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("different cabinet people get different accounts", async () => {
     const a = await findOrCreateCabinetUser({ userId: 103, role: "student", name: "A" });
     const b = await findOrCreateCabinetUser({ userId: 104, role: "admin", name: "B" });

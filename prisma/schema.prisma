@@ -20,6 +20,9 @@ model User {
   // auth_users.id in the SkillKlan cabinet — set for people who signed in
   // from the cabinet (one-time code). Null only for dev-only password accounts.
   cabinetUserId  Int?             @unique
+  // Last sign-in from the cabinet (SkillKlan admin stats). Sessions last at
+  // most 8 h, so this doubles as "last seen" without a write per request.
+  lastLoginAt    DateTime?
   createdAt      DateTime         @default(now())
   jobsApplied    Job[]
   JobTitle       JobTitle[]
