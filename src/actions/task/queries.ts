@@ -4,6 +4,7 @@ import { handleError } from "@/lib/utils";
 import { TaskGroupBy, TaskStatus } from "@/models/task.model";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { requireUser } from "../shared";
+import { getTranslations } from "@/i18n/server";
 
 const TASK_WITH_ACTIVITIES_INCLUDE = {
   activityType: true,
@@ -51,6 +52,7 @@ export const getTasksList = async (
   search?: string,
   groupBy?: TaskGroupBy
 ): Promise<any | undefined> => {
+  const t = await getTranslations("tasks");
   try {
     const user = await requireUser();
 
@@ -95,7 +97,7 @@ export const getTasksList = async (
       total,
     };
   } catch (error) {
-    const msg = "Failed to fetch tasks list.";
+    const msg = t("errors.listFailed");
     return handleError(error, msg);
   }
 };
@@ -103,6 +105,7 @@ export const getTasksList = async (
 export const getTaskById = async (
   taskId: string
 ): Promise<any | undefined> => {
+  const t = await getTranslations("tasks");
   try {
     const user = await requireUser();
 
@@ -115,7 +118,7 @@ export const getTaskById = async (
     });
 
     if (!task) {
-      return { success: false, message: "Task not found" };
+      return { success: false, message: t("errors.notFound") };
     }
 
     return {
@@ -123,7 +126,7 @@ export const getTaskById = async (
       data: task,
     };
   } catch (error) {
-    const msg = "Failed to fetch task.";
+    const msg = t("errors.fetchFailed");
     return handleError(error, msg);
   }
 };
@@ -131,6 +134,7 @@ export const getTaskById = async (
 export const getActivityTypesWithTaskCounts = async (): Promise<
   any | undefined
 > => {
+  const t = await getTranslations("tasks");
   try {
     const user = await requireUser();
 
@@ -171,7 +175,7 @@ export const getActivityTypesWithTaskCounts = async (): Promise<
 
     return { success: true, data, totalTasks };
   } catch (error) {
-    const msg = "Failed to fetch activity types with task counts.";
+    const msg = t("errors.countsFailed");
     return handleError(error, msg);
   }
 };

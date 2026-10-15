@@ -34,11 +34,13 @@ import {
   outcomeColor,
   prepSummary,
   whenParts,
+  type DisplayText,
 } from "./interviewDisplay";
 import { setStageOutcome } from "@/actions/jobStage.actions";
 import { STAGE_OUTCOMES } from "@/lib/constants";
 import { toastActionResult } from "@/lib/toast";
 import type { InterviewRow as InterviewRowType } from "@/models/interview.model";
+import { useFormatDate, useLabel, useTranslations } from "@/i18n/client";
 
 const FORMAT_ICONS = { video: Video, phone: Phone, location: MapPin };
 
@@ -57,16 +59,40 @@ function InterviewRow({
   onEdit,
   onOutcomeSaved,
 }: InterviewRowProps) {
-  const when = whenParts(interview.occurredAt);
-  const outcome = outcomeLabel(interview.occurredAt, interview.outcome);
+  const t = useTranslations("interviews");
+  const label = useLabel();
+  const formatDate = useFormatDate();
+  const text: DisplayText = {
+    storedOutcome: (outcome) => label("stageOutcome", outcome),
+    scheduled: label("stageOutcome", { value: "scheduled" }),
+    awaitingOutcome: t("display.awaitingOutcome"),
+    notScheduled: t("display.notScheduled"),
+    notSet: t("display.notSet"),
+    noDate: t("display.noDate"),
+    noneLinked: t("display.noneLinked"),
+    interviewers: (count) => t("display.interviewersCount", { count }),
+    // Strings, not numbers: a duration is shown without digit grouping.
+    hours: (hours) => t("display.hours", { hours: String(hours) }),
+    minutes: (minutes) => t("display.minutes", { minutes: String(minutes) }),
+    formatDate,
+  };
+  const when = whenParts(interview.occurredAt, text);
+  // The badge colour is keyed on the English label; the badge shows ours.
+  const outcomeColorKey = outcomeLabel(interview.occurredAt, interview.outcome);
+  const outcome = outcomeLabel(
+    interview.occurredAt,
+    interview.outcome,
+    undefined,
+    text,
+  );
   const FormatIcon = FORMAT_ICONS[formatIconKind(interview.format)];
-  const duration = durationLabel(interview.durationMins);
+  const duration = durationLabel(interview.durationMins, text);
   const title = interview.Job.JobTitle.label;
 
   const saveOutcome = async (value: string | null) => {
     const res = await setStageOutcome(interview.id, value);
     toastActionResult(res, {
-      success: "Outcome saved",
+      success: t("row.outcomeSaved"),
       onSuccess: () => onOutcomeSaved(),
     });
   };
@@ -79,7 +105,11 @@ function InterviewRow({
             variant="ghost"
             size="icon"
             onClick={onToggle}
-            aria-label={`${expanded ? "Collapse" : "Expand"} ${title}`}
+            aria-label={
+              expanded
+                ? t("row.collapse", { title })
+                : t("row.expand", { title })
+            }
           >
             {expanded ? (
               <ChevronDown className="h-4 w-4" />
@@ -107,7 +137,7 @@ function InterviewRow({
         </TableCell>
         <TableCell>
           <StatusBadge
-            label={interview.StageType.label}
+            label={label("jobStage", interview.StageType)}
             color="violet"
             className="whitespace-nowrap"
           />
@@ -115,14 +145,14 @@ function InterviewRow({
         <TableCell className="hidden md:table-cell whitespace-nowrap">
           <div className="flex items-center gap-1.5">
             <FormatIcon className="h-3.5 w-3.5 text-muted-foreground" />
-            <span>{formatText(interview.format, interview.location)}</span>
+            <span>{formatText(interview.format, interview.location, text)}</span>
           </div>
           {duration && (
             <div className="text-xs text-muted-foreground">{duration}</div>
           )}
         </TableCell>
         <TableCell className="hidden lg:table-cell">
-          {interviewerSummary(interview.interviewers)}
+          {interviewerSummary(interview.interviewers, text)}
         </TableCell>
         <TableCell className="hidden sm:table-cell">
           {prepSummary(interview.prepQuestions)}
@@ -130,7 +160,7 @@ function InterviewRow({
         <TableCell>
           <StatusBadge
             label={outcome}
-            color={outcomeColor(outcome)}
+            color={outcomeColor(outcomeColorKey)}
             className="whitespace-nowrap"
           />
         </TableCell>
@@ -139,14 +169,14 @@ function InterviewRow({
             <DropdownMenuTrigger asChild>
               <Button aria-haspopup="true" size="icon" variant="ghost">
                 <MoreVertical className="h-4 w-4" />
-                <span className="sr-only">Toggle menu</span>
+                <span className="sr-only">{t("row.toggleMenu")}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuLabel>{t("row.actions")}</DropdownMenuLabel>
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger className="cursor-pointer">
-                  Set outcome
+                  {t("row.setOutcome")}
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
                   {STAGE_OUTCOMES.map((option) => (
@@ -155,7 +185,7 @@ function InterviewRow({
                       className="cursor-pointer"
                       onClick={() => saveOutcome(option.value)}
                     >
-                      {option.label}
+                      {label("stageOutcome", option)}
                     </DropdownMenuItem>
                   ))}
                   {interview.outcome && (
@@ -163,21 +193,21 @@ function InterviewRow({
                       className="cursor-pointer"
                       onClick={() => saveOutcome(null)}
                     >
-                      Clear outcome
+                      {t("row.clearOutcome")}
                     </DropdownMenuItem>
                   )}
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
               <DropdownMenuItem className="cursor-pointer" onClick={onEdit}>
                 <Pencil className="mr-2 h-4 w-4" />
-                Edit round
+                {t("row.editRound")}
               </DropdownMenuItem>
               <DropdownMenuItem asChild className="cursor-pointer">
                 <Link
                   href={`/dashboard/myjobs/${interview.Job.id}?tab=timeline`}
                 >
                   <ExternalLink className="mr-2 h-4 w-4" />
-                  Open job timeline
+                  {t("row.openTimeline")}
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -191,12 +221,13 @@ function InterviewRow({
               <div className="space-y-4">
                 <div>
                   <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Interviewers ({interview.interviewers.length})
+                    {t("row.interviewers", {
+                      count: interview.interviewers.length,
+                    })}
                   </div>
                   {interview.interviewers.length === 0 ? (
                     <p className="mt-1 text-muted-foreground">
-                      Nobody linked yet — link interviewers on the job&apos;s
-                      Timeline tab.
+                      {t("row.noInterviewers")}
                     </p>
                   ) : (
                     <ul className="mt-2 space-y-2">
@@ -227,7 +258,7 @@ function InterviewRow({
                 {interview.notes && (
                   <div>
                     <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Notes
+                      {t("row.notes")}
                     </div>
                     <p className="mt-1 whitespace-pre-wrap text-muted-foreground">
                       {interview.notes}
@@ -238,20 +269,22 @@ function InterviewRow({
               <div>
                 <div className="flex items-baseline gap-3">
                   <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Prep questions ({prepSummary(interview.prepQuestions)})
+                    {t("row.prepQuestions", {
+                      summary: prepSummary(interview.prepQuestions),
+                    })}
                   </div>
                   {interview.prepQuestions.length > 0 && (
                     <Link
                       href={`/dashboard/questions?stage=${interview.id}`}
                       className="whitespace-nowrap text-xs text-primary underline-offset-4 hover:underline"
                     >
-                      View answers
+                      {t("row.viewAnswers")}
                     </Link>
                   )}
                 </div>
                 {interview.prepQuestions.length === 0 ? (
                   <p className="mt-1 text-muted-foreground">
-                    No prep list yet — build one on the job&apos;s Timeline tab.
+                    {t("row.noPrep")}
                   </p>
                 ) : (
                   <ul className="mt-2 space-y-2">

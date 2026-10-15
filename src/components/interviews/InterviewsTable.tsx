@@ -8,6 +8,7 @@ import {
 } from "../ui/table";
 import InterviewRow from "./InterviewRow";
 import type { InterviewRow as InterviewRowType } from "@/models/interview.model";
+import { useTranslations } from "@/i18n/client";
 
 type InterviewsTableProps = {
   interviews: InterviewRowType[];
@@ -24,22 +25,25 @@ function InterviewsTable({
   onEdit,
   onChanged,
 }: InterviewsTableProps) {
+  const t = useTranslations("interviews");
   return (
     <Table>
       <TableHeader>
         <TableRow>
           <TableHead className="w-8">
-            <span className="sr-only">Expand</span>
+            <span className="sr-only">{t("table.expand")}</span>
           </TableHead>
-          <TableHead>When</TableHead>
-          <TableHead>Job</TableHead>
-          <TableHead>Round</TableHead>
-          <TableHead className="hidden md:table-cell">Format</TableHead>
-          <TableHead className="hidden lg:table-cell">Interviewers</TableHead>
-          <TableHead className="hidden sm:table-cell">Prep</TableHead>
-          <TableHead>Outcome</TableHead>
+          <TableHead>{t("table.when")}</TableHead>
+          <TableHead>{t("table.job")}</TableHead>
+          <TableHead>{t("table.round")}</TableHead>
+          <TableHead className="hidden md:table-cell">{t("table.format")}</TableHead>
+          <TableHead className="hidden lg:table-cell">
+            {t("table.interviewers")}
+          </TableHead>
+          <TableHead className="hidden sm:table-cell">{t("table.prep")}</TableHead>
+          <TableHead>{t("table.outcome")}</TableHead>
           <TableHead>
-            <span className="sr-only">Actions</span>
+            <span className="sr-only">{t("table.actions")}</span>
           </TableHead>
         </TableRow>
       </TableHeader>

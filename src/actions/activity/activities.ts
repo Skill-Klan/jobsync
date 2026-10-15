@@ -5,6 +5,7 @@ import { APP_CONSTANTS } from "@/lib/constants";
 import { Activity } from "@/models/activity.model";
 import { revalidatePath } from "next/cache";
 import { requireUser } from "./shared";
+import { getTranslations } from "@/i18n/server";
 
 // Completed activities carry duration but no break state
 const ACTIVITY_LIST_SELECT = {
@@ -23,6 +24,7 @@ export const getActivitiesList = async (
   limit: number = APP_CONSTANTS.RECORDS_PER_PAGE,
   search?: string
 ): Promise<any | undefined> => {
+  const t = await getTranslations("activities");
   try {
     const user = await requireUser();
 
@@ -64,7 +66,7 @@ export const getActivitiesList = async (
       total,
     };
   } catch (error) {
-    const msg = "Failed to fetch activities list. ";
+    const msg = t("errors.listFailed");
     return handleError(error, msg);
   }
 };
@@ -72,6 +74,7 @@ export const getActivitiesList = async (
 export const createActivity = async (
   data: Activity
 ): Promise<any | undefined> => {
+  const t = await getTranslations("activities");
   try {
     const user = await requireUser();
 
@@ -98,7 +101,7 @@ export const createActivity = async (
     revalidatePath("/dashboard");
     return { activity, success: true };
   } catch (error) {
-    const msg = "Failed to create activity. ";
+    const msg = t("errors.createFailed");
     return handleError(error, msg);
   }
 };
@@ -106,6 +109,7 @@ export const createActivity = async (
 export const deleteActivityById = async (
   activityId: string
 ): Promise<any | undefined> => {
+  const t = await getTranslations("activities");
   try {
     const user = await requireUser();
 
@@ -118,7 +122,7 @@ export const deleteActivityById = async (
     revalidatePath("/dashboard");
     return { res, success: true };
   } catch (error) {
-    const msg = "Failed to delete job.";
+    const msg = t("errors.deleteFailed");
     return handleError(error, msg);
   }
 };

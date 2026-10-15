@@ -1,1 +1,61 @@
-{}
+{
+  "sidebar": {
+    "expand": "Expand sidebar",
+    "collapse": "Collapse sidebar",
+    "title": "Skill Tags",
+    "all": "{count} All"
+  },
+  "container": {
+    "loadFailed": "Failed to load questions.",
+    "deleted": "Question has been deleted successfully",
+    "title": "Questions",
+    "recordsLabel": "questions",
+    "searchPlaceholder": "Search questions...",
+    "newQuestion": "New Question",
+    "prepFor": "Prep questions for",
+    "anyRound": "an interview round",
+    "showAll": "Show all questions",
+    "loadMore": "Load More"
+  },
+  "list": {
+    "empty": "No questions found. Create your first question to get started."
+  },
+  "card": {
+    "edit": "Edit question",
+    "delete": "Delete question",
+    "createdVia": "via {source}",
+    "showLess": "Show less",
+    "showMore": "Show more",
+    "deleteTitle": "Delete Question",
+    "deleteDescription": "Are you sure you want to delete this question? This action cannot be undone.",
+    "cancel": "Cancel",
+    "confirmDelete": "Delete"
+  },
+  "form": {
+    "created": "Question has been created successfully",
+    "updated": "Question has been updated successfully",
+    "addTitle": "Add Question",
+    "editTitle": "Edit Question",
+    "addDescription": "Add a question to your question bank.",
+    "editDescription": "Update this question in your question bank.",
+    "question": "Question *",
+    "questionPlaceholder": "Enter interview question",
+    "tags": "Skill Tags",
+    "answer": "Answer *",
+    "cancel": "Cancel",
+    "save": "Save"
+  },
+  "errors": {
+    "listFailed": "Failed to fetch questions list.",
+    "roundNotFound": "Interview round not found",
+    "roundFailed": "Failed to fetch interview round.",
+    "notFound": "Question not found",
+    "fetchFailed": "Failed to fetch question.",
+    "createFailed": "Failed to create question.",
+    "idRequired": "Question ID is required for update",
+    "updateFailed": "Failed to update question.",
+    "onPrepList": "Question cannot be deleted: it is on the prep list of {count, plural, one {# interview stage} other {# interview stages}}. Remove it from those stages first.",
+    "deleteFailed": "Failed to delete question.",
+    "tagCountsFailed": "Failed to fetch tags with question counts."
+  }
+}

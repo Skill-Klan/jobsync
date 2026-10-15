@@ -1,1 +1,60 @@
-{}
+{
+  "page": {
+    "title": "Interviews | SkillKlan Job"
+  },
+  "container": {
+    "title": "Interviews",
+    "recordsLabel": "interviews",
+    "searchPlaceholder": "Search interviews...",
+    "emptyFiltered": "No interviews match these filters.",
+    "empty": "No interviews yet. Add an interview stage on a job's Timeline tab and it appears here."
+  },
+  "filters": {
+    "byRound": "Filter by round",
+    "allRounds": "All rounds",
+    "byCompany": "Filter by company",
+    "allCompanies": "All companies"
+  },
+  "table": {
+    "expand": "Expand",
+    "when": "When",
+    "job": "Job",
+    "round": "Round",
+    "format": "Format",
+    "interviewers": "Interviewers",
+    "prep": "Prep",
+    "outcome": "Outcome",
+    "actions": "Actions"
+  },
+  "row": {
+    "outcomeSaved": "Outcome saved",
+    "expand": "Expand {title}",
+    "collapse": "Collapse {title}",
+    "toggleMenu": "Toggle menu",
+    "actions": "Actions",
+    "setOutcome": "Set outcome",
+    "clearOutcome": "Clear outcome",
+    "editRound": "Edit round",
+    "openTimeline": "Open job timeline",
+    "interviewers": "Interviewers ({count})",
+    "noInterviewers": "Nobody linked yet — link interviewers on the job's Timeline tab.",
+    "notes": "Notes",
+    "prepQuestions": "Prep questions ({summary})",
+    "viewAnswers": "View answers",
+    "noPrep": "No prep list yet — build one on the job's Timeline tab."
+  },
+  "display": {
+    "awaitingOutcome": "Awaiting outcome",
+    "notScheduled": "Not scheduled",
+    "notSet": "Not set",
+    "noDate": "No date",
+    "noneLinked": "None linked",
+    "interviewersCount": "{count} interviewers",
+    "hours": "{hours}h",
+    "minutes": "{minutes}m"
+  },
+  "errors": {
+    "listFailed": "Failed to fetch interviews. ",
+    "filtersFailed": "Failed to fetch interview filters. "
+  }
+}

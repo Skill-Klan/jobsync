@@ -4,6 +4,7 @@ import { handleError } from "@/lib/utils";
 import { requireUser } from "./shared";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { STAGE_DETAIL_INCLUDE } from "./jobStage/shared";
+import { getTranslations } from "@/i18n/server";
 
 // The same include the Timeline tab uses, so a row from this list is a
 // complete JobStage and can be handed straight to AddStageDialog.
@@ -54,6 +55,7 @@ export const getInterviewList = async (
   stageTypeId?: string,
   companyId?: string,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("interviews");
   try {
     const user = await requireUser();
     const where = buildInterviewWhere(user.id, search, stageTypeId, companyId);
@@ -98,13 +100,14 @@ export const getInterviewList = async (
 
     return { data: [...dated, ...undated], total };
   } catch (error) {
-    return handleError(error, "Failed to fetch interviews. ");
+    return handleError(error, t("errors.listFailed"));
   }
 };
 
 // Options come from rows that exist, not from the Library: offering every
 // stage type and every company would mostly offer empty results.
 export const getInterviewFilterOptions = async (): Promise<any | undefined> => {
+  const t = await getTranslations("interviews");
   try {
     const user = await requireUser();
     const rows = await prisma.jobStage.findMany({
@@ -142,6 +145,6 @@ export const getInterviewFilterOptions = async (): Promise<any | undefined> => {
 
     return { rounds, companies };
   } catch (error) {
-    return handleError(error, "Failed to fetch interview filters. ");
+    return handleError(error, t("errors.filtersFailed"));
   }
 };

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { QuestionTagBadge } from "@/components/questions/QuestionTagBadge";
+import { useTranslations } from "@/i18n/client";
 
 type TagWithCount = {
   id: string;
@@ -24,6 +25,7 @@ function QuestionsSidebar({
   selectedFilter,
   onFilterChange,
 }: QuestionsSidebarProps) {
+  const t = useTranslations("questions");
   const [collapsed, setCollapsed] = useState(false);
   const sortedTags = [...tags].sort(
     (a, b) => b.questionCount - a.questionCount,
@@ -39,7 +41,7 @@ function QuestionsSidebar({
       <button
         onClick={() => setCollapsed((prev) => !prev)}
         className="absolute -right-3 top-4 z-10 flex items-center justify-center w-6 h-6 rounded-full border bg-background text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        aria-label={collapsed ? t("sidebar.expand") : t("sidebar.collapse")}
       >
         {collapsed ? (
           <ChevronRight className="h-3.5 w-3.5" />
@@ -50,14 +52,14 @@ function QuestionsSidebar({
 
       {!collapsed && (
         <>
-          <h3 className="font-semibold mb-4 text-sm">Skill Tags</h3>
+          <h3 className="font-semibold mb-4 text-sm">{t("sidebar.title")}</h3>
           <div className="flex flex-wrap gap-1.5">
             <button onClick={() => onFilterChange(undefined)}>
               <QuestionTagBadge
                 variant={!selectedFilter ? "default" : "secondary"}
                 className="cursor-pointer"
               >
-                {totalQuestions} All
+                {t("sidebar.all", { count: totalQuestions })}
               </QuestionTagBadge>
             </button>
             {sortedTags.map((tag) => (

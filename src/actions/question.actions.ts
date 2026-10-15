@@ -5,6 +5,7 @@ import { AddQuestionFormSchema } from "@/models/addQuestionForm.schema";
 import { requireUser } from "./shared";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { z } from "zod";
+import { getLabel, getTranslations } from "@/i18n/server";
 
 // Questions on one interview round's prep list, owned through the job
 function stagePrepLinks(stageId: string, userId: string) {
@@ -18,6 +19,7 @@ export const getQuestionsList = async (
   search?: string,
   stageId?: string
 ): Promise<any | undefined> => {
+  const t = await getTranslations("questions");
   try {
     const user = await requireUser();
 
@@ -57,20 +59,21 @@ export const getQuestionsList = async (
 
     return { success: true, data, total };
   } catch (error) {
-    return handleError(error, "Failed to fetch questions list.");
+    return handleError(error, t("errors.listFailed"));
   }
 };
 
 export const getPrepStageLabel = async (
   stageId: string
 ): Promise<any | undefined> => {
+  const t = await getTranslations("questions");
   try {
     const user = await requireUser();
 
     const stage = await prisma.jobStage.findFirst({
       where: { id: stageId, Job: { userId: user.id } },
       select: {
-        StageType: { select: { label: true } },
+        StageType: { select: { label: true, value: true } },
         Job: {
           select: {
             JobTitle: { select: { label: true } },
@@ -81,25 +84,27 @@ export const getPrepStageLabel = async (
     });
 
     if (!stage) {
-      return { success: false, message: "Interview round not found" };
+      return { success: false, message: t("errors.roundNotFound") };
     }
 
+    const label = await getLabel();
     return {
       success: true,
       data: {
-        round: stage.StageType.label,
+        round: label("jobStage", stage.StageType),
         jobTitle: stage.Job.JobTitle.label,
         company: stage.Job.Company.label,
       },
     };
   } catch (error) {
-    return handleError(error, "Failed to fetch interview round.");
+    return handleError(error, t("errors.roundFailed"));
   }
 };
 
 export const getQuestionById = async (
   questionId: string
 ): Promise<any | undefined> => {
+  const t = await getTranslations("questions");
   try {
     const user = await requireUser();
 
@@ -109,18 +114,19 @@ export const getQuestionById = async (
     });
 
     if (!question) {
-      return { success: false, message: "Question not found" };
+      return { success: false, message: t("errors.notFound") };
     }
 
     return { success: true, data: question };
   } catch (error) {
-    return handleError(error, "Failed to fetch question.");
+    return handleError(error, t("errors.fetchFailed"));
   }
 };
 
 export const createQuestion = async (
   data: z.infer<typeof AddQuestionFormSchema>
 ): Promise<any | undefined> => {
+  const t = await getTranslations("questions");
   try {
     const user = await requireUser();
 
@@ -140,17 +146,18 @@ export const createQuestion = async (
 
     return { success: true, data: question };
   } catch (error) {
-    return handleError(error, "Failed to create question.");
+    return handleError(error, t("errors.createFailed"));
   }
 };
 
 export const updateQuestion = async (
   data: z.infer<typeof AddQuestionFormSchema>
 ): Promise<any | undefined> => {
+  const t = await getTranslations("questions");
   try {
     const user = await requireUser();
 
-    if (!data.id) throw new Error("Question ID is required for update");
+    if (!data.id) throw new Error(t("errors.idRequired"));
 
     const validatedData = AddQuestionFormSchema.parse(data);
 
@@ -168,13 +175,14 @@ export const updateQuestion = async (
 
     return { success: true, data: question };
   } catch (error) {
-    return handleError(error, "Failed to update question.");
+    return handleError(error, t("errors.updateFailed"));
   }
 };
 
 export const deleteQuestion = async (
   questionId: string
 ): Promise<any | undefined> => {
+  const t = await getTranslations("questions");
   try {
     const user = await requireUser();
 
@@ -184,9 +192,7 @@ export const deleteQuestion = async (
       where: { questionId, Question: { createdBy: user.id } },
     });
     if (prepRows > 0) {
-      throw new Error(
-        `Question cannot be deleted: it is on the prep list of ${prepRows} interview stage${prepRows === 1 ? "" : "s"}. Remove it from those stages first.`,
-      );
+      throw new Error(t("errors.onPrepList", { count: prepRows }));
     }
 
     await prisma.question.delete({
@@ -195,13 +201,14 @@ export const deleteQuestion = async (
 
     return { success: true };
   } catch (error) {
-    return handleError(error, "Failed to delete question.");
+    return handleError(error, t("errors.deleteFailed"));
   }
 };
 
 export const getTagsWithQuestionCounts = async (
   stageId?: string
 ): Promise<any | undefined> => {
+  const t = await getTranslations("questions");
   try {
     const user = await requireUser();
     const prepLinks = stageId ? stagePrepLinks(stageId, user.id) : undefined;
@@ -231,6 +238,6 @@ export const getTagsWithQuestionCounts = async (
 
     return { success: true, data, totalQuestions };
   } catch (error) {
-    return handleError(error, "Failed to fetch tags with question counts.");
+    return handleError(error, t("errors.tagCountsFailed"));
   }
 };

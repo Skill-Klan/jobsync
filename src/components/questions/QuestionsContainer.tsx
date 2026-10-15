@@ -25,6 +25,7 @@ import { APP_CONSTANTS } from "@/lib/constants";
 import Loading from "../Loading";
 import { QuestionList } from "./QuestionList";
 import { QuestionForm } from "./QuestionForm";
+import { useTranslations } from "@/i18n/client";
 
 type QuestionsContainerProps = {
   availableTags: Tag[];
@@ -37,6 +38,9 @@ function QuestionsContainer({
   filterKey,
   onQuestionsChanged,
 }: QuestionsContainerProps) {
+  const t = useTranslations("questions");
+  // A string, so the loader below keeps its identity between renders.
+  const loadFailedMessage = t("container.loadFailed");
   const router = useRouter();
   const searchParams = useSearchParams();
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -68,11 +72,11 @@ function QuestionsContainer({
         setTotalQuestions(result.total);
         setPage(pageNum);
       } else {
-        toastError(result?.message || "Failed to load questions.");
+        toastError(result?.message || loadFailedMessage);
       }
       setLoading(false);
     },
-    [stageId],
+    [stageId, loadFailedMessage],
   );
 
   const reloadQuestions = useCallback(async () => {
@@ -83,7 +87,7 @@ function QuestionsContainer({
   const onDeleteQuestion = async (questionId: string) => {
     const result = await deleteQuestion(questionId);
     toastActionResult(result, {
-      success: "Question has been deleted successfully",
+      success: t("container.deleted"),
       onSuccess: () => reloadQuestions(),
     });
   };
@@ -163,12 +167,12 @@ function QuestionsContainer({
       <Card className="h-full">
         <ResponsiveCardHeader>
           <div className="flex items-baseline gap-2">
-            <CardTitle>Questions</CardTitle>
+            <CardTitle>{t("container.title")}</CardTitle>
             {!loading && totalQuestions > 0 && (
               <RecordsCount
                 count={questions.length}
                 total={totalQuestions}
-                label="questions"
+                label={t("container.recordsLabel")}
               />
             )}
           </div>
@@ -176,7 +180,7 @@ function QuestionsContainer({
             <SearchInput
               value={searchTerm}
               onChange={setSearchTerm}
-              placeholder="Search questions..."
+              placeholder={t("container.searchPlaceholder")}
             />
             <Button
               size="sm"
@@ -186,7 +190,7 @@ function QuestionsContainer({
             >
               <PlusCircle className="h-3.5 w-3.5" />
               <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                New Question
+                {t("container.newQuestion")}
               </span>
             </Button>
           </div>
@@ -195,9 +199,9 @@ function QuestionsContainer({
           {stageId && (
             <div className="mb-4 flex items-center justify-between gap-2 rounded-md border bg-muted/50 px-3 py-2 text-sm">
               <span>
-                Prep questions for{" "}
+                {t("container.prepFor")}{" "}
                 <span className="font-medium">
-                  {stageLabel ?? "an interview round"}
+                  {stageLabel ?? t("container.anyRound")}
                 </span>
               </span>
               <Button
@@ -205,7 +209,7 @@ function QuestionsContainer({
                 size="icon"
                 className="h-6 w-6 shrink-0"
                 onClick={clearStageFilter}
-                aria-label="Show all questions"
+                aria-label={t("container.showAll")}
               >
                 <X className="h-3.5 w-3.5" />
               </Button>
@@ -231,7 +235,7 @@ function QuestionsContainer({
                 }
                 disabled={loading}
               >
-                Load More
+                {t("container.loadMore")}
               </Button>
             </div>
           )}

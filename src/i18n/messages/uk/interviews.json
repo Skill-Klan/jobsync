@@ -1,1 +1,60 @@
-{}
+{
+  "page": {
+    "title": "Співбесіди | SkillKlan Job"
+  },
+  "container": {
+    "title": "Співбесіди",
+    "recordsLabel": "співбесід",
+    "searchPlaceholder": "Пошук співбесід…",
+    "emptyFiltered": "Немає співбесід за цими фільтрами.",
+    "empty": "Співбесід ще немає. Додайте етап співбесіди на вкладці «Хронологія» вакансії — і він зʼявиться тут."
+  },
+  "filters": {
+    "byRound": "Фільтр за етапом",
+    "allRounds": "Усі етапи",
+    "byCompany": "Фільтр за компанією",
+    "allCompanies": "Усі компанії"
+  },
+  "table": {
+    "expand": "Розгорнути",
+    "when": "Коли",
+    "job": "Вакансія",
+    "round": "Етап",
+    "format": "Формат",
+    "interviewers": "Інтервʼюери",
+    "prep": "Підготовка",
+    "outcome": "Результат",
+    "actions": "Дії"
+  },
+  "row": {
+    "outcomeSaved": "Результат збережено",
+    "expand": "Розгорнути «{title}»",
+    "collapse": "Згорнути «{title}»",
+    "toggleMenu": "Відкрити меню",
+    "actions": "Дії",
+    "setOutcome": "Указати результат",
+    "clearOutcome": "Прибрати результат",
+    "editRound": "Редагувати етап",
+    "openTimeline": "Відкрити хронологію вакансії",
+    "interviewers": "Інтервʼюери ({count})",
+    "noInterviewers": "Ще нікого не привʼязано — додайте інтервʼюерів на вкладці «Хронологія» вакансії.",
+    "notes": "Нотатки",
+    "prepQuestions": "Питання для підготовки ({summary})",
+    "viewAnswers": "Переглянути відповіді",
+    "noPrep": "Списку для підготовки ще немає — складіть його на вкладці «Хронологія» вакансії."
+  },
+  "display": {
+    "awaitingOutcome": "Чекає на результат",
+    "notScheduled": "Не заплановано",
+    "notSet": "Не вказано",
+    "noDate": "Без дати",
+    "noneLinked": "Нікого",
+    "interviewersCount": "{count, plural, one {# інтервʼюер} few {# інтервʼюери} many {# інтервʼюерів} other {# інтервʼюера}}",
+    "hours": "{hours} год",
+    "minutes": "{minutes} хв"
+  },
+  "errors": {
+    "listFailed": "Не вдалося завантажити співбесіди.",
+    "filtersFailed": "Не вдалося завантажити фільтри співбесід."
+  }
+}

@@ -16,6 +16,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { TipTapContentViewer } from "@/components/TipTapContentViewer";
+import { useTranslations } from "@/i18n/client";
 
 type QuestionCardProps = {
   question: Question;
@@ -33,6 +34,7 @@ export function QuestionCard({
   onEdit,
   onDelete,
 }: QuestionCardProps) {
+  const t = useTranslations("questions");
   const [expanded, setExpanded] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -58,7 +60,7 @@ export function QuestionCard({
                 onEdit(question);
               }}
               data-testid="question-edit-btn"
-              aria-label="Edit question"
+              aria-label={t("card.edit")}
             >
               <Pencil className="h-4 w-4" />
             </Button>
@@ -71,7 +73,7 @@ export function QuestionCard({
                 setShowDeleteDialog(true);
               }}
               data-testid="question-delete-btn"
-              aria-label="Delete question"
+              aria-label={t("card.delete")}
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -101,7 +103,7 @@ export function QuestionCard({
         {question.createdVia && (
           <div className="mt-2">
             <Badge variant="outline" className="text-xs text-muted-foreground">
-              via {question.createdVia}
+              {t("card.createdVia", { source: question.createdVia })}
             </Badge>
           </div>
         )}
@@ -114,7 +116,7 @@ export function QuestionCard({
               setExpanded(!expanded);
             }}
           >
-            {expanded ? "Show less" : "Show more"}
+            {expanded ? t("card.showLess") : t("card.showMore")}
           </button>
         )}
       </div>
@@ -122,19 +124,18 @@ export function QuestionCard({
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Question</AlertDialogTitle>
+            <AlertDialogTitle>{t("card.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this question? This action cannot
-              be undone.
+              {t("card.deleteDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("card.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => onDelete(question.id)}
               className="bg-destructive-bg text-destructive-foreground hover:bg-destructive-bg/90"
             >
-              Delete
+              {t("card.confirmDelete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

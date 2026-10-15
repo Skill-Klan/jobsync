@@ -17,6 +17,7 @@ import type {
 } from "@/models/interview.model";
 import type { JobStageTypeRef } from "@/models/jobStage.model";
 import type { JobStatus } from "@/models/job.model";
+import { useTranslations } from "@/i18n/client";
 
 export type InterviewsContainerProps = {
   rounds: InterviewFilterOption[];
@@ -31,6 +32,7 @@ function InterviewsContainer({
   stageTypes,
   jobStatuses,
 }: InterviewsContainerProps) {
+  const t = useTranslations("interviews");
   const [searchTerm, setSearchTerm] = useState("");
   const [stageTypeId, setStageTypeId] = useState<string | undefined>(undefined);
   const [companyId, setCompanyId] = useState<string | undefined>(undefined);
@@ -54,12 +56,12 @@ function InterviewsContainer({
       <Card x-chunk="dashboard-interviews-chunk-0">
         <ResponsiveCardHeader>
           <div className="flex items-baseline gap-2">
-            <CardTitle>Interviews</CardTitle>
+            <CardTitle>{t("container.title")}</CardTitle>
             {!list.initialLoading && list.total > 0 && (
               <RecordsCount
                 count={list.interviews.length}
                 total={list.total}
-                label="interviews"
+                label={t("container.recordsLabel")}
               />
             )}
           </div>
@@ -67,6 +69,7 @@ function InterviewsContainer({
             <InterviewFilters
               rounds={rounds}
               companies={companies}
+              stageTypes={stageTypes}
               stageTypeId={stageTypeId}
               companyId={companyId}
               onRoundChange={setStageTypeId}
@@ -75,7 +78,7 @@ function InterviewsContainer({
             <SearchInput
               value={searchTerm}
               onChange={setSearchTerm}
-              placeholder="Search interviews..."
+              placeholder={t("container.searchPlaceholder")}
             />
           </div>
         </ResponsiveCardHeader>
@@ -85,8 +88,8 @@ function InterviewsContainer({
           ) : list.interviews.length === 0 ? (
             <p className="py-10 text-center text-sm text-muted-foreground">
               {filtered
-                ? "No interviews match these filters."
-                : "No interviews yet. Add an interview stage on a job's Timeline tab and it appears here."}
+                ? t("container.emptyFiltered")
+                : t("container.empty")}
             </p>
           ) : (
             <>

@@ -4,8 +4,10 @@ import { useActivity } from "@/context/ActivityContext";
 import { ActivityBanner } from "./ActivityBanner";
 import { BreakModal } from "./BreakModal";
 import { ActivityType } from "@/models/activity.model";
+import { useTranslations } from "@/i18n/client";
 
 export function GlobalActivityBanner() {
+  const t = useTranslations("activities");
   const { currentActivity, timeElapsed, stopActivity, isOnBreak } =
     useActivity();
   // The Break button only opens the modal; the break itself starts on play.
@@ -20,7 +22,7 @@ export function GlobalActivityBanner() {
       <div className="px-4 sm:px-6">
         <ActivityBanner
           title={currentActivity.activityName}
-          typeLabel={activityType?.label || "Activity"}
+          typeLabel={activityType?.label || t("banner.fallbackType")}
           onStopActivity={stopActivity}
           onStartBreak={
             isOnBreak || breakOpen ? undefined : () => setBreakOpen(true)

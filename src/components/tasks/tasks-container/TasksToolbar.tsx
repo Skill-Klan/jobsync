@@ -25,6 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "../../ui/dropdown-menu";
 import { TaskGroupBy, TaskStatus, TASK_STATUSES } from "@/models/task.model";
+import { useTranslations } from "@/i18n/client";
 
 // Presentational: the Tasks card header — title/count, search, status
 // filter dropdown, group-by select, and New Task.
@@ -51,6 +52,7 @@ export function TasksToolbar({
   onGroupByChange: (value: string) => void;
   onAddTask: () => void;
 }) {
+  const t = useTranslations("tasks");
   const [mounted, setMounted] = useState(false);
 
   // Avoid hydration mismatch with Radix UI components
@@ -61,16 +63,16 @@ export function TasksToolbar({
   return (
     <ResponsiveCardHeader>
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <CardTitle>Tasks</CardTitle>
+        <CardTitle>{t("toolbar.title")}</CardTitle>
         {!initialLoading && totalTasks > 0 && (
-          <RecordsCount count={tasksCount} total={totalTasks} label="tasks" />
+          <RecordsCount count={tasksCount} total={totalTasks} label={t("toolbar.recordsLabel")} />
         )}
       </div>
       <div className="flex flex-wrap items-center justify-end gap-2 sm:ml-auto">
         <SearchInput
           value={searchTerm}
           onChange={onSearchTermChange}
-          placeholder="Search tasks..."
+          placeholder={t("toolbar.searchPlaceholder")}
         />
         {mounted ? (
           <DropdownMenu>
@@ -78,12 +80,12 @@ export function TasksToolbar({
               <Button variant="outline" size="sm" className="h-8 gap-1">
                 <Filter className="h-3.5 w-3.5" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                  Status
+                  {t("toolbar.status")}
                 </span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+              <DropdownMenuLabel>{t("toolbar.filterByStatus")}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {(Object.keys(TASK_STATUSES) as TaskStatus[]).map((status) => (
                 <DropdownMenuCheckboxItem
@@ -91,7 +93,7 @@ export function TasksToolbar({
                   checked={statusFilter.includes(status)}
                   onCheckedChange={() => onToggleStatusFilter(status)}
                 >
-                  {TASK_STATUSES[status]}
+                  {t(`status.${status}`)}
                 </DropdownMenuCheckboxItem>
               ))}
             </DropdownMenuContent>
@@ -100,7 +102,7 @@ export function TasksToolbar({
           <Button variant="outline" size="sm" className="h-8 gap-1">
             <Filter className="h-3.5 w-3.5" />
             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-              Status
+              {t("toolbar.status")}
             </span>
           </Button>
         )}
@@ -108,24 +110,24 @@ export function TasksToolbar({
           <Select value={groupBy} onValueChange={onGroupByChange}>
             <SelectTrigger className="w-[140px] h-8">
               <ListFilter className="h-3.5 w-3.5" />
-              <SelectValue placeholder="Group by" />
+              <SelectValue placeholder={t("toolbar.groupBy")} />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectLabel>Group by</SelectLabel>
+                <SelectLabel>{t("toolbar.groupBy")}</SelectLabel>
                 <SelectSeparator />
-                <SelectItem value="none">None</SelectItem>
-                <SelectItem value="createdDate">Created Date</SelectItem>
-                <SelectItem value="dueDate">Due Date</SelectItem>
-                <SelectItem value="updatedDate">Updated Date</SelectItem>
-                <SelectItem value="activityType">Activity Type</SelectItem>
+                <SelectItem value="none">{t("toolbar.groupNone")}</SelectItem>
+                <SelectItem value="createdDate">{t("toolbar.groupCreatedDate")}</SelectItem>
+                <SelectItem value="dueDate">{t("toolbar.groupDueDate")}</SelectItem>
+                <SelectItem value="updatedDate">{t("toolbar.groupUpdatedDate")}</SelectItem>
+                <SelectItem value="activityType">{t("toolbar.groupActivityType")}</SelectItem>
               </SelectGroup>
             </SelectContent>
           </Select>
         ) : (
           <Button variant="outline" size="sm" className="h-8 gap-1 w-[140px]">
             <ListFilter className="h-3.5 w-3.5" />
-            <span>Group by</span>
+            <span>{t("toolbar.groupBy")}</span>
           </Button>
         )}
         <Button
@@ -137,7 +139,7 @@ export function TasksToolbar({
         >
           <PlusCircle className="h-3.5 w-3.5" />
           <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-            New Task
+            {t("toolbar.newTask")}
           </span>
         </Button>
       </div>

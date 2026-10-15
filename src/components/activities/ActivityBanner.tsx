@@ -1,3 +1,4 @@
+"use client";
 import {
   AlertCircle,
   CheckCircle2,
@@ -7,8 +8,9 @@ import {
   Monitor,
   XCircle,
 } from "lucide-react";
-import { cn, formatElapsedTime } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import React from "react";
+import { useTranslations } from "@/i18n/client";
 
 type BannerVariant = "success" | "warning" | "error" | "info";
 
@@ -55,6 +57,17 @@ export function ActivityBanner({
   elapsedTime,
   className,
 }: BannerProps) {
+  const t = useTranslations("activities");
+  // Same parts as formatElapsedTime in lib/utils, in the user's language.
+  const totalSeconds = Math.floor(elapsedTime / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const elapsed =
+    hours > 0
+      ? t("banner.elapsedWithHours", { hours, minutes, seconds })
+      : t("banner.elapsed", { minutes, seconds });
+
   return (
     <div
       className={cn(
@@ -68,7 +81,7 @@ export function ActivityBanner({
 
       <span className="hidden shrink-0 items-center gap-1.5 tabular-nums sm:flex">
         <Clock className="size-4 opacity-80" />
-        {formatElapsedTime(elapsedTime)}
+        {elapsed}
       </span>
       {typeLabel && (
         <span className="hidden shrink-0 items-center gap-1.5 lg:flex">
@@ -79,8 +92,8 @@ export function ActivityBanner({
 
       {onStartBreak && (
         <button
-          title="Take a break"
-          aria-label="Take a break"
+          title={t("banner.takeBreak")}
+          aria-label={t("banner.takeBreak")}
           type="button"
           className={cn(
             "shrink-0 inline-flex items-center justify-center gap-1.5 rounded-md p-1.5 opacity-70 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/10 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2 lg:px-2.5 lg:py-1",
@@ -89,13 +102,13 @@ export function ActivityBanner({
           onClick={onStartBreak}
         >
           <Coffee className="size-5 text-amber-600 dark:text-amber-400" />
-          <span className="hidden lg:inline">Break</span>
+          <span className="hidden lg:inline">{t("banner.break")}</span>
         </button>
       )}
 
       <button
-        title="Stop Activity"
-        aria-label="Stop Activity"
+        title={t("banner.stopActivity")}
+        aria-label={t("banner.stopActivity")}
         type="button"
         className={cn(
           "shrink-0 inline-flex items-center justify-center gap-1.5 rounded-md p-1.5 opacity-70 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/10 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2 lg:px-2.5 lg:py-1",
@@ -104,7 +117,7 @@ export function ActivityBanner({
         onClick={() => onStopActivity(false)}
       >
         <CircleStop className="size-5 text-red-500 dark:text-red-400" />
-        <span className="hidden lg:inline">Stop Activity</span>
+        <span className="hidden lg:inline">{t("banner.stopActivity")}</span>
       </button>
     </div>
   );

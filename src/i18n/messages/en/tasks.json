@@ -1,1 +1,104 @@
-{}
+{
+  "status": {
+    "in-progress": "In Progress",
+    "complete": "Complete",
+    "needs-attention": "Needs Attention",
+    "cancelled": "Cancelled"
+  },
+  "sidebar": {
+    "expand": "Expand sidebar",
+    "collapse": "Collapse sidebar",
+    "title": "Activity Types",
+    "all": "All"
+  },
+  "toolbar": {
+    "title": "Tasks",
+    "recordsLabel": "tasks",
+    "searchPlaceholder": "Search tasks...",
+    "status": "Status",
+    "filterByStatus": "Filter by Status",
+    "groupBy": "Group by",
+    "groupNone": "None",
+    "groupCreatedDate": "Created Date",
+    "groupDueDate": "Due Date",
+    "groupUpdatedDate": "Updated Date",
+    "groupActivityType": "Activity Type",
+    "newTask": "New Task"
+  },
+  "container": {
+    "deleted": "Task has been deleted successfully",
+    "activityStarted": "Activity started from task",
+    "statusUpdated": "Task status updated successfully",
+    "empty": "No tasks found. Create your first task to get started."
+  },
+  "table": {
+    "markInProgress": "Mark as in progress",
+    "markComplete": "Mark as complete",
+    "edit": "Edit {title}",
+    "hasDescription": "Has description",
+    "toggleMenu": "Toggle menu",
+    "actions": "Actions",
+    "editTask": "Edit Task",
+    "changeStatus": "Change Status",
+    "startActivity": "Start Activity",
+    "delete": "Delete",
+    "complete": "Complete",
+    "title": "Title",
+    "activityType": "Activity Type",
+    "status": "Status",
+    "priority": "Priority",
+    "percentComplete": "% Complete",
+    "noActivityType": "No Activity Type",
+    "today": "Today",
+    "deleteItem": "task",
+    "dueGroup": {
+      "overdue": "Overdue",
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "thisWeek": "This Week",
+      "later": "Later",
+      "noDueDate": "No Due Date"
+    }
+  },
+  "form": {
+    "addTitle": "Add Task",
+    "editTitle": "Edit Task",
+    "addDescription": "Add a new task to track.",
+    "editDescription": "Update the details of this task.",
+    "created": "Task has been created successfully",
+    "updated": "Task has been updated successfully",
+    "title": "Title *",
+    "titlePlaceholder": "Enter task title",
+    "activityType": "Activity Type",
+    "status": "Status",
+    "statusSelect": "Task Status",
+    "priority": "Priority: {value}",
+    "priorityLow": "Low (0)",
+    "priorityHigh": "High (10)",
+    "percentComplete": "% Complete: {value}%",
+    "dueDate": "Due Date",
+    "createdAt": "Created",
+    "updatedAt": "Updated",
+    "notAvailable": "N/A",
+    "description": "Description",
+    "cancel": "Cancel",
+    "saveAndStart": "Save & Start",
+    "save": "Save"
+  },
+  "errors": {
+    "notFound": "Task not found",
+    "startFromClosed": "Cannot start an activity from a completed or cancelled task.",
+    "startWithoutType": "Task must have an activity type to start an activity.",
+    "activityRunning": "You already have a running activity. Please stop it before starting a new one.",
+    "startFailed": "Failed to start activity from task.",
+    "createFailed": "Failed to create task.",
+    "idRequired": "Task ID is required for update",
+    "updateFailed": "Failed to update task.",
+    "statusFailed": "Failed to update task status.",
+    "linkedActivity": "Cannot delete task with linked activity. Remove the activity first.",
+    "deleteFailed": "Failed to delete task.",
+    "listFailed": "Failed to fetch tasks list.",
+    "fetchFailed": "Failed to fetch task.",
+    "countsFailed": "Failed to fetch activity types with task counts."
+  }
+}

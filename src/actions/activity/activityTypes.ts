@@ -3,8 +3,10 @@ import prisma from "@/lib/db";
 import { handleError } from "@/lib/utils";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { requireUser } from "./shared";
+import { getTranslations } from "@/i18n/server";
 
 export const getAllActivityTypes = async (): Promise<any | undefined> => {
+  const t = await getTranslations("activities");
   try {
     const user = await requireUser();
 
@@ -15,7 +17,7 @@ export const getAllActivityTypes = async (): Promise<any | undefined> => {
     });
     return activityTypes;
   } catch (error) {
-    const msg = "Failed to fetch all activity types. ";
+    const msg = t("errors.typesFetchFailed");
     return handleError(error, msg);
   }
 };
@@ -23,6 +25,7 @@ export const getAllActivityTypes = async (): Promise<any | undefined> => {
 export const createActivityType = async (
   label: string
 ): Promise<any | undefined> => {
+  const t = await getTranslations("activities");
   try {
     const user = await requireUser();
 
@@ -36,7 +39,7 @@ export const createActivityType = async (
 
     return upsertedActivityType;
   } catch (error) {
-    const msg = "Failed to create activity type. ";
+    const msg = t("errors.typeCreateFailed");
     console.error(msg, error);
     throw new Error(msg);
   }
@@ -46,6 +49,7 @@ export const getActivityTypeList = async (
   page: number = 1,
   limit: number = APP_CONSTANTS.RECORDS_PER_PAGE,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("activities");
   try {
     const user = await requireUser();
 
@@ -84,7 +88,7 @@ export const getActivityTypeList = async (
 
     return { data, total };
   } catch (error) {
-    const msg = "Failed to fetch activity type list. ";
+    const msg = t("errors.typeListFailed");
     return handleError(error, msg);
   }
 };
@@ -92,6 +96,7 @@ export const getActivityTypeList = async (
 export const deleteActivityTypeById = async (
   activityTypeId: string,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("activities");
   try {
     const user = await requireUser();
 
@@ -101,16 +106,21 @@ export const deleteActivityTypeById = async (
     ]);
 
     if (activities > 0 || tasks > 0) {
-      const links = [
-        activities > 0 ? `${activities} activity(ies)` : "",
-        tasks > 0 ? `${tasks} task(s)` : "",
-      ]
-        .filter(Boolean)
-        .join(" and ");
+      const linkedActivities = t("errors.typeLinkedActivities", {
+        count: activities,
+      });
+      const linkedTasks = t("errors.typeLinkedTasks", { count: tasks });
+      const links =
+        activities > 0 && tasks > 0
+          ? t("errors.typeLinkedBoth", {
+              activities: linkedActivities,
+              tasks: linkedTasks,
+            })
+          : activities > 0
+            ? linkedActivities
+            : linkedTasks;
 
-      throw new Error(
-        `Activity type cannot be deleted because it is linked to ${links}.`,
-      );
+      throw new Error(t("errors.typeLinked", { links }));
     }
 
     const res = await prisma.activityType.delete({
@@ -119,7 +129,7 @@ export const deleteActivityTypeById = async (
 
     return { res, success: true };
   } catch (error) {
-    const msg = "Failed to delete activity type.";
+    const msg = t("errors.typeDeleteFailed");
     return handleError(error, msg);
   }
 };
