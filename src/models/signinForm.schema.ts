@@ -1,17 +1,18 @@
 import { z } from "zod";
+import { vt } from "@/i18n/validation";
 
 export const SigninFormSchema = z.object({
   email: z
     .string({
-      error: "Email is required.",
+      error: () => vt("auth.email.required"),
     })
     .min(3, {
-      message: "Email must be at least 3 characters.",
+      error: () => vt("auth.email.min", { min: 3 }),
     })
-    .email("Please enter a valid email."),
+    .email({ error: () => vt("auth.email.invalid") }),
   password: z
     .string({
-      error: "Please enter your password.",
+      error: () => vt("auth.password.required"),
     })
     .min(1),
 });

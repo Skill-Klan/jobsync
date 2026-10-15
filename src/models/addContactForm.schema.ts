@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { vt } from "@/i18n/validation";
 
 const isValidHttpUrl = (url: string) => {
   try {
@@ -14,9 +15,9 @@ export const AddContactFormSchema = z
   .object({
     id: z.string().optional(),
     name: z
-      .string({ error: "Contact name is required." })
-      .min(1, { message: "Contact name cannot be empty." })
-      .max(120, { message: "Contact name must be 120 characters or fewer." }),
+      .string({ error: () => vt("contacts.name.required") })
+      .min(1, { error: () => vt("contacts.name.empty") })
+      .max(120, { error: () => vt("contacts.name.max", { max: 120 }) }),
     title: optionalText(120),
     email: z
       .string()
@@ -24,7 +25,7 @@ export const AddContactFormSchema = z
       .optional()
       .refine(
         (v) => !v || z.email().safeParse(v).success,
-        "Please enter a valid email address.",
+        { error: () => vt("contacts.email.invalid") },
       ),
     phone: optionalText(40),
     linkedinUrl: z
@@ -33,7 +34,7 @@ export const AddContactFormSchema = z
       .optional()
       .refine(
         (url) => !url || isValidHttpUrl(url),
-        "Please enter a full LinkedIn URL starting with https://",
+        { error: () => vt("contacts.linkedinUrl.invalid") },
       ),
     company: z.string().optional(),
     location: z.string().optional(),
@@ -55,12 +56,12 @@ export const AddContactFormSchema = z
           endOfToday.setHours(23, 59, 59, 999);
           return date <= endOfToday;
         },
-        { message: "Last contacted date cannot be in the future." },
+        { error: () => vt("contacts.lastContactedAt.future") },
       ),
   })
   .refine(
     (v) => !v.workedFrom || !v.workedTo || v.workedTo >= v.workedFrom,
-    { message: "The end date cannot be before the start date.", path: ["workedTo"] },
+    { error: () => vt("contacts.workedTo.beforeStart"), path: ["workedTo"] },
   );
 
 export type ContactFormValues = z.infer<typeof AddContactFormSchema>;

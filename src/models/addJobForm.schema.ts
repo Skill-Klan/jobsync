@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { vt } from "@/i18n/validation";
 import { APP_CONSTANTS } from "@/lib/constants";
 
 export const AddJobFormSchema = z.object({
@@ -6,40 +7,40 @@ export const AddJobFormSchema = z.object({
   userId: z.string().optional(),
   title: z
     .string({
-      error: "Job title is required.",
+      error: () => vt("fields.jobTitle.required"),
     })
     .min(2, {
-      message: "Job title must be at least 2 characters.",
+      error: () => vt("fields.jobTitle.min", { min: 2 }),
     }),
   company: z
     .string({
-      error: "Company name is required.",
+      error: () => vt("fields.company.required"),
     })
     .min(2, {
-      message: "Company name must be at least 2 characters.",
+      error: () => vt("fields.company.min", { min: 2 }),
     }),
   location: z
     .string({
-      error: "Location is required.",
+      error: () => vt("fields.location.required"),
     })
     .min(2, {
-      message: "Location name must be at least 2 characters.",
+      error: () => vt("fields.location.min", { min: 2 }),
     }),
   type: z.string().min(1),
   workplaceType: z.string().optional(),
   source: z
     .string({
-      error: "Source is required.",
+      error: () => vt("jobs.source.required"),
     })
     .min(2, {
-      message: "Source name must be at least 2 characters.",
+      error: () => vt("jobs.source.min", { min: 2 }),
     }),
   status: z
     .string({
-      error: "Status is required.",
+      error: () => vt("jobs.status.required"),
     })
     .min(2, {
-      message: "Status must be at least 2 characters.",
+      error: () => vt("jobs.status.min", { min: 2 }),
     })
     .default("draft"),
   dueDate: z.date(),
@@ -52,10 +53,10 @@ export const AddJobFormSchema = z.object({
   salaryRange: z.string().optional(),
   jobDescription: z
     .string({
-      error: "Job description is required.",
+      error: () => vt("jobs.description.required"),
     })
     .refine((val) => val === "N/A" || val.length >= 10, {
-      message: "Job description must be at least 10 characters.",
+      error: () => vt("fields.jobDescription.min", { min: 10 }),
     }),
   jobUrl: z.string().optional(),
   resume: z.string().optional(),

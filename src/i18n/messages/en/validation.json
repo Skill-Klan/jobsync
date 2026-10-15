@@ -1,1 +1,286 @@
-{}
+{
+  "defaults": {
+    "required": "Fill in this field",
+    "invalid": "Invalid value",
+    "option": "Choose one of the options",
+    "email": "Enter a valid email",
+    "url": "Enter a valid link",
+    "format": "Invalid format",
+    "string": {
+      "min": "At least {min} characters",
+      "max": "At most {max} characters"
+    },
+    "number": {
+      "min": "At least {min}",
+      "max": "At most {max}",
+      "greaterThan": "More than {min}",
+      "lessThan": "Less than {max}"
+    }
+  },
+  "fields": {
+    "jobTitle": {
+      "required": "Job title is required.",
+      "min": "Job title must be at least {min} characters."
+    },
+    "company": {
+      "required": "Company name is required.",
+      "min": "Company name must be at least {min} characters."
+    },
+    "location": {
+      "required": "Location is required.",
+      "min": "Location name must be at least {min} characters."
+    },
+    "jobDescription": {
+      "min": "Job description must be at least {min} characters."
+    }
+  },
+  "jobs": {
+    "source": {
+      "required": "Source is required.",
+      "min": "Source name must be at least {min} characters."
+    },
+    "status": {
+      "required": "Status is required.",
+      "min": "Status must be at least {min} characters."
+    },
+    "description": {
+      "required": "Job description is required."
+    }
+  },
+  "education": {
+    "institution": {
+      "required": "Institution name is required."
+    },
+    "degree": {
+      "required": "Degree is required."
+    },
+    "fieldOfStudy": {
+      "required": "Field of study is required."
+    }
+  },
+  "certification": {
+    "title": {
+      "required": "Certification title is required."
+    },
+    "organization": {
+      "required": "Issuing organization is required."
+    }
+  },
+  "contactInfo": {
+    "firstName": {
+      "required": "First Name is required.",
+      "min": "First name must be at least {min} characters."
+    },
+    "lastName": {
+      "required": "Last Name is required.",
+      "min": "Last name must be at least {min} characters."
+    },
+    "headline": {
+      "required": "Headline is required.",
+      "min": "Headline must be at least {min} characters."
+    },
+    "email": {
+      "required": "Email is required!",
+      "invalid": "Please enter a valid email!"
+    },
+    "phone": {
+      "required": "Phone is required!"
+    },
+    "url": {
+      "protocol": "URL must start with http:// or https://"
+    }
+  },
+  "summary": {
+    "sectionTitle": {
+      "required": "Section title is required."
+    },
+    "content": {
+      "required": "Summary content is required"
+    }
+  },
+  "skills": {
+    "sectionTitle": {
+      "required": "Section title is required"
+    },
+    "tags": {
+      "min": "Add at least one skill"
+    },
+    "categories": {
+      "min": "Add at least one category"
+    }
+  },
+  "resume": {
+    "title": {
+      "required": "Resume title is required.",
+      "max": "Title must be less than {max} characters"
+    },
+    "file": {
+      "type": "Only PDF and Word documents are allowed.",
+      "size": "File size must be less than 5MB"
+    }
+  },
+  "coverLetter": {
+    "title": {
+      "required": "Cover letter title is required.",
+      "max": "Title must be less than {max} characters."
+    },
+    "content": {
+      "required": "Cover letter content is required.",
+      "min": "Cover letter content must be at least {min} characters."
+    }
+  },
+  "auth": {
+    "name": {
+      "min": "Name must be at least {min} characters."
+    },
+    "email": {
+      "required": "Email is required.",
+      "min": "Email must be at least {min} characters.",
+      "invalid": "Please enter a valid email."
+    },
+    "password": {
+      "required": "Please enter your password.",
+      "min": "Password must be at least {min} characters."
+    }
+  },
+  "questions": {
+    "question": {
+      "required": "Question is required.",
+      "min": "Question must be at least {min} characters.",
+      "max": "Question cannot exceed {max} characters."
+    },
+    "answer": {
+      "required": "Answer is required.",
+      "min": "Answer must be at least {min} characters.",
+      "max": "Answer cannot exceed {max} characters."
+    },
+    "tags": {
+      "max": "Maximum {max} skill tags allowed."
+    }
+  },
+  "tasks": {
+    "title": {
+      "required": "Title is required.",
+      "min": "Title must be at least {min} characters."
+    },
+    "description": {
+      "max": "Description cannot exceed {max} characters."
+    },
+    "dueDate": {
+      "past": "Due date cannot be in the past."
+    }
+  },
+  "activities": {
+    "name": {
+      "required": "Activity name is required.",
+      "min": "Activity name must be at least {min} characters."
+    },
+    "type": {
+      "required": "Activity type is required."
+    },
+    "startTime": {
+      "format": "Start time must be in hh:mm AM/PM format"
+    },
+    "endTime": {
+      "format": "End time must be in hh:mm AM/PM format",
+      "beforeStart": "End time must be after the start time"
+    },
+    "endDate": {
+      "beforeStart": "End date must be the same as or after the start date"
+    },
+    "duration": {
+      "negative": "Duration must be a positive number",
+      "tooLong": "The duration between start and end date/time cannot exceed {hours} hours",
+      "tooShort": "An activity must be at least {minutes} minutes long"
+    },
+    "description": {
+      "max": "Description cannot be more than {max} characters."
+    },
+    "start": {
+      "future": "Start date/time cannot be in the future"
+    }
+  },
+  "contacts": {
+    "name": {
+      "required": "Contact name is required.",
+      "empty": "Contact name cannot be empty.",
+      "max": "Contact name must be {max} characters or fewer."
+    },
+    "email": {
+      "invalid": "Please enter a valid email address."
+    },
+    "linkedinUrl": {
+      "invalid": "Please enter a full LinkedIn URL starting with https://"
+    },
+    "lastContactedAt": {
+      "future": "Last contacted date cannot be in the future."
+    },
+    "workedTo": {
+      "beforeStart": "The end date cannot be before the start date."
+    }
+  },
+  "company": {
+    "logoUrl": {
+      "invalid": "Please enter a valid URL (e.g., https://example.com/logo.png or /icons/logo.svg)"
+    },
+    "websiteUrl": {
+      "invalid": "Please enter a full website URL starting with https://"
+    },
+    "careersUrl": {
+      "invalid": "Please enter a full careers page URL starting with https://"
+    },
+    "linkedinUrl": {
+      "invalid": "Please enter a full LinkedIn page URL starting with https://"
+    }
+  },
+  "notes": {
+    "jobId": {
+      "required": "Job ID is required."
+    },
+    "content": {
+      "required": "Content is required.",
+      "empty": "Content cannot be empty."
+    }
+  },
+  "jobStage": {
+    "stageType": {
+      "required": "Pick a stage or enter a custom stage name."
+    },
+    "customStatus": {
+      "required": "Pick the status this custom stage means."
+    }
+  },
+  "goals": {
+    "number": "Enter a number.",
+    "integer": "Use a whole number.",
+    "min": "Must be at least {min}.",
+    "max": "Must be at most {max}."
+  },
+  "automations": {
+    "name": {
+      "required": "Name is required"
+    },
+    "resume": {
+      "invalid": "Invalid resume"
+    },
+    "companies": {
+      "min": "Select at least one company"
+    }
+  },
+  "apiKey": {
+    "key": {
+      "required": "API key is required"
+    }
+  },
+  "agent": {
+    "company": {
+      "required": "company is required"
+    },
+    "jobTitle": {
+      "required": "jobTitle is required"
+    },
+    "jobDescription": {
+      "min": "jobDescription must be at least {min} characters"
+    }
+  }
+}

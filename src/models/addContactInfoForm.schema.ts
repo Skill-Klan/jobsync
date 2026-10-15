@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { vt } from "@/i18n/validation";
 
 export const AddContactInfoFormSchema = z.object({
   id: z.string().optional(),
@@ -7,42 +8,42 @@ export const AddContactInfoFormSchema = z.object({
   resumeId: z.string().optional(),
   firstName: z
     .string({
-      error: "First Name is required.",
+      error: () => vt("contactInfo.firstName.required"),
     })
     .min(2, {
-      message: "First name must be at least 2 characters.",
+      error: () => vt("contactInfo.firstName.min", { min: 2 }),
     }),
   lastName: z
     .string({
-      error: "Last Name is required.",
+      error: () => vt("contactInfo.lastName.required"),
     })
     .min(2, {
-      message: "Last name must be at least 2 characters.",
+      error: () => vt("contactInfo.lastName.min", { min: 2 }),
     }),
   headline: z
     .string({
-      error: "Headline is required.",
+      error: () => vt("contactInfo.headline.required"),
     })
     .min(2, {
-      message: "Headline must be at least 2 characters.",
+      error: () => vt("contactInfo.headline.min", { min: 2 }),
     }),
   email: z
     .string({
-      error: "Email is required!",
+      error: () => vt("contactInfo.email.required"),
     })
-    .email("Please enter a valid email!"),
+    .email({ error: () => vt("contactInfo.email.invalid") }),
   phone: z.string({
-    error: "Phone is required!",
+    error: () => vt("contactInfo.phone.required"),
   }),
   address: z.string().optional(),
   url1: z
     .string()
     .optional()
-    .refine((v) => !v || /^https?:\/\//i.test(v), "URL must start with http:// or https://"),
+    .refine((v) => !v || /^https?:\/\//i.test(v), { error: () => vt("contactInfo.url.protocol") }),
   url1Label: z.string().optional(),
   url2: z
     .string()
     .optional()
-    .refine((v) => !v || /^https?:\/\//i.test(v), "URL must start with http:// or https://"),
+    .refine((v) => !v || /^https?:\/\//i.test(v), { error: () => vt("contactInfo.url.protocol") }),
   url2Label: z.string().optional(),
 });

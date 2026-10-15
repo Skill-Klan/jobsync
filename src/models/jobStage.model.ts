@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { vt } from "@/i18n/validation";
 import type { Tag } from "./job.model";
 import type { ContactSummary } from "./contact.model";
 import { STAGE_OUTCOMES } from "@/lib/constants";
@@ -71,12 +72,12 @@ export const AddJobStageFormSchema = z
     setAsCurrent: z.boolean().default(true),
   })
   .refine((data) => !!data.stageTypeId || !!data.customLabel?.trim(), {
-    message: "Pick a stage or enter a custom stage name.",
+    error: () => vt("jobStage.stageType.required"),
     path: ["stageTypeId"],
   })
   .refine(
     (data) => !data.customLabel?.trim() || !!data.customStatusId,
-    { message: "Pick the status this custom stage means.", path: ["customStatusId"] },
+    { error: () => vt("jobStage.customStatus.required"), path: ["customStatusId"] },
   );
 
 export type AddJobStageValues = z.infer<typeof AddJobStageFormSchema>;

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { vt } from "@/i18n/validation";
 
 export const AddEducationFormSchema = z.object({
   id: z.string().optional(),
@@ -8,25 +9,25 @@ export const AddEducationFormSchema = z.object({
   sectionType: z.string().optional(),
   institution: z
     .string({
-      error: "Institution name is required.",
+      error: () => vt("education.institution.required"),
     })
     .min(2),
   degree: z
     .string({
-      error: "Degree is required.",
+      error: () => vt("education.degree.required"),
     })
     .min(2),
   fieldOfStudy: z
     .string({
-      error: "Field of study is required.",
+      error: () => vt("education.fieldOfStudy.required"),
     })
     .min(2),
   location: z
     .string({
-      error: "Location is required.",
+      error: () => vt("fields.location.required"),
     })
     .min(2, {
-      message: "Location name must be at least 2 characters.",
+      error: () => vt("fields.location.min", { min: 2 }),
     }),
   description: z.string().nullable().optional(),
   startDate: z.date(),

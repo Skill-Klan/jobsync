@@ -1,12 +1,13 @@
 import { z } from "zod";
+import { vt } from "@/i18n/validation";
 import { DAILY_GOALS } from "@/lib/constants";
 
 const wholeNumber = (min: number, max: number) =>
   z
-    .number({ error: "Enter a number." })
-    .int({ message: "Use a whole number." })
-    .min(min, { message: `Must be at least ${min}.` })
-    .max(max, { message: `Must be at most ${max}.` });
+    .number({ error: () => vt("goals.number") })
+    .int({ error: () => vt("goals.integer") })
+    .min(min, { error: () => vt("goals.min", { min }) })
+    .max(max, { error: () => vt("goals.max", { max }) });
 
 export const GoalTargetsSchema = z.object({
   jobs: wholeNumber(DAILY_GOALS.JOBS_MIN, DAILY_GOALS.JOBS_MAX),
