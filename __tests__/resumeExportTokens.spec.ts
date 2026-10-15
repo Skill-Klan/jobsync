@@ -10,7 +10,7 @@ const tokens = (patch: Partial<typeof defaultResumeExportSettings> = {}) =>
   resumeStyleTokens({ ...defaultResumeExportSettings, ...patch });
 
 describe("FONT_QUARTETS", () => {
-  it("names all four faces of each family (sans: Inter, shipped; Times, Courier: standard-14)", () => {
+  it("names all four faces of each shipped family (Inter, Tinos, Cousine)", () => {
     expect(FONT_QUARTETS.helvetica).toEqual({
       regular: "Inter",
       bold: "Inter-Bold",
@@ -18,17 +18,17 @@ describe("FONT_QUARTETS", () => {
       boldItalic: "Inter-BoldItalic",
     });
     expect(FONT_QUARTETS.courier).toEqual({
-      regular: "Courier",
-      bold: "Courier-Bold",
-      italic: "Courier-Oblique",
-      boldItalic: "Courier-BoldOblique",
+      regular: "Cousine",
+      bold: "Cousine-Bold",
+      italic: "Cousine-Italic",
+      boldItalic: "Cousine-BoldItalic",
     });
   });
 
   // The regular Times face is Times-Roman; "Times" is not a registered name.
   it("uses Times-Roman for the regular Times face", () => {
-    expect(FONT_QUARTETS.times.regular).toBe("Times-Roman");
-    expect(FONT_QUARTETS.times.italic).toBe("Times-Italic");
+    expect(FONT_QUARTETS.times.regular).toBe("Tinos");
+    expect(FONT_QUARTETS.times.italic).toBe("Tinos-Italic");
   });
 });
 
@@ -111,7 +111,7 @@ describe("the spacing settings", () => {
 describe("the font setting", () => {
   it("selects the quartet without touching any number", () => {
     const t = tokens({ font: "times" });
-    expect(t.font.bold).toBe("Times-Bold");
+    expect(t.font.bold).toBe("Tinos-Bold");
     expect(t.fontSize).toBe(11);
     expect(t.marginVertical).toBe(40);
   });
