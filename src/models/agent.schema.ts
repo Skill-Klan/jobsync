@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { vt } from "@/i18n/validation";
 import { APP_CONSTANTS, JOB_STATUS_VALUES } from "@/lib/constants";
 import { WORKPLACE_TYPES, matchEnumEntry } from "@/models/job.model";
 
@@ -39,11 +40,11 @@ const workplaceTypeField = z
 // z.preprocess — that is what keeps enum: [...] on the input side of the
 // emitted JSON schema.
 export const AgentAddJobSchema = z.object({
-  company: z.string().min(1, "company is required"),
-  jobTitle: z.string().min(1, "jobTitle is required"),
+  company: z.string().min(1, { error: () => vt("agent.company.required") }),
+  jobTitle: z.string().min(1, { error: () => vt("agent.jobTitle.required") }),
   jobDescription: z
     .string()
-    .refine((val) => val === "N/A" || val.length >= 10, "jobDescription must be at least 10 characters")
+    .refine((val) => val === "N/A" || val.length >= 10, { error: () => vt("agent.jobDescription.min", { min: 10 }) })
     .optional()
     .describe("What the job involves, in the user's own words, copied verbatim and never summarised. Always include this field, even if their description is only one sentence and looks nothing like a full posting, and never condense it into tags instead. If you were shown only the opening portion of a pasted posting, copy the portion you were shown. Use 'N/A' only if the user explicitly declines to give any description after being asked once."),
   location: z.string().optional().describe("City, province/state, country, or 'Remote' — e.g. 'Calgary, AB'. Do not include a street address."),

@@ -1,22 +1,23 @@
 import { z } from "zod";
+import { vt } from "@/i18n/validation";
 
 export const CoverLetterFormSchema = z.object({
   id: z.string().optional(),
   title: z
     .string({
-      error: "Cover letter title is required.",
+      error: () => vt("coverLetter.title.required"),
     })
     .min(1, {
-      message: "Cover letter title is required.",
+      error: () => vt("coverLetter.title.required"),
     })
     .max(100, {
-      message: "Title must be less than 100 characters.",
+      error: () => vt("coverLetter.title.max", { max: 100 }),
     }),
   content: z
     .string({
-      error: "Cover letter content is required.",
+      error: () => vt("coverLetter.content.required"),
     })
     .min(10, {
-      message: "Cover letter content must be at least 10 characters.",
+      error: () => vt("coverLetter.content.min", { min: 10 }),
     }),
 });

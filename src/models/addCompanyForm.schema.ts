@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { vt, type ValidationKey } from "@/i18n/validation";
 import { COMPANY_NOTES_MAX_LENGTH, COMPANY_SIZES } from "@/lib/constants";
 
 const isValidUrl = (url: string) => {
@@ -21,14 +22,14 @@ const isValidHttpUrl = (url: string) => {
   }
 };
 
-const httpUrlField = (label: string) =>
+const httpUrlField = (message: ValidationKey) =>
   z
     .string()
     .default("")
     .optional()
     .refine(
       (url) => !url || isValidHttpUrl(url),
-      `Please enter a full ${label} URL starting with https://`,
+      { error: () => vt(message) },
     );
 
 export const AddCompanyFormSchema = z.object({
@@ -36,7 +37,7 @@ export const AddCompanyFormSchema = z.object({
   createdBy: z.string().optional(),
   company: z
     .string({
-      error: "Company name is required.",
+      error: () => vt("fields.company.required"),
     })
     .min(1),
   logoUrl: z
@@ -45,12 +46,12 @@ export const AddCompanyFormSchema = z.object({
     .optional()
     .refine(
       (url) => !url || url.startsWith("/") || isValidUrl(url),
-      "Please enter a valid URL (e.g., https://example.com/logo.png or /icons/logo.svg)",
+      { error: () => vt("company.logoUrl.invalid") },
     ),
-  websiteUrl: httpUrlField("website"),
-  careersUrl: httpUrlField("careers page"),
+  websiteUrl: httpUrlField("company.websiteUrl.invalid"),
+  careersUrl: httpUrlField("company.careersUrl.invalid"),
   industry: z.string().default("").optional(),
-  linkedinUrl: httpUrlField("LinkedIn page"),
+  linkedinUrl: httpUrlField("company.linkedinUrl.invalid"),
   size: z.enum(COMPANY_SIZES).or(z.literal("")).optional(),
   notes: z.string().max(COMPANY_NOTES_MAX_LENGTH).default("").optional(),
 });

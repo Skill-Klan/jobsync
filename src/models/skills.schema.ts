@@ -1,20 +1,21 @@
 import { z } from "zod";
+import { vt } from "@/i18n/validation";
 import { APP_CONSTANTS } from "@/lib/constants";
 
 const SkillCategorySchema = z.object({
   label: z.string().trim().max(60).optional(),
   tagIds: z
     .array(z.string())
-    .min(1, "Add at least one skill")
+    .min(1, { error: () => vt("skills.tags.min") })
     .max(APP_CONSTANTS.MAX_SKILLS_PER_CATEGORY),
 });
 
 export const AddSkillsFormSchema = z.object({
   resumeId: z.string(),
-  sectionTitle: z.string().trim().min(1, "Section title is required"),
+  sectionTitle: z.string().trim().min(1, { error: () => vt("skills.sectionTitle.required") }),
   categories: z
     .array(SkillCategorySchema)
-    .min(1, "Add at least one category")
+    .min(1, { error: () => vt("skills.categories.min") })
     .max(APP_CONSTANTS.MAX_SKILL_CATEGORIES),
 });
 

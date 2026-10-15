@@ -1,14 +1,15 @@
 import { z } from "zod";
+import { vt } from "@/i18n/validation";
 
 export const AddTaskFormSchema = z.object({
   id: z.string().optional(),
   userId: z.string().optional(),
   title: z
-    .string({ error: "Title is required." })
-    .min(2, { message: "Title must be at least 2 characters." }),
+    .string({ error: () => vt("tasks.title.required") })
+    .min(2, { error: () => vt("tasks.title.min", { min: 2 }) }),
   description: z
     .string()
-    .max(2000, { message: "Description cannot exceed 2000 characters." })
+    .max(2000, { error: () => vt("tasks.description.max", { max: 2000 }) })
     .optional()
     .nullable(),
   status: z.enum(["in-progress", "complete", "needs-attention", "cancelled"]),
@@ -25,7 +26,7 @@ export const AddTaskFormSchema = z.object({
         today.setHours(0, 0, 0, 0);
         return date >= today;
       },
-      { message: "Due date cannot be in the past." }
+      { error: () => vt("tasks.dueDate.past") }
     ),
   activityTypeId: z.string().optional().nullable(),
 });

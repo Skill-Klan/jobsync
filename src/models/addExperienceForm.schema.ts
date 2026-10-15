@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { vt } from "@/i18n/validation";
 
 export const AddExperienceFormSchema = z.object({
   id: z.string().optional(),
@@ -8,27 +9,27 @@ export const AddExperienceFormSchema = z.object({
   sectionType: z.string().optional(),
   title: z
     .string({
-      error: "Job title is required.",
+      error: () => vt("fields.jobTitle.required"),
     })
     .min(2, {
-      message: "Job title must be at least 2 characters.",
+      error: () => vt("fields.jobTitle.min", { min: 2 }),
     }),
   company: z
     .string({
-      error: "Company name is required.",
+      error: () => vt("fields.company.required"),
     })
     .min(2, {
-      message: "Company name must be at least 2 characters.",
+      error: () => vt("fields.company.min", { min: 2 }),
     }),
   location: z
     .string({
-      error: "Location is required.",
+      error: () => vt("fields.location.required"),
     })
     .min(2, {
-      message: "Location name must be at least 2 characters.",
+      error: () => vt("fields.location.min", { min: 2 }),
     }),
   jobDescription: z.string().min(10, {
-    message: "Job description must be at least 10 characters.",
+    error: () => vt("fields.jobDescription.min", { min: 10 }),
   }),
   startDate: z.date(),
   endDate: z.date().nullable().optional(),

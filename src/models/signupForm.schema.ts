@@ -1,22 +1,23 @@
 import { z } from "zod";
+import { vt } from "@/i18n/validation";
 
 export const SignupFormSchema = z.object({
   name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
+    error: () => vt("auth.name.min", { min: 2 }),
   }),
   email: z
     .string({
-      error: "Email is required.",
+      error: () => vt("auth.email.required"),
     })
     .min(3, {
-      message: "Email must be at least 3 characters.",
+      error: () => vt("auth.email.min", { min: 3 }),
     })
-    .email("Please enter a valid email."),
+    .email({ error: () => vt("auth.email.invalid") }),
   password: z
     .string({
-      error: "Please enter your password.",
+      error: () => vt("auth.password.required"),
     })
     .min(6, {
-      message: "Password must be at least 6 characters.",
+      error: () => vt("auth.password.min", { min: 6 }),
     }),
 });
