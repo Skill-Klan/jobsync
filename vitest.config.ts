@@ -42,7 +42,8 @@ export default defineConfig({
       provider: "v8",
       reportsDirectory: "coverage",
     },
-    exclude: ["e2e/**", "**/node_modules/**"],
+    // .claude/ holds agent worktrees: their tests would run against this src.
+    exclude: ["e2e/**", "**/node_modules/**", ".claude/**"],
     server: {
       deps: {
         inline: [/@prisma/, /next-auth/, /@auth/, /@next/, /jose/],
