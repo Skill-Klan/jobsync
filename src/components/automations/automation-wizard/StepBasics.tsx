@@ -18,12 +18,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import type { CreateAutomationInput } from "@/models/automation.schema";
+import { useTranslations } from "@/i18n/client";
 
 export function StepBasics({
   form,
 }: {
   form: UseFormReturn<CreateAutomationInput>;
 }) {
+  const t = useTranslations("automations");
   return (
     <>
       <FormField
@@ -31,12 +33,15 @@ export function StepBasics({
         name="name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Automation Name</FormLabel>
+            <FormLabel>{t("wizard.basics.nameLabel")}</FormLabel>
             <FormControl>
-              <Input placeholder="e.g., Full Stack Jobs Calgary" {...field} />
+              <Input
+                placeholder={t("wizard.basics.namePlaceholder")}
+                {...field}
+              />
             </FormControl>
             <FormDescription>
-              A descriptive name to identify this automation
+              {t("wizard.basics.nameHint")}
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -47,23 +52,27 @@ export function StepBasics({
         name="jobBoard"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Job Board</FormLabel>
+            <FormLabel>{t("shared.jobBoard")}</FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a job board" />
+                  <SelectValue placeholder={t("wizard.basics.boardPlaceholder")} />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
                 <SelectItem value="greenhouse">
-                  Greenhouse (company boards)
+                  {t("wizard.basics.boardOption", { board: "Greenhouse" })}
                 </SelectItem>
-                <SelectItem value="lever">Lever (company boards)</SelectItem>
-                <SelectItem value="ashby">Ashby (company boards)</SelectItem>
+                <SelectItem value="lever">
+                  {t("wizard.basics.boardOption", { board: "Lever" })}
+                </SelectItem>
+                <SelectItem value="ashby">
+                  {t("wizard.basics.boardOption", { board: "Ashby" })}
+                </SelectItem>
               </SelectContent>
             </Select>
             <FormDescription>
-              Track specific companies&apos; job boards
+              {t("wizard.basics.boardHint")}
             </FormDescription>
             <FormMessage />
           </FormItem>

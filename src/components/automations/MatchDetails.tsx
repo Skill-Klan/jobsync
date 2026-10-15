@@ -3,10 +3,28 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import MarkdownIt from "markdown-it";
-import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { TipTapContentViewer } from "@/components/TipTapContentViewer";
 import type { JobMatchData } from "@/models/ai.schemas";
+import { cn } from "@/lib/utils";
+import { useFormatDate, useLocale, useTranslations } from "@/i18n/client";
+import { AUTOMATION_DATE_PATTERNS } from "./datePatterns";
+
+// The AI's verdict is stored in English; known values are shown in the
+// user's language, anything else as stored.
+const RECOMMENDATION_KEYS = {
+  "strong match": "strong",
+  "good match": "good",
+  "partial match": "partial",
+  "weak match": "weak",
+} as const;
+type RecommendationKey =
+  (typeof RECOMMENDATION_KEYS)[keyof typeof RECOMMENDATION_KEYS];
+function recommendationKey(value: string): RecommendationKey | null {
+  return Object.prototype.hasOwnProperty.call(RECOMMENDATION_KEYS, value)
+    ? RECOMMENDATION_KEYS[value as keyof typeof RECOMMENDATION_KEYS]
+    : null;
+}
 
 // html:false escapes any raw HTML in the model output; TipTapContentViewer
 // further strips unrecognized tags, so the rendered analysis is safe.
@@ -24,6 +42,9 @@ interface MatchDetailsProps {
 }
 
 export function MatchDetails({ matchData, discoveredAt }: MatchDetailsProps) {
+  const t = useTranslations("automations");
+  const formatDate = useFormatDate();
+  const locale = useLocale();
   const html = useMemo(
     () => (matchData?.body ? md.render(matchData.body) : ""),
     [matchData?.body],
@@ -31,21 +52,31 @@ export function MatchDetails({ matchData, discoveredAt }: MatchDetailsProps) {
 
   if (!matchData) return null;
 
+  const recKey = matchData.recommendation
+    ? recommendationKey(matchData.recommendation)
+    : null;
+
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
         {matchData.recommendation && (
-          <Badge variant="outline" className="capitalize">
-            {matchData.recommendation}
+          // Title Case is English typography; Ukrainian keeps it lower case.
+          <Badge
+            variant="outline"
+            className={cn(locale === "en" && "capitalize")}
+          >
+            {recKey
+              ? t(`match.recommendation.${recKey}`)
+              : matchData.recommendation}
           </Badge>
         )}
         {matchData.descriptionCompleteness &&
           matchData.descriptionCompleteness !== "full" && (
             <Badge
               variant="secondary"
-              title="Scored from an incomplete job description — re-run the match after adding the full posting."
+              title={t("match.provisionalTitle")}
             >
-              Provisional score
+              {t("match.provisional")}
             </Badge>
           )}
       </div>
@@ -58,8 +89,7 @@ export function MatchDetails({ matchData, discoveredAt }: MatchDetailsProps) {
         <div className="space-y-2">
           <p className="text-sm">{matchData.summary}</p>
           <p className="text-xs text-muted-foreground italic">
-            This match was saved before the latest update. Re-run the match for
-            the full breakdown.
+            {t("match.legacy")}
           </p>
         </div>
       ) : null}
@@ -67,7 +97,7 @@ export function MatchDetails({ matchData, discoveredAt }: MatchDetailsProps) {
       <div className="text-xs text-muted-foreground space-y-1">
         {matchData.resumeTitle && (
           <p>
-            Matched with resume:{" "}
+            {t("match.resume")}{" "}
             {matchData.resumeId ? (
               <Link
                 href={`/dashboard/profile/resume/${matchData.resumeId}`}
@@ -82,7 +112,7 @@ export function MatchDetails({ matchData, discoveredAt }: MatchDetailsProps) {
         )}
         {matchData.provider && (
           <p>
-            Model:{" "}
+            {t("match.model")}{" "}
             <span className="font-medium">
               {matchData.provider}
               {matchData.model ? ` / ${matchData.model}` : ""}
@@ -91,9 +121,19 @@ export function MatchDetails({ matchData, discoveredAt }: MatchDetailsProps) {
         )}
         <p>
           {matchData.matchedAt
-            ? `Matched on ${format(new Date(matchData.matchedAt), "MMM d, yyyy 'at' h:mm a")}`
+            ? t("match.matchedOn", {
+                date: formatDate(
+                  new Date(matchData.matchedAt),
+                  AUTOMATION_DATE_PATTERNS.dateAtTime,
+                ),
+              })
             : discoveredAt
-              ? `Discovered on ${format(new Date(discoveredAt), "MMM d, yyyy 'at' h:mm a")}`
+              ? t("match.discoveredOn", {
+                  date: formatDate(
+                    new Date(discoveredAt),
+                    AUTOMATION_DATE_PATTERNS.dateAtTime,
+                  ),
+                })
               : null}
         </p>
       </div>

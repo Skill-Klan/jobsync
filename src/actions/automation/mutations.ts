@@ -14,12 +14,14 @@ import { isRetiredBoard } from "@/models/automation.model";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { syncSchedulerState } from "@/lib/scheduler";
 import { formatError } from "./shared";
+import { getTranslations } from "@/i18n/server";
 
 export async function createAutomation(input: CreateAutomationInput): Promise<{
   success: boolean;
   data?: AutomationWithResume;
   message?: string;
 }> {
+  const t = await getTranslations("automations");
   try {
     const user = await requireUser();
 
@@ -29,7 +31,9 @@ export async function createAutomation(input: CreateAutomationInput): Promise<{
     if (count >= APP_CONSTANTS.MAX_AUTOMATIONS_PER_USER) {
       return {
         success: false,
-        message: `Maximum of ${APP_CONSTANTS.MAX_AUTOMATIONS_PER_USER} automations allowed per user`,
+        message: t("errors.maxAutomations", {
+          max: APP_CONSTANTS.MAX_AUTOMATIONS_PER_USER,
+        }),
       };
     }
 
@@ -40,9 +44,9 @@ export async function createAutomation(input: CreateAutomationInput): Promise<{
     if (scheduleClash) {
       return {
         success: false,
-        message: `Another automation already runs at ${validated.scheduleHour
-          .toString()
-          .padStart(2, "0")}:00. Please choose a different time.`,
+        message: t("errors.hourTaken", {
+          hour: validated.scheduleHour.toString().padStart(2, "0"),
+        }),
       };
     }
 
@@ -56,7 +60,7 @@ export async function createAutomation(input: CreateAutomationInput): Promise<{
     if (!resume) {
       return {
         success: false,
-        message: "Resume not found or doesn't belong to you",
+        message: t("errors.resumeNotFound"),
       };
     }
 
@@ -92,7 +96,7 @@ export async function createAutomation(input: CreateAutomationInput): Promise<{
       data: automation as unknown as AutomationWithResume,
     };
   } catch (error) {
-    return formatError(error, "Failed to create automation");
+    return formatError(error, t("errors.createFailed"));
   }
 }
 
@@ -104,6 +108,7 @@ export async function updateAutomation(
   data?: AutomationWithResume;
   message?: string;
 }> {
+  const t = await getTranslations("automations");
   try {
     const user = await requireUser();
 
@@ -114,13 +119,13 @@ export async function updateAutomation(
     });
 
     if (!existing) {
-      return { success: false, message: "Automation not found" };
+      return { success: false, message: t("errors.notFound") };
     }
 
     if (isRetiredBoard(existing.jobBoard)) {
       return {
         success: false,
-        message: `The ${existing.jobBoard} job board has been removed. This automation can only be deleted.`,
+        message: t("errors.boardRemoved", { board: existing.jobBoard }),
       };
     }
 
@@ -134,7 +139,7 @@ export async function updateAutomation(
       if (!resume) {
         return {
           success: false,
-          message: "Resume not found or doesn't belong to you",
+          message: t("errors.resumeNotFound"),
         };
       }
     }
@@ -163,9 +168,9 @@ export async function updateAutomation(
       if (scheduleClash) {
         return {
           success: false,
-          message: `Another automation already runs at ${validated.scheduleHour
-            .toString()
-            .padStart(2, "0")}:00. Please choose a different time.`,
+          message: t("errors.hourTaken", {
+            hour: validated.scheduleHour.toString().padStart(2, "0"),
+          }),
         };
       }
       updateData.nextRunAt = calculateNextRunAt(validated.scheduleHour);
@@ -186,7 +191,7 @@ export async function updateAutomation(
       data: automation as unknown as AutomationWithResume,
     };
   } catch (error) {
-    return formatError(error, "Failed to update automation");
+    return formatError(error, t("errors.updateFailed"));
   }
 }
 
@@ -194,6 +199,7 @@ export async function deleteAutomation(id: string): Promise<{
   success: boolean;
   message?: string;
 }> {
+  const t = await getTranslations("automations");
   try {
     const user = await requireUser();
 
@@ -202,7 +208,7 @@ export async function deleteAutomation(id: string): Promise<{
     });
 
     if (!automation) {
-      return { success: false, message: "Automation not found" };
+      return { success: false, message: t("errors.notFound") };
     }
 
     await db.automation.delete({ where: { id } });
@@ -211,7 +217,7 @@ export async function deleteAutomation(id: string): Promise<{
 
     return { success: true };
   } catch (error) {
-    return formatError(error, "Failed to delete automation");
+    return formatError(error, t("errors.deleteFailed"));
   }
 }
 
@@ -220,6 +226,7 @@ export async function pauseAutomation(id: string): Promise<{
   data?: AutomationWithResume;
   message?: string;
 }> {
+  const t = await getTranslations("automations");
   try {
     const user = await requireUser();
 
@@ -228,7 +235,7 @@ export async function pauseAutomation(id: string): Promise<{
     });
 
     if (!automation) {
-      return { success: false, message: "Automation not found" };
+      return { success: false, message: t("errors.notFound") };
     }
 
     const updated = await db.automation.update({
@@ -251,7 +258,7 @@ export async function pauseAutomation(id: string): Promise<{
       data: updated as unknown as AutomationWithResume,
     };
   } catch (error) {
-    return formatError(error, "Failed to pause automation");
+    return formatError(error, t("errors.pauseFailed"));
   }
 }
 
@@ -260,6 +267,7 @@ export async function resumeAutomation(id: string): Promise<{
   data?: AutomationWithResume;
   message?: string;
 }> {
+  const t = await getTranslations("automations");
   try {
     const user = await requireUser();
 
@@ -268,7 +276,7 @@ export async function resumeAutomation(id: string): Promise<{
     });
 
     if (!automation) {
-      return { success: false, message: "Automation not found" };
+      return { success: false, message: t("errors.notFound") };
     }
 
     const nextRunAt = calculateNextRunAt(automation.scheduleHour);
@@ -293,6 +301,6 @@ export async function resumeAutomation(id: string): Promise<{
       data: updated as unknown as AutomationWithResume,
     };
   } catch (error) {
-    return formatError(error, "Failed to resume automation");
+    return formatError(error, t("errors.resumeFailed"));
   }
 }

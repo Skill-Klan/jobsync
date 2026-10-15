@@ -5,6 +5,7 @@ import { requireUser } from "../shared";
 import type { AutomationWithResume, AutomationRun } from "@/models/automation.model";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { formatError } from "./shared";
+import { getTranslations } from "@/i18n/server";
 
 export async function getAutomationsList(
   page: number = 1,
@@ -15,6 +16,7 @@ export async function getAutomationsList(
   total?: number;
   message?: string;
 }> {
+  const t = await getTranslations("automations");
   try {
     const user = await requireUser();
 
@@ -41,7 +43,7 @@ export async function getAutomationsList(
       total,
     };
   } catch (error) {
-    return formatError(error, "Failed to get automations list");
+    return formatError(error, t("errors.listFailed"));
   }
 }
 
@@ -50,6 +52,7 @@ export async function getAutomationById(id: string): Promise<{
   data?: AutomationWithResume & { runs: AutomationRun[] };
   message?: string;
 }> {
+  const t = await getTranslations("automations");
   try {
     const user = await requireUser();
 
@@ -67,7 +70,7 @@ export async function getAutomationById(id: string): Promise<{
     });
 
     if (!automation) {
-      return { success: false, message: "Automation not found" };
+      return { success: false, message: t("errors.notFound") };
     }
 
     return {
@@ -77,6 +80,6 @@ export async function getAutomationById(id: string): Promise<{
       },
     };
   } catch (error) {
-    return formatError(error, "Failed to get automation");
+    return formatError(error, t("errors.getFailed"));
   }
 }

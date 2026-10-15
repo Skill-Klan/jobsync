@@ -12,6 +12,7 @@ import type { AutomationWithResume } from "@/models/automation.model";
 import { AutomationList } from "./AutomationList";
 import { AutomationWizard } from "./AutomationWizard";
 import Loading from "@/components/Loading";
+import { useTranslations } from "@/i18n/client";
 
 interface Resume {
   id: string;
@@ -24,6 +25,9 @@ interface AutomationContainerProps {
 }
 
 export function AutomationContainer({ resumes }: AutomationContainerProps) {
+  const t = useTranslations("automations");
+  // A string, not `t`, in the callback's deps: the text is stable across renders.
+  const loadFailed = t("page.loadFailed");
   const router = useRouter();
   const searchParams = useSearchParams();
   const [automations, setAutomations] = useState<AutomationWithResume[]>([]);
@@ -40,10 +44,10 @@ export function AutomationContainer({ resumes }: AutomationContainerProps) {
     if (result.success && result.data) {
       setAutomations(result.data);
     } else {
-      toastError(result.message || "Failed to load automations");
+      toastError(result.message || loadFailed);
     }
     setLoading(false);
-  }, []);
+  }, [loadFailed]);
 
   useEffect(() => {
     loadAutomations();
@@ -83,14 +87,14 @@ export function AutomationContainer({ resumes }: AutomationContainerProps) {
     <>
       <Card>
         <ResponsiveCardHeader>
-          <CardTitle>Automations</CardTitle>
+          <CardTitle>{t("page.title")}</CardTitle>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="icon" onClick={loadAutomations}>
               <RefreshCw className="h-4 w-4" />
             </Button>
             <Button variant="outline" onClick={() => setWizardOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Create Automation
+              {t("page.create")}
             </Button>
           </div>
         </ResponsiveCardHeader>

@@ -20,14 +20,17 @@ import {
 } from "@/components/ui/popover";
 import { toastError } from "@/lib/toast";
 import type { EntityOption } from "./types";
+import { useTranslations } from "@/i18n/client";
 
 // Generic chip input that searches existing DB entities and can create new ones.
 // `values` is a string[] of labels (not IDs) stored in the source config.
+// `texts` are the entity-specific phrases, already in the user's language —
+// they are whole sentences, since Ukrainian inflects the noun inside them.
 export function EntityStringChipInput({
   label,
   description,
   placeholder,
-  noun,
+  texts,
   values,
   onChange,
   loadOptions,
@@ -36,12 +39,13 @@ export function EntityStringChipInput({
   label: string;
   description: string;
   placeholder: string;
-  noun: string;
+  texts: { search: string; empty: string; createFailed: string };
   values: string[];
   onChange: (next: string[]) => void;
   loadOptions: () => Promise<EntityOption[]>;
   createOption: (label: string) => Promise<EntityOption | null>;
 }) {
+  const t = useTranslations("automations");
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [options, setOptions] = useState<EntityOption[]>([]);
@@ -86,7 +90,7 @@ export function EntityStringChipInput({
     startCreate(async () => {
       const created = await createOption(lbl);
       if (!created) {
-        toastError(`Failed to create ${noun}.`);
+        toastError(texts.createFailed);
         return;
       }
       setOptions((prev) =>
@@ -120,7 +124,7 @@ export function EntityStringChipInput({
         >
           <Command shouldFilter={false}>
             <CommandInput
-              placeholder={`Search or create ${noun}...`}
+              placeholder={texts.search}
               value={input}
               onValueChange={setInput}
             />
@@ -128,14 +132,14 @@ export function EntityStringChipInput({
               {isLoading && (
                 <div className="flex items-center gap-2 p-3 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Loading...
+                  {t("search.chips.loading")}
                 </div>
               )}
               {!isLoading && !input.trim() && filtered.length === 0 && (
-                <CommandEmpty>No {noun}s found. Type to create one.</CommandEmpty>
+                <CommandEmpty>{texts.empty}</CommandEmpty>
               )}
               {input.trim() && alreadyAdded && (
-                <CommandEmpty>Already added.</CommandEmpty>
+                <CommandEmpty>{t("search.chips.alreadyAdded")}</CommandEmpty>
               )}
               {filtered.length > 0 && (
                 <CommandGroup>
@@ -162,7 +166,7 @@ export function EntityStringChipInput({
                     ) : (
                       <CirclePlus className="h-4 w-4 mr-2" />
                     )}
-                    Create &quot;{input.trim()}&quot;
+                    {t("search.chips.create", { value: input.trim() })}
                   </CommandItem>
                 </CommandGroup>
               )}

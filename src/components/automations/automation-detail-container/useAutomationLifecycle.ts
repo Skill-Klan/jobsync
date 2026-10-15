@@ -9,12 +9,14 @@ import {
   deleteAutomation,
 } from "@/actions/automation.actions";
 import type { AutomationWithResume } from "@/models/automation.model";
+import { useTranslations } from "@/i18n/client";
 
 // Pause/resume and delete for the automation being viewed.
 export function useAutomationLifecycle(
   automation: AutomationWithResume | null,
   loadData: (showLoading?: boolean) => Promise<void>,
 ) {
+  const t = useTranslations("automations");
   const router = useRouter();
   const [actionLoading, setActionLoading] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -33,8 +35,8 @@ export function useAutomationLifecycle(
     if (result.success) {
       toastSuccess(
         automation.status === "active"
-          ? "Automation paused"
-          : "Automation resumed",
+          ? t("lifecycle.paused")
+          : t("lifecycle.resumed"),
       );
       loadData();
     } else {
@@ -50,7 +52,7 @@ export function useAutomationLifecycle(
     setDeleteConfirmOpen(false);
 
     if (result.success) {
-      toastSuccess("Automation deleted");
+      toastSuccess(t("lifecycle.deleted"));
       router.push("/dashboard/automations");
     } else {
       toastError(result.message);

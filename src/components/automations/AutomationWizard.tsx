@@ -26,6 +26,7 @@ import { StepResume } from "./automation-wizard/StepResume";
 import { StepMatching } from "./automation-wizard/StepMatching";
 import { StepSchedule } from "./automation-wizard/StepSchedule";
 import { StepReview } from "./automation-wizard/StepReview";
+import { useTranslations } from "@/i18n/client";
 
 interface AutomationWizardProps {
   open: boolean;
@@ -44,6 +45,7 @@ export function AutomationWizard({
   onSuccess,
   editAutomation,
 }: AutomationWizardProps) {
+  const t = useTranslations("automations");
   const {
     form,
     formValues,
@@ -72,10 +74,14 @@ export function AutomationWizard({
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {editAutomation ? "Edit Automation" : "Create Automation"}
+            {editAutomation ? t("wizard.editTitle") : t("wizard.createTitle")}
           </DialogTitle>
           <DialogDescription>
-            Step {step + 1} of {STEPS.length}: {STEPS[step].description}
+            {t("wizard.stepOf", {
+              step: step + 1,
+              total: STEPS.length,
+              description: t(`wizard.steps.${STEPS[step].id}`),
+            })}
           </DialogDescription>
         </DialogHeader>
 
@@ -104,7 +110,10 @@ export function AutomationWizard({
             }, (errors) => {
               const firstError = Object.values(errors)[0];
               if (firstError?.message) {
-                toastError(firstError.message as string, "Validation Error");
+                toastError(
+                  firstError.message as string,
+                  t("wizard.validationError"),
+                );
               }
             })}
           >
@@ -154,7 +163,7 @@ export function AutomationWizard({
               {step > 0 && (
                 <Button type="button" variant="outline" onClick={prevStep}>
                   <ChevronLeft className="h-4 w-4 mr-1" />
-                  Back
+                  {t("wizard.back")}
                 </Button>
               )}
               {step < STEPS.length - 1 ? (
@@ -163,7 +172,7 @@ export function AutomationWizard({
                   onClick={nextStep}
                   disabled={!canGoNext()}
                 >
-                  Next
+                  {t("wizard.next")}
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               ) : (
@@ -171,7 +180,9 @@ export function AutomationWizard({
                   {isSubmitting && (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   )}
-                  {editAutomation ? "Update" : "Create"} Automation
+                  {editAutomation
+                    ? t("wizard.submitUpdate")
+                    : t("wizard.submitCreate")}
                 </Button>
               )}
             </DialogFooter>

@@ -14,6 +14,7 @@ import {
 import { DISCOVERY_STATUSES } from "@/lib/constants";
 import { RecordsCount } from "@/components/RecordsCount";
 import type { DiscoveryStatus } from "@/models/automation.model";
+import { useLabel, useTranslations } from "@/i18n/client";
 
 interface DiscoveredJobsHeaderProps {
   loadedCount: number;
@@ -32,6 +33,8 @@ export function DiscoveredJobsHeader({
   statusFilter,
   onStatusFilterChange,
 }: DiscoveredJobsHeaderProps) {
+  const t = useTranslations("automations");
+  const label = useLabel();
   const toggleStatusFilter = (status: DiscoveryStatus, checked: boolean) => {
     onStatusFilterChange(
       checked
@@ -44,27 +47,33 @@ export function DiscoveredJobsHeader({
     <CardHeader>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1.5">
-          <CardTitle>Discovered Jobs</CardTitle>
+          <CardTitle>{t("discovered.header.title")}</CardTitle>
           {totalJobs > 0 && (
-            <RecordsCount count={loadedCount} total={totalJobs} label="jobs" />
+            <RecordsCount
+              count={loadedCount}
+              total={totalJobs}
+              label={t("discovered.header.records")}
+            />
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {showClear && (
             <Button variant="outline" size="sm" onClick={onClear}>
               <Trash2 className="h-4 w-4 mr-1.5" />
-              Clear
+              {t("discovered.header.clear")}
             </Button>
           )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
                 <ListFilter className="h-4 w-4 mr-1.5" />
-                Status
+                {t("discovered.header.status")}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Filter by status</DropdownMenuLabel>
+              <DropdownMenuLabel>
+                {t("discovered.header.filterBy")}
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
               {DISCOVERY_STATUSES.map((status) => (
                 <DropdownMenuCheckboxItem
@@ -75,7 +84,7 @@ export function DiscoveredJobsHeader({
                     toggleStatusFilter(status.value, checked)
                   }
                 >
-                  {status.label}
+                  {label("discoveryStatus", status)}
                 </DropdownMenuCheckboxItem>
               ))}
             </DropdownMenuContent>

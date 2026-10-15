@@ -12,6 +12,7 @@ import {
   updateAutomation,
 } from "@/actions/automation.actions";
 import { toastSuccess, toastError } from "@/lib/toast";
+import { useTranslations } from "@/i18n/client";
 import type { AutomationWithResume, JobBoard } from "@/models/automation.model";
 import type { AtsConfigValue } from "../AtsSearchStep";
 import {
@@ -36,6 +37,7 @@ export function useWizardForm({
   onSuccess,
   editAutomation,
 }: UseWizardFormArgs) {
+  const t = useTranslations("automations");
   const [step, setStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -81,20 +83,18 @@ export function useWizardForm({
 
       if (result.success) {
         toastSuccess(
-          editAutomation
-            ? "Your automation has been updated successfully."
-            : "Your automation has been created and will run at the scheduled time.",
-          editAutomation ? "Automation updated" : "Automation created",
+          editAutomation ? t("wizard.updated") : t("wizard.created"),
+          editAutomation ? t("wizard.updatedTitle") : t("wizard.createdTitle"),
         );
         form.reset();
         setStep(0);
         onOpenChange(false);
         onSuccess();
       } else {
-        toastError(result.message || "Something went wrong");
+        toastError(result.message || t("wizard.somethingWrong"));
       }
     } catch (error) {
-      toastError("Failed to save automation");
+      toastError(t("wizard.saveFailed"));
     } finally {
       setIsSubmitting(false);
     }
@@ -131,11 +131,9 @@ export function useWizardForm({
   const nextStep = () => {
     if (step === 4 && takenHours.has(formValues.scheduleHour)) {
       form.setError("scheduleHour", {
-        message: `Another automation already runs at ${(
-          formValues.scheduleHour ?? 8
-        )
-          .toString()
-          .padStart(2, "0")}:00. Please choose a different time.`,
+        message: t("errors.hourTaken", {
+          hour: (formValues.scheduleHour ?? 8).toString().padStart(2, "0"),
+        }),
       });
       return;
     }

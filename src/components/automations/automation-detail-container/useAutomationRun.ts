@@ -6,6 +6,7 @@ import { getAutomationRuns } from "@/actions/automation.actions";
 import { useNotifications } from "@/context/NotificationContext";
 import type { AutomationWithResume } from "@/models/automation.model";
 import type { LogData } from "@/components/automations/LogsTab";
+import { useTranslations } from "@/i18n/client";
 
 interface UseAutomationRunArgs {
   automationId: string;
@@ -28,6 +29,13 @@ export function useAutomationRun({
   refreshJobs,
 }: UseAutomationRunArgs) {
   const { refresh: refreshNotifications } = useNotifications();
+  const t = useTranslations("automations");
+  // The run watcher below reads the latest translator through a ref, so a new
+  // `t` does not restart its polling interval.
+  const tRef = useRef(t);
+  useEffect(() => {
+    tRef.current = t;
+  });
   const [runNowLoading, setRunNowLoading] = useState(false);
   const [aborting, setAborting] = useState(false);
   const [abortConfirmOpen, setAbortConfirmOpen] = useState(false);
@@ -153,13 +161,12 @@ export function useAutomationRun({
       setRunKey(0);
       // finalizeRun writes notifications before the run row turns terminal.
       refreshNotifications();
+      const tr = tRef.current;
+      const saved = tr("detail.run.savedJobs", { count: latest.jobsSaved });
       if (latest.status === "cancelled") {
-        toastError(`Saved ${latest.jobsSaved} new jobs`, "Run cancelled");
+        toastError(saved, tr("detail.run.cancelled"));
       } else {
-        toastSuccess(
-          `Saved ${latest.jobsSaved} new jobs`,
-          "Automation run complete",
-        );
+        toastSuccess(saved, tr("detail.run.complete"));
       }
       loadData();
     };
@@ -202,7 +209,7 @@ export function useAutomationRun({
           setRunKey(0);
           setLogData((prev) => ({ ...prev, isRunning: false }));
         }
-        toastError(data.message || "Failed to start run");
+        toastError(data.message || t("detail.run.startFailed"));
       }
       // On success the run is running in the background; the watcher effect
       // above handles completion.
@@ -210,7 +217,7 @@ export function useAutomationRun({
       setRunNowLoading(false);
       setRunKey(0);
       setLogData((prev) => ({ ...prev, isRunning: false }));
-      toastError("Failed to start run");
+      toastError(t("detail.run.startFailed"));
     }
   };
 

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import type { JobBoard, LeverSourceConfig } from "@/models/automation.model";
 import { companyBoardUrl } from "@/lib/atsBoardUrl";
 import { APP_CONSTANTS } from "@/lib/constants";
+import { useTranslations } from "@/i18n/client";
 
 // Pure JSON parse (no runner dependency — this is a client component, and
 // runner.ts pulls the network-calling scraper into the client bundle). The raw
@@ -34,6 +35,7 @@ export function AutomationSearchConfig({
   jobBoard,
   retired,
 }: AutomationSearchConfigProps) {
+  const t = useTranslations("automations");
   const [showSearchConfig, setShowSearchConfig] = useState(false);
 
   const greenhouseConfig = retired
@@ -55,13 +57,17 @@ export function AutomationSearchConfig({
         ) : (
           <ChevronDown className="h-4 w-4 mr-1" />
         )}
-        {showSearchConfig ? "Show less" : "Show more"}
+        {showSearchConfig
+          ? t("detail.config.showLess")
+          : t("detail.config.showMore")}
       </Button>
 
       {showSearchConfig && (
         <div className="mt-4 pt-4 border-t grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="col-span-2 md:col-span-4">
-            <p className="text-sm text-muted-foreground">Companies</p>
+            <p className="text-sm text-muted-foreground">
+              {t("shared.companies")}
+            </p>
             {greenhouseConfig.companies?.length ? (
               <div className="mt-1 flex flex-wrap gap-1">
                 {greenhouseConfig.companies.map((c) => (
@@ -71,8 +77,8 @@ export function AutomationSearchConfig({
                       href={companyBoardUrl(jobBoard, c)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      aria-label={`Open ${c.name} job board`}
-                      title="Open job board"
+                      aria-label={t("shared.openBoard", { name: c.name })}
+                      title={t("shared.openBoardTitle")}
                       className="text-muted-foreground hover:text-foreground"
                     >
                       <ExternalLink className="h-3 w-3" />
@@ -85,45 +91,55 @@ export function AutomationSearchConfig({
             )}
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Target titles</p>
+            <p className="text-sm text-muted-foreground">
+              {t("shared.targetTitles")}
+            </p>
             <p className="font-medium">
               {greenhouseConfig.targetTitles?.length
                 ? greenhouseConfig.targetTitles.join(", ")
-                : "Any"}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Keywords</p>
-            <p className="font-medium">
-              {greenhouseConfig.keywords?.length
-                ? greenhouseConfig.keywords.join(", ")
-                : "None"}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Locations</p>
-            <p className="font-medium">
-              {greenhouseConfig.locations?.length
-                ? `${greenhouseConfig.locations.join(", ")}${
-                    greenhouseConfig.strictLocation ? " (strict)" : ""
-                  }`
-                : "Any location"}
+                : t("shared.any")}
             </p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">
-              Jobs analyzed per run
+              {t("detail.config.keywords")}
+            </p>
+            <p className="font-medium">
+              {greenhouseConfig.keywords?.length
+                ? greenhouseConfig.keywords.join(", ")
+                : t("detail.config.none")}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">
+              {t("shared.locations")}
+            </p>
+            <p className="font-medium">
+              {greenhouseConfig.locations?.length
+                ? `${greenhouseConfig.locations.join(", ")}${
+                    greenhouseConfig.strictLocation
+                      ? ` ${t("shared.strict")}`
+                      : ""
+                  }`
+                : t("shared.anyLocation")}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">
+              {t("shared.analyzedPerRun")}
             </p>
             <p className="font-medium">
               {greenhouseConfig.topK ?? APP_CONSTANTS.MAX_JOBS_PER_RUN}
             </p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Extra listings</p>
+            <p className="text-sm text-muted-foreground">
+              {t("detail.config.extraListings")}
+            </p>
             <p className="font-medium">
               {greenhouseConfig.saveUnanalyzed !== false
-                ? "Saved"
-                : "Not saved"}
+                ? t("detail.config.saved")
+                : t("detail.config.notSaved")}
             </p>
           </div>
         </div>

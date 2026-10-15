@@ -1,1 +1,399 @@
-{}
+{
+  "page": {
+    "title": "Automations",
+    "create": "Create Automation",
+    "loadFailed": "Failed to load automations"
+  },
+  "status": {
+    "active": "active",
+    "paused": "paused"
+  },
+  "shared": {
+    "jobBoard": "Job Board",
+    "companies": "Companies",
+    "targetTitles": "Target titles",
+    "locations": "Locations",
+    "any": "Any",
+    "anyLocation": "Any location",
+    "strict": "(strict)",
+    "analyzedPerRun": "Jobs analyzed per run",
+    "resume": "Resume",
+    "matchThreshold": "Match Threshold",
+    "schedule": "Schedule",
+    "daily": "{hour}:00 daily",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "openBoard": "Open {name} job board",
+    "openBoardTitle": "Open job board",
+    "notAvailable": "N/A"
+  },
+  "lifecycle": {
+    "pause": "Pause",
+    "resume": "Resume",
+    "edit": "Edit",
+    "paused": "Automation paused",
+    "resumed": "Automation resumed",
+    "deleted": "Automation deleted",
+    "deleteTitle": "Delete Automation",
+    "deleteDescription": "Are you sure you want to delete this automation? This action cannot be undone. Discovered jobs will remain but lose their automation reference.",
+    "deleting": "Deleting..."
+  },
+  "list": {
+    "emptyTitle": "No automations yet",
+    "emptyBody": "Create your first automation to start discovering jobs automatically.",
+    "retired": "Retired",
+    "retiredWarning": "This job board was removed and no longer runs. Delete this automation.",
+    "resumeMissing": "Resume missing - select a new one",
+    "moreCompanies": "+{count} more",
+    "titles": "Titles:",
+    "notSet": "Not set",
+    "keywords": "Keywords:",
+    "location": "Location:",
+    "analyzedPerRun": "Analyzed/run:",
+    "extraListings": "Extra listings:",
+    "on": "on",
+    "off": "off",
+    "resume": "Resume:",
+    "threshold": "{value}% threshold",
+    "next": "Next: {date}",
+    "last": "Last: {date}"
+  },
+  "wizard": {
+    "createTitle": "Create Automation",
+    "editTitle": "Edit Automation",
+    "stepOf": "Step {step} of {total}: {description}",
+    "steps": {
+      "basics": "Name your automation",
+      "search": "Configure search criteria",
+      "resume": "Select resume for matching",
+      "matching": "Set match threshold",
+      "schedule": "When to run",
+      "review": "Confirm settings"
+    },
+    "back": "Back",
+    "next": "Next",
+    "submitCreate": "Create Automation",
+    "submitUpdate": "Update Automation",
+    "validationError": "Validation Error",
+    "created": "Your automation has been created and will run at the scheduled time.",
+    "createdTitle": "Automation created",
+    "updated": "Your automation has been updated successfully.",
+    "updatedTitle": "Automation updated",
+    "somethingWrong": "Something went wrong",
+    "saveFailed": "Failed to save automation",
+    "basics": {
+      "nameLabel": "Automation Name",
+      "namePlaceholder": "e.g., Full Stack Jobs Calgary",
+      "nameHint": "A descriptive name to identify this automation",
+      "boardPlaceholder": "Select a job board",
+      "boardOption": "{board} (company boards)",
+      "boardHint": "Track specific companies' job boards"
+    },
+    "resume": {
+      "label": "Resume for Matching",
+      "placeholder": "Select a resume",
+      "hint": "Jobs will be matched against this resume",
+      "noResumes": "No resumes found. Please create a resume with enough content in your profile first.",
+      "noneUsable": "None of your resumes can be used yet.",
+      "someUnusable": "{count} of your resumes can't be selected.",
+      "needsSections": "A resume needs at least {min} sections — an attached file does not count. Fill it in under <profile>Profile</profile>."
+    },
+    "matching": {
+      "label": "Match Threshold: {value}%",
+      "hint": "Only save listings whose AI match score reaches this threshold. Analyzed listings that score below it are discarded — set it lower to keep more."
+    },
+    "schedule": {
+      "label": "Daily Run Time",
+      "placeholder": "Select time",
+      "inUse": "In use",
+      "hint": "The automation will run daily at this time (server timezone)"
+    },
+    "review": {
+      "name": "Name",
+      "saveAdditional": "Save additional listings",
+      "yes": "Yes",
+      "no": "No",
+      "notSelected": "Not selected",
+      "dailyAt": "Daily at {hour}:00"
+    }
+  },
+  "search": {
+    "companies": {
+      "label": "{provider} Companies",
+      "available": "{count} available",
+      "maxReached": "Max {max} companies reached",
+      "searchButton": "Search companies (e.g., {example})",
+      "searchPlaceholder": "Search or browse companies...",
+      "watchedCount": "{count} watched on this board",
+      "addAllWatched": "Add all watched",
+      "searching": "Searching...",
+      "noMatches": "No matches. Try \"Add by URL\" below.",
+      "watchedGroup": "Watched ({count})",
+      "loadingMore": "Loading more...",
+      "hint": "Select {provider} companies to monitor their job boards for new openings.",
+      "skipped": "Added what fits — {skipped} skipped at the {max}-company limit.",
+      "urlHint": {
+        "greenhouse": "Or paste a boards.greenhouse.io link",
+        "lever": "Or paste a jobs.lever.co link or token",
+        "ashby": "Or paste a jobs.ashbyhq.com link or token"
+      }
+    },
+    "targeting": {
+      "titles": {
+        "label": "Target job titles",
+        "placeholder": "e.g., Frontend Engineer",
+        "hint": "Optional. Listings whose title matches rank higher.",
+        "search": "Search or create job title...",
+        "empty": "No job titles found. Type to create one.",
+        "createFailed": "Failed to create job title."
+      },
+      "keywords": {
+        "label": "Keywords / skills",
+        "placeholder": "e.g., React",
+        "hint": "Optional. Matched against title and description.",
+        "search": "Search or create keyword...",
+        "empty": "No keywords found. Type to create one.",
+        "createFailed": "Failed to create keyword."
+      },
+      "locations": {
+        "placeholder": "e.g., Calgary, Seattle",
+        "hint": "Optional. Used only to filter results when the toggle below is on (not part of ranking).",
+        "search": "Search or create location...",
+        "empty": "No locations found. Type to create one.",
+        "createFailed": "Failed to create location."
+      },
+      "noSignal": "Add at least one target title or keyword. Without them there is nothing to rank jobs against, so this automation will save no listings.",
+      "strictLabel": "Only show jobs in these locations",
+      "strictHint": "When on, jobs matching none of your locations are dropped before ranking. Remote roles always pass."
+    },
+    "chips": {
+      "loading": "Loading...",
+      "alreadyAdded": "Already added.",
+      "create": "Create \"{value}\""
+    },
+    "runOptions": {
+      "topK": "Jobs analyzed per run: {count}",
+      "topKHint": "The number of listings that get full AI match analysis each run. Higher means more coverage but slower, costlier runs.",
+      "saveLabel": "Save additional relevant listings",
+      "saveHint": "When on, listings that are relevant but didn't make the top-K are also saved, lexically-ranked but not yet AI-scored. They can be analyzed on-demand later from the discovered jobs list."
+    }
+  },
+  "detail": {
+    "loadFailed": "Failed to load automation details",
+    "header": {
+      "retired": "The {board} job board was removed and no longer runs. Delete this automation.",
+      "keywordsIn": "{keywords} in {location}",
+      "runNow": "Run Now",
+      "abortRun": "Abort Run",
+      "aborting": "Aborting…",
+      "waitAnalysis": "Wait for the in-progress job analysis to finish"
+    },
+    "summary": {
+      "status": "Status",
+      "running": "Running",
+      "missing": "Missing",
+      "nextRun": "Next Run",
+      "lastRun": "Last Run",
+      "never": "Never",
+      "discoveredJobs": "Discovered Jobs",
+      "total": "{count} total",
+      "new": "{count} new"
+    },
+    "config": {
+      "showLess": "Show less",
+      "showMore": "Show more",
+      "keywords": "Keywords",
+      "none": "None",
+      "extraListings": "Extra listings",
+      "saved": "Saved",
+      "notSaved": "Not saved"
+    },
+    "tabs": {
+      "logs": "Logs",
+      "jobs": "Discovered Jobs",
+      "history": "Run History"
+    },
+    "abort": {
+      "title": "Abort this run?",
+      "description": "The run will stop after the current step. Jobs already discovered are kept; remaining jobs won't be processed.",
+      "keep": "Keep running",
+      "confirm": "Abort run"
+    },
+    "run": {
+      "savedJobs": "Saved {count} new jobs",
+      "cancelled": "Run cancelled",
+      "complete": "Automation run complete",
+      "startFailed": "Failed to start run"
+    }
+  },
+  "logs": {
+    "title": "Automation Logs",
+    "filters": {
+      "all": "All",
+      "info": "Info",
+      "success": "Success",
+      "warning": "Warning",
+      "error": "Error"
+    },
+    "levels": {
+      "info": "info",
+      "success": "success",
+      "warning": "warning",
+      "error": "error"
+    },
+    "started": "Started: {date}",
+    "completed": "Completed: {date}",
+    "empty": "No logs yet. Run the automation to see logs.",
+    "noMatch": "No logs match the selected filter.",
+    "clearTitle": "Clear logs?",
+    "clearDescription": "This will permanently remove all current logs. This action cannot be undone.",
+    "clear": "Clear logs"
+  },
+  "runHistory": {
+    "deleted": "Run deleted",
+    "emptyTitle": "No runs yet",
+    "emptyBody": "Run history will appear here once the automation runs.",
+    "title": "Run History",
+    "records": "runs",
+    "deleteItem": "run",
+    "columns": {
+      "status": "Status",
+      "started": "Started",
+      "duration": "Duration",
+      "searched": "Searched",
+      "new": "New",
+      "processed": "Processed",
+      "matched": "Matched",
+      "saved": "Saved",
+      "error": "Error"
+    },
+    "duration": "{seconds}s",
+    "statuses": {
+      "running": "running",
+      "cancelling": "cancelling",
+      "completed": "completed",
+      "failed": "failed",
+      "completed_with_errors": "completed with_errors",
+      "blocked": "blocked",
+      "rate_limited": "rate limited",
+      "cancelled": "cancelled"
+    },
+    "funnel": {
+      "fetched": "Fetched",
+      "dedup": "New",
+      "located": "In location",
+      "floor": "Relevant",
+      "analyzed": "Analyzed",
+      "highlighted": "Strong match"
+    }
+  },
+  "discovered": {
+    "emptyTitle": "No discovered jobs",
+    "emptyBody": "Jobs discovered by automations will appear here.",
+    "noMatchTitle": "No jobs match this filter",
+    "noMatchBody": "Try selecting a different status above.",
+    "columns": {
+      "job": "Job",
+      "company": "Company",
+      "location": "Location",
+      "prerank": "Pre-rank",
+      "match": "Match",
+      "status": "Status",
+      "discovered": "Discovered",
+      "actions": "Actions"
+    },
+    "header": {
+      "title": "Discovered Jobs",
+      "records": "jobs",
+      "clear": "Clear",
+      "status": "Status",
+      "filterBy": "Filter by status"
+    },
+    "row": {
+      "prerankTitle": "Internal lexical relevance score (not an AI match)",
+      "runInProgress": "A run is in progress. Wait until it completes.",
+      "analyze": "Analyze"
+    },
+    "toasts": {
+      "analyzed": "AI match score is ready.",
+      "analyzedTitle": "Match analyzed",
+      "analyzeFailed": "Failed to analyze job",
+      "accepted": "The job has been added to your tracked jobs.",
+      "acceptedTitle": "Job accepted",
+      "acceptFailed": "Failed to accept job",
+      "dismissed": "Job dismissed",
+      "dismissFailed": "Failed to dismiss job"
+    },
+    "clear": {
+      "removed": "Removed {count} job(s).",
+      "clearedTitle": "Discovered jobs cleared",
+      "title": "Clear discovered jobs?",
+      "description": "Accepted jobs are always kept. This permanently deletes all dismissed jobs. This action cannot be undone.",
+      "descriptionWithNew": "Accepted jobs are always kept. This permanently deletes all dismissed jobs and all unreviewed new jobs. This action cannot be undone.",
+      "alsoNew": "Also delete {count} unreviewed new job(s)"
+    },
+    "detail": {
+      "aiMatch": "AI Match",
+      "analyzeMatch": "Analyze match",
+      "jobUrl": "Job URL:",
+      "from": "from {name}",
+      "description": "Description",
+      "dismiss": "Dismiss",
+      "accept": "Accept"
+    }
+  },
+  "match": {
+    "recommendation": {
+      "strong": "strong match",
+      "good": "good match",
+      "partial": "partial match",
+      "weak": "weak match"
+    },
+    "provisional": "Provisional score",
+    "provisionalTitle": "Scored from an incomplete job description — re-run the match after adding the full posting.",
+    "legacy": "This match was saved before the latest update. Re-run the match for the full breakdown.",
+    "resume": "Matched with resume:",
+    "model": "Model:",
+    "matchedOn": "Matched on {date}",
+    "discoveredOn": "Discovered on {date}"
+  },
+  "prerank": {
+    "title": "Lexical pre-rank",
+    "description": "Internal relevance score used to pick which jobs get AI-analyzed. Each hit is weighted by how rare the term is across the board. Not an AI match — compare it against the % above to gauge pre-rank accuracy.",
+    "rows": {
+      "title": "Title",
+      "keywords": "Keywords"
+    },
+    "location": "Location:",
+    "locationMatches": "matches (gate only)",
+    "locationNotScored": "not scored"
+  },
+  "errors": {
+    "listFailed": "Failed to get automations list",
+    "notFound": "Automation not found",
+    "getFailed": "Failed to get automation",
+    "runsFailed": "Failed to get automation runs",
+    "runNotFound": "Run not found",
+    "deleteRunFailed": "Failed to delete run",
+    "maxAutomations": "Maximum of {max} automations allowed per user",
+    "hourTaken": "Another automation already runs at {hour}:00. Please choose a different time.",
+    "resumeNotFound": "Resume not found or doesn't belong to you",
+    "createFailed": "Failed to create automation",
+    "boardRemoved": "The {board} job board has been removed. This automation can only be deleted.",
+    "updateFailed": "Failed to update automation",
+    "deleteFailed": "Failed to delete automation",
+    "pauseFailed": "Failed to pause automation",
+    "resumeFailed": "Failed to resume automation",
+    "jobNotFound": "Discovered job not found",
+    "jobsFailed": "Failed to get discovered jobs",
+    "jobFailed": "Failed to get discovered job",
+    "acceptFailed": "Failed to accept discovered job",
+    "dismissFailed": "Failed to dismiss discovered job",
+    "clearFailed": "Failed to clear discovered jobs",
+    "runInProgress": "A run is in progress for this automation. Please wait until it completes before analyzing jobs.",
+    "resumeMissing": "Automation resume is missing",
+    "prepareFailed": "Failed to prepare match inputs",
+    "noScore": "AI did not return a match score",
+    "analyzeFailed": "Failed to analyze discovered job"
+  }
+}

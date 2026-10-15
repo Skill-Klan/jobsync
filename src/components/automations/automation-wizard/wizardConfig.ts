@@ -14,14 +14,15 @@ export const EMPTY_ATS: AtsConfigValue = {
   saveUnanalyzed: true,
 };
 
+// Each step's description is `automations.wizard.steps.<id>` in the dictionary.
 export const STEPS = [
-  { id: "basics", title: "Basics", description: "Name your automation" },
-  { id: "search", title: "Search", description: "Configure search criteria" },
-  { id: "resume", title: "Resume", description: "Select resume for matching" },
-  { id: "matching", title: "Matching", description: "Set match threshold" },
-  { id: "schedule", title: "Schedule", description: "When to run" },
-  { id: "review", title: "Review", description: "Confirm settings" },
-];
+  { id: "basics" },
+  { id: "search" },
+  { id: "resume" },
+  { id: "matching" },
+  { id: "schedule" },
+  { id: "review" },
+] as const;
 
 export const HOURS = Array.from({ length: 24 }, (_, i) => ({
   value: i,

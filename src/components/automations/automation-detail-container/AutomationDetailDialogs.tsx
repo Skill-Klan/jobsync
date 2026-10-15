@@ -11,6 +11,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { buttonVariants } from "@/components/ui/button";
+import { useTranslations } from "@/i18n/client";
 
 interface AutomationDetailDialogsProps {
   abortConfirmOpen: boolean;
@@ -31,6 +32,7 @@ export function AutomationDetailDialogs({
   onDelete,
   isDeleting,
 }: AutomationDetailDialogsProps) {
+  const t = useTranslations("automations");
   return (
     <>
       <AlertDialog
@@ -39,14 +41,13 @@ export function AutomationDetailDialogs({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Abort this run?</AlertDialogTitle>
+            <AlertDialogTitle>{t("detail.abort.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              The run will stop after the current step. Jobs already discovered
-              are kept; remaining jobs won&apos;t be processed.
+              {t("detail.abort.description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Keep running</AlertDialogCancel>
+            <AlertDialogCancel>{t("detail.abort.keep")}</AlertDialogCancel>
             <AlertDialogAction
               className={buttonVariants({ variant: "destructive" })}
               onClick={(e) => {
@@ -54,7 +55,7 @@ export function AutomationDetailDialogs({
                 onAbortRun();
               }}
             >
-              Abort run
+              {t("detail.abort.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -66,21 +67,21 @@ export function AutomationDetailDialogs({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Automation</AlertDialogTitle>
+            <AlertDialogTitle>{t("lifecycle.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this automation? This action
-              cannot be undone. Discovered jobs will remain but lose their
-              automation reference.
+              {t("lifecycle.deleteDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>
+              {t("shared.cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={onDelete}
               disabled={isDeleting}
               className="bg-destructive-bg text-destructive-foreground hover:bg-destructive-bg/90"
             >
-              {isDeleting ? "Deleting..." : "Delete"}
+              {isDeleting ? t("lifecycle.deleting") : t("shared.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -15,9 +15,14 @@ import type {
   DiscoveryStatus,
 } from "@/models/automation.model";
 import { APP_CONSTANTS } from "@/lib/constants";
+import { useTranslations } from "@/i18n/client";
 
 // Owns the automation record plus its paginated runs and discovered jobs.
 export function useAutomationDetailData(automationId: string) {
+  const t = useTranslations("automations");
+  // Strings, not `t`, in loadData's deps: the texts are stable across renders.
+  const notFound = t("errors.notFound");
+  const loadFailed = t("detail.loadFailed");
   const router = useRouter();
 
   const [automation, setAutomation] = useState<AutomationWithResume | null>(
@@ -77,7 +82,7 @@ export function useAutomationDetailData(automationId: string) {
           setAutomation(automationResult.data);
           setRuns(automationResult.data.runs || []);
         } else {
-          toastError(automationResult.message || "Automation not found");
+          toastError(automationResult.message || notFound);
           router.push("/dashboard/automations");
           return;
         }
@@ -97,11 +102,11 @@ export function useAutomationDetailData(automationId: string) {
           }
         }
       } catch (error) {
-        toastError("Failed to load automation details");
+        toastError(loadFailed);
       }
       if (showLoading) setLoading(false);
     },
-    [automationId, router, fetchJobs],
+    [automationId, router, fetchJobs, notFound, loadFailed],
   );
 
   useEffect(() => {
