@@ -4,8 +4,10 @@ import fs from "fs";
 import { isResumeFilePath } from "@/lib/resumeFiles";
 import { log } from "@/lib/telemetry";
 import { requireUser } from "./shared";
+import { getTranslations } from "@/i18n/server";
 
 export const deleteFile = async (fileId: string) => {
+  const t = await getTranslations("profile");
   const user = await requireUser();
 
   const file = await prisma.file.findFirst({
@@ -16,7 +18,7 @@ export const deleteFile = async (fileId: string) => {
   });
 
   if (!file) {
-    throw new Error("File not found or access denied");
+    throw new Error(t("errors.fileNotFoundOrDenied"));
   }
 
   // A row may predate path confinement; drop it without touching the disk

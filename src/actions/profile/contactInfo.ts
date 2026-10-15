@@ -7,10 +7,12 @@ import { getCurrentUser } from "@/utils/user.utils";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "./shared";
+import { getTranslations } from "@/i18n/server";
 
 export const addContactInfo = async (
   data: z.infer<typeof AddContactInfoFormSchema>,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("profile");
   try {
     const user = await requireUser();
 
@@ -42,7 +44,7 @@ export const addContactInfo = async (
     revalidatePath("/dashboard/profile/resume");
     return { data: res, success: true };
   } catch (error) {
-    const msg = "Failed to create contact info.";
+    const msg = t("errors.contactInfoCreateFailed");
     return handleError(error, msg);
   }
 };
@@ -50,6 +52,7 @@ export const addContactInfo = async (
 export const updateContactInfo = async (
   data: z.infer<typeof AddContactInfoFormSchema>,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("profile");
   try {
     const user = await requireUser();
 
@@ -74,7 +77,7 @@ export const updateContactInfo = async (
     revalidatePath("/dashboard/profile/resume");
     return { data: res, success: true };
   } catch (error) {
-    const msg = "Failed to update contact info.";
+    const msg = t("errors.contactInfoUpdateFailed");
     return handleError(error, msg);
   }
 };

@@ -27,6 +27,7 @@ import {
   updateResumeSummary,
 } from "@/actions/profile.actions";
 import { ResumeSection } from "@/models/profile.model";
+import { useTranslations } from "@/i18n/client";
 
 interface AddResumeSummaryProps {
   resumeId: string | undefined;
@@ -42,11 +43,14 @@ function AddResumeSummary({
   summaryToEdit,
 }: AddResumeSummaryProps) {
   const [isPending, startTransition] = useTransition();
+  const t = useTranslations("profile");
 
-  const pageTitle = summaryToEdit ? "Edit Summary" : "Add Summary";
+  const pageTitle = summaryToEdit
+    ? t("summary.editTitle")
+    : t("summary.addTitle");
   const pageDescription = summaryToEdit
-    ? "Update the professional summary on your resume."
-    : "Add a professional summary to your resume.";
+    ? t("summary.editDescription")
+    : t("summary.addDescription");
 
   const form = useForm<z.infer<typeof AddSummarySectionFormSchema>>({
     resolver: zodResolver(AddSummarySectionFormSchema),
@@ -84,9 +88,9 @@ function AddResumeSummary({
       } else {
         reset();
         setDialogOpen(false);
-        toastSuccess(`Summary has been ${
-          summaryToEdit ? "updated" : "created"
-        } successfully`);
+        toastSuccess(
+          summaryToEdit ? t("summary.updated") : t("summary.created"),
+        );
       }
     });
   };
@@ -112,9 +116,12 @@ function AddResumeSummary({
                 name="sectionTitle"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Section Title</FormLabel>
+                    <FormLabel>{t("sections.sectionTitle")}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Ex: Summary" />
+                      <Input
+                        {...field}
+                        placeholder={t("summary.sectionTitlePlaceholder")}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -128,7 +135,7 @@ function AddResumeSummary({
                 name="content"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Resume Summary</FormLabel>
+                    <FormLabel>{t("summary.contentLabel")}</FormLabel>
                     <FormControl>
                       <TiptapEditor field={field} />
                     </FormControl>

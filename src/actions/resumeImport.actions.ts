@@ -20,6 +20,7 @@ import { saveExperienceCard } from "./resumeImport/experience";
 import { saveEducationCard } from "./resumeImport/education";
 import { saveCertificationCard } from "./resumeImport/certification";
 import { saveSkillsCard } from "./resumeImport/skills";
+import { getTranslations } from "@/i18n/server";
 
 export type ImportCardPayload =
   | { type: "contactInfo"; data: ImportContactInfo }
@@ -37,6 +38,7 @@ export async function resolveImportCard(
   resumeId: string,
   card: ImportCardPayload,
 ): Promise<ResolveResult> {
+  const t = await getTranslations("profile");
   try {
     const user = await requireUser();
     await assertResumeOwnership(resumeId, user.id);
@@ -64,7 +66,7 @@ export async function resolveImportCard(
 
     return { success: true, status: "saved" };
   } catch (error) {
-    const msg = "Failed to save imported section.";
+    const msg = t("errors.importSaveFailed");
     const result = handleError(error, msg);
     return { success: false, message: result?.message ?? msg };
   }

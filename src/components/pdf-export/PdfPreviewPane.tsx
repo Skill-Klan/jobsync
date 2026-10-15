@@ -9,6 +9,7 @@ import {
   getFromLocalStorage,
   saveToLocalStorage,
 } from "@/utils/localstorage.utils";
+import { useTranslations } from "@/i18n/client";
 
 const PREVIEW_RESIZE_DEBOUNCE_MS = 250;
 const MAX_CANVAS_SCALE = 2;
@@ -38,10 +39,6 @@ function isRenderCancelled(error: unknown): boolean {
   );
 }
 
-function pageLabel(count: number): string {
-  return `${count} ${count === 1 ? "page" : "pages"}`;
-}
-
 export function PdfPreviewPane({
   blob,
   isGenerating,
@@ -52,6 +49,7 @@ export function PdfPreviewPane({
   onPageCountChange,
   className,
 }: PdfPreviewPaneProps) {
+  const t = useTranslations("profile");
   const scrollRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLDivElement>(null);
   const pagesRef = useRef<HTMLDivElement>(null);
@@ -230,17 +228,19 @@ export function PdfPreviewPane({
   const status = showEmpty
     ? emptyMessage
     : showError
-      ? "Preview unavailable"
+      ? t("pdfPreview.unavailable")
       : isGenerating
-        ? "Generating preview…"
+        ? t("pdfPreview.generating")
         : hasPages
-          ? `Preview ready, ${pageLabel(pageCount)}`
+          ? t("pdfPreview.ready", { count: pageCount })
           : "";
 
   return (
     <div className={cn("flex min-h-0 flex-col gap-2", className)}>
       <div className="flex items-center justify-between gap-2">
-        <span className="text-sm font-medium">Preview</span>
+        <span className="text-sm font-medium">
+          {t("pdfPreview.heading")}
+        </span>
         <div className="flex items-center gap-2">
           {hasPages && (
             <div className="flex items-center rounded-md border p-0.5">
@@ -248,24 +248,24 @@ export function PdfPreviewPane({
                 size="sm"
                 pressed={fitMode === "page"}
                 onPressedChange={() => onChangeFitMode("page")}
-                aria-label="Fit whole page"
+                aria-label={t("pdfPreview.fitPageLabel")}
                 className="h-6 px-2 text-xs"
               >
-                Fit page
+                {t("pdfPreview.fitPage")}
               </Toggle>
               <Toggle
                 size="sm"
                 pressed={fitMode === "width"}
                 onPressedChange={() => onChangeFitMode("width")}
-                aria-label="Fit page width"
+                aria-label={t("pdfPreview.fitWidthLabel")}
                 className="h-6 px-2 text-xs"
               >
-                Fit width
+                {t("pdfPreview.fitWidth")}
               </Toggle>
             </div>
           )}
           <span className="text-xs text-muted-foreground">
-            {hasPages ? pageLabel(pageCount) : ""}
+            {hasPages ? t("pdfPreview.pages", { count: pageCount }) : ""}
           </span>
         </div>
       </div>
@@ -273,7 +273,12 @@ export function PdfPreviewPane({
       <div
         ref={scrollRef}
         aria-label={
-          hasPages ? `${previewLabel}, ${pageLabel(pageCount)}` : previewLabel
+          hasPages
+            ? t("pdfPreview.regionWithPages", {
+                label: previewLabel,
+                count: pageCount,
+              })
+            : previewLabel
         }
         className="relative min-h-0 flex-1 overflow-y-auto rounded-md border bg-muted p-4"
       >
@@ -293,7 +298,7 @@ export function PdfPreviewPane({
             {showEmpty ? (
               emptyMessage
             ) : showError ? (
-              "Preview unavailable"
+              t("pdfPreview.unavailable")
             ) : (
               <Spinner className="size-6" />
             )}

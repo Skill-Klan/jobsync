@@ -3,12 +3,14 @@ import { SectionType } from "@/models/profile.model";
 import { resolveTag } from "@/lib/jobs/resolve";
 import { APP_CONSTANTS } from "@/lib/constants";
 import type { ImportSkills } from "@/models/resumeImport.schema";
+import { getTranslations } from "@/i18n/server";
 
 export async function saveSkillsCard(
   resumeId: string,
   userId: string,
   data: ImportSkills,
 ): Promise<void> {
+  const t = await getTranslations("profile");
   // Drop empty categories/skills and enforce the same caps as the
   // manual skills form before resolving names to shared tags.
   const categories = (data.categories ?? [])
@@ -23,7 +25,7 @@ export async function saveSkillsCard(
     .slice(0, APP_CONSTANTS.MAX_SKILL_CATEGORIES);
 
   if (categories.length === 0) {
-    throw new Error("No skills to import");
+    throw new Error(t("errors.noSkillsToImport"));
   }
 
   const section = await prisma.resumeSection.create({

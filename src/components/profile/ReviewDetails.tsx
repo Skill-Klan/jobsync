@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import MarkdownIt from "markdown-it";
-import { format } from "date-fns";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +12,14 @@ import {
 import { TipTapContentViewer } from "@/components/TipTapContentViewer";
 import { AgentReviewScoreCard } from "@/components/agent/AgentReviewScoreCard";
 import type { ResumeReviewData } from "@/models/ai.schemas";
+import { useFormatDate, useTranslations } from "@/i18n/client";
+import type { DatePattern } from "@/i18n/dates";
+
+// English keeps the pattern the review line used before translation.
+const REVIEWED_AT: DatePattern = {
+  en: "MMM d, yyyy 'at' h:mm a",
+  uk: "d MMM yyyy 'о' HH:mm",
+};
 
 // html:false escapes any raw HTML in the model output; TipTapContentViewer
 // further strips unrecognized tags, so the rendered review is safe.
@@ -24,6 +31,8 @@ interface ReviewDetailsProps {
 
 export function ReviewDetails({ reviewData }: ReviewDetailsProps) {
   const [expanded, setExpanded] = useState(false);
+  const t = useTranslations("profile");
+  const formatDate = useFormatDate();
   const html = useMemo(
     () => (reviewData?.body ? md.render(reviewData.body) : ""),
     [reviewData?.body],
@@ -38,22 +47,22 @@ export function ReviewDetails({ reviewData }: ReviewDetailsProps) {
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
           {reviewData.reviewedAt ? (
             <span>
-              Reviewed on{" "}
-              {format(
-                new Date(reviewData.reviewedAt),
-                "MMM d, yyyy 'at' h:mm a",
-              )}
+              {t("reviewDetails.reviewedOn", {
+                date: formatDate(new Date(reviewData.reviewedAt), REVIEWED_AT),
+              })}
             </span>
           ) : null}
           {reviewData.provider
-            ? `using ${reviewData.provider}${reviewData.model ? ` / ${reviewData.model}` : ""}`
+            ? t("reviewDetails.using", {
+                model: `${reviewData.provider}${reviewData.model ? ` / ${reviewData.model}` : ""}`,
+              })
             : null}
         </div>
       </div>
 
       <CollapsibleTrigger asChild>
         <Button variant="ghost" size="sm" className="mt-2 h-7 px-2 text-xs">
-          {expanded ? "Hide full review" : "Show full review"}
+          {expanded ? t("reviewDetails.hideFull") : t("reviewDetails.showFull")}
           <ChevronDown
             className={`ml-1 h-3.5 w-3.5 transition-transform ${expanded ? "rotate-180" : ""}`}
           />

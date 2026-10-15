@@ -1,5 +1,6 @@
 import prisma from "@/lib/db";
 import { isResumeFilePath } from "@/lib/resumeFiles";
+import { getTranslations } from "@/i18n/server";
 
 // Not a "use server" module: it exports selects, so it stays internal to
 // src/actions/profile/ and is never imported by a client component.
@@ -13,11 +14,12 @@ export const assertResumeOwnership = async (
   resumeId: string,
   userId: string,
 ) => {
+  const t = await getTranslations("profile");
   const owned = await prisma.resume.findUnique({
     where: { id: resumeId, profile: { userId } },
     select: { id: true },
   });
-  if (!owned) throw new Error("Resume not found or access denied");
+  if (!owned) throw new Error(t("errors.resumeNotFoundOrDenied"));
 };
 
 // db is the transaction client when the caller swaps a resume's file

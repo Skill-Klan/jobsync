@@ -6,11 +6,13 @@ import { resumeDetailInclude } from "@/lib/jobs/resumeDetailInclude";
 import { requireUser, resumeListSelect } from "./shared";
 import { createResume } from "./resumeUpload";
 import { deleteFile } from "./files";
+import { getTranslations } from "@/i18n/server";
 
 export const getResumeList = async (
   page: number = 1,
   limit: number = APP_CONSTANTS.RECORDS_PER_PAGE,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("profile");
   try {
     const user = await requireUser();
     const where = { profile: { userId: user.id } };
@@ -64,7 +66,7 @@ export const getResumeList = async (
 
     return { data: rawData, total, success: true };
   } catch (error) {
-    const msg = "Failed to get resume list.";
+    const msg = t("errors.resumeListFailed");
     return handleError(error, msg);
   }
 };
@@ -72,9 +74,10 @@ export const getResumeList = async (
 export const getResumeById = async (
   resumeId: string,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("profile");
   try {
     if (!resumeId) {
-      throw new Error("Please provide resume id");
+      throw new Error(t("errors.resumeIdMissing"));
     }
     const user = await requireUser();
 
@@ -87,7 +90,7 @@ export const getResumeById = async (
     });
     return { data: resume, success: true };
   } catch (error) {
-    const msg = "Failed to get resume.";
+    const msg = t("errors.resumeFailed");
     return handleError(error, msg);
   }
 };
@@ -96,6 +99,7 @@ export const saveResumeReviewResult = async (
   resumeId: string,
   reviewData: string,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("profile");
   try {
     const user = await requireUser();
 
@@ -106,7 +110,7 @@ export const saveResumeReviewResult = async (
 
     return { success: true };
   } catch (error) {
-    const msg = "Failed to save review result.";
+    const msg = t("errors.reviewSaveFailed");
     return handleError(error, msg);
   }
 };
@@ -121,6 +125,7 @@ export const editResume = async (
   id: string,
   title: string,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("profile");
   try {
     const user = await requireUser();
 
@@ -130,7 +135,7 @@ export const editResume = async (
     });
     return { success: true, data: res };
   } catch (error) {
-    const msg = "Failed to update resume or file.";
+    const msg = t("errors.resumeUpdateFailed");
     return handleError(error, msg);
   }
 };
@@ -138,6 +143,7 @@ export const editResume = async (
 export const deleteResumeById = async (
   resumeId: string,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("profile");
   try {
     const user = await requireUser();
 
@@ -148,7 +154,7 @@ export const deleteResumeById = async (
     });
 
     if (!resume) {
-      throw new Error("Resume not found or access denied");
+      throw new Error(t("errors.resumeNotFoundOrDenied"));
     }
 
     // Delete disk file + DB record before the resume row (avoid orphan on cascade failure)
@@ -182,7 +188,7 @@ export const deleteResumeById = async (
     });
     return { success: true };
   } catch (error) {
-    const msg = "Failed to delete resume.";
+    const msg = t("errors.resumeDeleteFailed");
     return handleError(error, msg);
   }
 };

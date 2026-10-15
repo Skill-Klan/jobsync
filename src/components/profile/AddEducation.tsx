@@ -29,6 +29,7 @@ import { toastSuccess, toastError } from "@/lib/toast";
 import { Combobox } from "../ComboBox";
 import { JobLocation } from "@/models/job.model";
 import { addEducation, updateEducation } from "@/actions/profile.actions";
+import { useTranslations } from "@/i18n/client";
 import { getAllJobLocations } from "@/actions/jobLocation.actions";
 
 type AddEducationProps = {
@@ -46,10 +47,13 @@ function AddEducation({
   setDialogOpen,
   educationToEdit,
 }: AddEducationProps) {
-  const pageTitle = educationToEdit ? "Edit Education" : "Add Education";
+  const t = useTranslations("profile");
+  const pageTitle = educationToEdit
+    ? t("education.editTitle")
+    : t("education.addTitle");
   const pageDescription = educationToEdit
-    ? "Update this education entry on your resume."
-    : "Add an education entry to your resume.";
+    ? t("education.editDescription")
+    : t("education.addDescription");
   const [isPending, startTransition] = useTransition();
   const [locations, setLocations] = useState<JobLocation[]>([]);
 
@@ -132,9 +136,9 @@ function AddEducation({
       } else {
         reset();
         setDialogOpen(false);
-        toastSuccess(`Education has been ${
-          educationToEdit ? "updated" : "added"
-        } successfully`);
+        toastSuccess(
+          educationToEdit ? t("education.updated") : t("education.added"),
+        );
       }
     });
   };
@@ -162,9 +166,12 @@ function AddEducation({
                     name="sectionTitle"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Section Title</FormLabel>
+                        <FormLabel>{t("sections.sectionTitle")}</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Ex: Education" />
+                          <Input
+                            {...field}
+                            placeholder={t("education.sectionTitlePlaceholder")}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -182,9 +189,12 @@ function AddEducation({
                 name="institution"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>School</FormLabel>
+                    <FormLabel>{t("education.school")}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Ex: Stanford" />
+                      <Input
+                        {...field}
+                        placeholder={t("education.schoolPlaceholder")}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -199,7 +209,7 @@ function AddEducation({
                 name="location"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Location</FormLabel>
+                    <FormLabel>{t("education.location")}</FormLabel>
                     <FormControl>
                       <Combobox options={locations!} field={field} creatable />
                     </FormControl>
@@ -216,9 +226,12 @@ function AddEducation({
                 name="degree"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Degree</FormLabel>
+                    <FormLabel>{t("education.degree")}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Ex: Bachelor's" />
+                      <Input
+                        {...field}
+                        placeholder={t("education.degreePlaceholder")}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -232,9 +245,12 @@ function AddEducation({
                 name="fieldOfStudy"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Field of study</FormLabel>
+                    <FormLabel>{t("education.fieldOfStudy")}</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Ex: Computer Science" />
+                      <Input
+                        {...field}
+                        placeholder={t("education.fieldOfStudyPlaceholder")}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -249,7 +265,7 @@ function AddEducation({
                 name="startDate"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Start Date</FormLabel>
+                    <FormLabel>{t("education.startDate")}</FormLabel>
                     <DatePicker
                       field={field}
                       presets={false}
@@ -269,7 +285,7 @@ function AddEducation({
                 name="endDate"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>End Date</FormLabel>
+                    <FormLabel>{t("education.endDate")}</FormLabel>
                     <DatePicker
                       field={field}
                       presets={false}
@@ -297,7 +313,9 @@ function AddEducation({
                       }}
                     />
                     <FormLabel className="flex items-center ml-4 mb-2">
-                      {field.value ? "Degree Completed" : "Currently Studying"}
+                      {field.value
+                        ? t("education.degreeCompleted")
+                        : t("education.currentlyStudying")}
                     </FormLabel>
 
                     <FormMessage />
@@ -313,7 +331,7 @@ function AddEducation({
                 name="description"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>{t("education.description")}</FormLabel>
                     <FormControl>
                       <TiptapEditor field={field} />
                     </FormControl>

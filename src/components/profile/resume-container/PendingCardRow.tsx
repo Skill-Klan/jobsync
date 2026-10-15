@@ -5,18 +5,7 @@ import type { ImportCardPayload } from "@/actions/resumeImport.actions";
 import { Badge } from "../../ui/badge";
 import { Button } from "../../ui/button";
 import type { PendingCard } from "./pendingCards";
-
-function cardSectionLabel(type: ImportCardPayload["type"]): string {
-  const map: Record<string, string> = {
-    contactInfo: "Contact Info",
-    summary: "Summary",
-    experience: "Experience",
-    education: "Education",
-    certification: "Certification",
-    skills: "Skills",
-  };
-  return map[type] ?? type;
-}
+import { useTranslations } from "@/i18n/client";
 
 function DetailRow({ label, value }: { label: string; value?: unknown }) {
   // Streaming partials can momentarily emit a non-string (e.g. {}) for a field
@@ -32,16 +21,17 @@ function DetailRow({ label, value }: { label: string; value?: unknown }) {
 }
 
 function PendingCardDetail({ card }: { card: ImportCardPayload }) {
+  const t = useTranslations("profile");
   if (card.type === "contactInfo") {
     const d = card.data;
     const name = `${d.firstName ?? ""} ${d.lastName ?? ""}`.trim();
     return (
       <div className="space-y-1 mt-1">
-        {name && <DetailRow label="Name" value={name} />}
-        <DetailRow label="Headline" value={d.headline} />
-        <DetailRow label="Email" value={d.email} />
-        <DetailRow label="Phone" value={d.phone} />
-        <DetailRow label="Address" value={d.address} />
+        {name && <DetailRow label={t("importReview.fields.name")} value={name} />}
+        <DetailRow label={t("importReview.fields.headline")} value={d.headline} />
+        <DetailRow label={t("importReview.fields.email")} value={d.email} />
+        <DetailRow label={t("importReview.fields.phone")} value={d.phone} />
+        <DetailRow label={t("importReview.fields.address")} value={d.address} />
       </div>
     );
   }
@@ -59,10 +49,12 @@ function PendingCardDetail({ card }: { card: ImportCardPayload }) {
     const dates = [d.startDate, d.endDate].filter(Boolean).join(" – ");
     return (
       <div className="space-y-1 mt-1">
-        <DetailRow label="Title" value={d.jobTitle} />
-        <DetailRow label="Company" value={d.company} />
-        <DetailRow label="Location" value={d.location} />
-        {dates && <DetailRow label="Dates" value={dates} />}
+        <DetailRow label={t("importReview.fields.jobTitle")} value={d.jobTitle} />
+        <DetailRow label={t("importReview.fields.company")} value={d.company} />
+        <DetailRow label={t("importReview.fields.location")} value={d.location} />
+        {dates && (
+          <DetailRow label={t("importReview.fields.dates")} value={dates} />
+        )}
         {typeof d.description === "string" && d.description && (
           <p className="text-xs text-foreground mt-1 whitespace-pre-wrap pl-[5.5rem]">
             {d.description}
@@ -77,11 +69,13 @@ function PendingCardDetail({ card }: { card: ImportCardPayload }) {
     const dates = [d.startDate, d.endDate].filter(Boolean).join(" – ");
     return (
       <div className="space-y-1 mt-1">
-        <DetailRow label="Institution" value={d.institution} />
-        <DetailRow label="Degree" value={d.degree} />
-        <DetailRow label="Field" value={d.fieldOfStudy} />
-        <DetailRow label="Location" value={d.location} />
-        {dates && <DetailRow label="Dates" value={dates} />}
+        <DetailRow label={t("importReview.fields.institution")} value={d.institution} />
+        <DetailRow label={t("importReview.fields.degree")} value={d.degree} />
+        <DetailRow label={t("importReview.fields.field")} value={d.fieldOfStudy} />
+        <DetailRow label={t("importReview.fields.location")} value={d.location} />
+        {dates && (
+          <DetailRow label={t("importReview.fields.dates")} value={dates} />
+        )}
         {typeof d.description === "string" && d.description && (
           <p className="text-xs text-foreground mt-1 whitespace-pre-wrap pl-[5.5rem]">
             {d.description}
@@ -95,10 +89,10 @@ function PendingCardDetail({ card }: { card: ImportCardPayload }) {
     const d = card.data;
     return (
       <div className="space-y-1 mt-1">
-        <DetailRow label="Title" value={d.title} />
-        <DetailRow label="Issuer" value={d.organization} />
-        <DetailRow label="Issued" value={d.issueDate} />
-        <DetailRow label="Expires" value={d.expirationDate} />
+        <DetailRow label={t("importReview.fields.certificationTitle")} value={d.title} />
+        <DetailRow label={t("importReview.fields.issuer")} value={d.organization} />
+        <DetailRow label={t("importReview.fields.issued")} value={d.issueDate} />
+        <DetailRow label={t("importReview.fields.expires")} value={d.expirationDate} />
         <DetailRow label="URL" value={d.credentialUrl} />
       </div>
     );
@@ -150,12 +144,13 @@ export function PendingCardRow({
   locked?: boolean;
 }) {
   const [isSaving, startSaving] = useTransition();
+  const t = useTranslations("profile");
 
   return (
     <div className="border border-dashed rounded-md px-4 py-3 bg-muted/30">
       <div className="flex items-start justify-between gap-4">
         <Badge variant="outline" className="text-xs shrink-0">
-          {cardSectionLabel(pending.card.type)}
+          {t(`importReview.sections.${pending.card.type}`)}
         </Badge>
         <div className="flex items-center gap-1 shrink-0 ml-auto">
           <Button
@@ -174,7 +169,7 @@ export function PendingCardRow({
             ) : (
               <Check className="h-3 w-3" />
             )}
-            <span className="ml-1">Accept</span>
+            <span className="ml-1">{t("importReview.accept")}</span>
           </Button>
           <Button
             size="sm"

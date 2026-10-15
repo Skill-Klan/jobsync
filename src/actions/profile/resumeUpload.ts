@@ -4,6 +4,7 @@ import { handleError } from "@/lib/utils";
 import { log } from "@/lib/telemetry";
 import { removeResumeFile, type ResumeUpload } from "@/lib/resumeFiles";
 import { createFileEntry, requireUser } from "./shared";
+import { getTranslations } from "@/i18n/server";
 
 // Not a "use server" module: these take a server-built file path, so they
 // must never be browser-callable. Only the upload route and resume.ts import
@@ -15,6 +16,7 @@ export const createResume = async (
 ): Promise<any | undefined> => {
   // Once a resume row references the upload, a failure must keep its bytes
   let fileLinked = false;
+  const t = await getTranslations("profile");
   try {
     const user = await requireUser();
 
@@ -88,7 +90,7 @@ export const createResume = async (
     return { success: true, data: res };
   } catch (error) {
     if (upload && !fileLinked) await removeResumeFile(upload.filePath);
-    const msg = "Failed to create resume.";
+    const msg = t("errors.resumeCreateFailed");
     return handleError(error, msg);
   }
 };
@@ -98,6 +100,7 @@ export const replaceResumeFile = async (
   title: string,
   upload: ResumeUpload,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("profile");
   try {
     const user = await requireUser();
 
@@ -107,7 +110,7 @@ export const replaceResumeFile = async (
       select: { File: { select: { id: true, filePath: true } } },
     });
     if (!resume) {
-      throw new Error("Resume not found or access denied");
+      throw new Error(t("errors.resumeNotFoundOrDenied"));
     }
 
     const res = await prisma.$transaction(async (tx) => {
@@ -126,7 +129,7 @@ export const replaceResumeFile = async (
     return { success: true, data: res };
   } catch (error) {
     await removeResumeFile(upload.filePath);
-    const msg = "Failed to update resume or file.";
+    const msg = t("errors.resumeUpdateFailed");
     return handleError(error, msg);
   }
 };

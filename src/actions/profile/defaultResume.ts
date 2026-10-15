@@ -7,6 +7,7 @@ import {
 } from "@/lib/resumeSections";
 import { getCurrentUser } from "@/utils/user.utils";
 import { requireUser } from "./shared";
+import { getTranslations } from "@/i18n/server";
 
 export const getDefaultResumeId = async (): Promise<string | null> => {
   const user = await getCurrentUser();
@@ -21,6 +22,7 @@ export const getDefaultResumeId = async (): Promise<string | null> => {
 export const setDefaultResume = async (
   resumeId: string,
 ): Promise<{ success: boolean; message?: string }> => {
+  const t = await getTranslations("profile");
   try {
     const user = await requireUser();
 
@@ -30,7 +32,7 @@ export const setDefaultResume = async (
       select: { _count: { select: { ResumeSections: true } } },
     });
     if (!owned) {
-      throw new Error("Resume not found");
+      throw new Error(t("errors.resumeNotFound"));
     }
     if (!hasMinResumeSections(owned._count.ResumeSections)) {
       return {
@@ -49,9 +51,9 @@ export const setDefaultResume = async (
     return { success: true };
   } catch (error) {
     return (
-      handleError(error, "Failed to set default resume.") ?? {
+      handleError(error, t("errors.setDefaultFailed")) ?? {
         success: false,
-        message: "Failed to set default resume.",
+        message: t("errors.setDefaultFailed"),
       }
     );
   }

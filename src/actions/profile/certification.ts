@@ -6,10 +6,12 @@ import { SectionType } from "@/models/profile.model";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { assertResumeOwnership, requireUser } from "./shared";
+import { getTranslations } from "@/i18n/server";
 
 export const addCertification = async (
   data: z.infer<typeof AddCertificationFormSchema>,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("profile");
   try {
     const user = await requireUser();
 
@@ -45,7 +47,7 @@ export const addCertification = async (
     revalidatePath(`/dashboard/profile/resume/${data.resumeId}`);
     return { data: result, success: true };
   } catch (error) {
-    const msg = "Failed to create certification.";
+    const msg = t("errors.certificationCreateFailed");
     return handleError(error, msg);
   }
 };
@@ -53,6 +55,7 @@ export const addCertification = async (
 export const updateCertification = async (
   data: z.infer<typeof AddCertificationFormSchema>,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("profile");
   try {
     const user = await requireUser();
 
@@ -72,7 +75,7 @@ export const updateCertification = async (
     revalidatePath(`/dashboard/profile/resume/${data.resumeId}`);
     return { data: result, success: true };
   } catch (error) {
-    const msg = "Failed to update certification.";
+    const msg = t("errors.certificationUpdateFailed");
     return handleError(error, msg);
   }
 };
@@ -80,6 +83,7 @@ export const updateCertification = async (
 export const deleteCertification = async (
   certificationId: string,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("profile");
   try {
     const user = await requireUser();
 
@@ -94,7 +98,7 @@ export const deleteCertification = async (
         ResumeSection: { select: { resumeId: true } },
       },
     });
-    if (!cert) throw new Error("Certification not found or access denied");
+    if (!cert) throw new Error(t("errors.certificationNotFoundOrDenied"));
 
     await prisma.$transaction(async (tx) => {
       await tx.licenseOrCertification.delete({ where: { id: cert.id } });
@@ -112,6 +116,6 @@ export const deleteCertification = async (
     revalidatePath(`/dashboard/profile/resume/${cert.ResumeSection?.resumeId}`);
     return { success: true };
   } catch (error) {
-    return handleError(error, "Failed to delete certification.");
+    return handleError(error, t("errors.certificationDeleteFailed"));
   }
 };

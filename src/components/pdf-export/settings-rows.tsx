@@ -22,6 +22,7 @@ import {
   PDF_NUMERIC_SETTINGS,
   type NumericSetting,
 } from "@/models/pdfExport.model";
+import { useTranslations } from "@/i18n/client";
 
 // Wraps rather than clips: the control drops below the label on a narrow
 // settings column instead of overflowing it.
@@ -78,7 +79,10 @@ export function StepperRow({
   value: number;
   onCommit: (value: number) => void;
 }) {
+  const t = useTranslations("profile");
   const spec = PDF_NUMERIC_SETTINGS[field];
+  // The spec's own label is English; the row shows it in the user's language.
+  const label = t(`pdfExport.settings.${field}`);
   const id = `${idPrefix}-${field}`;
   const [draft, setDraft] = useState(() => String(value));
 
@@ -102,7 +106,7 @@ export function StepperRow({
   return (
     <div className={ROW}>
       <Label htmlFor={id} className="cursor-pointer font-normal">
-        {spec.label}
+        {label}
       </Label>
       <div className="ml-auto flex items-center gap-1">
         <Button
@@ -110,7 +114,7 @@ export function StepperRow({
           variant="outline"
           size="icon"
           className="h-7 w-7 shrink-0"
-          aria-label={`Decrease ${spec.label}`}
+          aria-label={t("pdfExport.decrease", { label })}
           disabled={value <= spec.min}
           onClick={() => stepBy(-1)}
         >
@@ -136,7 +140,7 @@ export function StepperRow({
           variant="outline"
           size="icon"
           className="h-7 w-7 shrink-0"
-          aria-label={`Increase ${spec.label}`}
+          aria-label={t("pdfExport.increase", { label })}
           disabled={value >= spec.max}
           onClick={() => stepBy(1)}
         >

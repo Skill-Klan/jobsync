@@ -17,6 +17,7 @@ import type {
   CoverLetterExportSettings,
   CoverLetterNumericSetting,
 } from "@/models/coverLetterExport.model";
+import { useTranslations } from "@/i18n/client";
 
 type CoverLetterSettingsPanelProps = {
   settings: CoverLetterExportSettings;
@@ -40,39 +41,47 @@ export function CoverLetterSettingsPanel({
   headline,
   onHeadlineChange,
 }: CoverLetterSettingsPanelProps) {
+  const t = useTranslations("profile");
   const setNumber = (field: CoverLetterNumericSetting) => (value: number) =>
     onChange({ ...settings, [field]: value });
 
   const typographySummary = [
     PDF_FONT_LABELS[settings.font],
     formatSettingValue("fontSize", settings.fontSize),
-    `${formatSettingValue("lineHeight", settings.lineHeight)} line`,
+    t("pdfExport.lineSummary", {
+      value: formatSettingValue("lineHeight", settings.lineHeight),
+    }),
   ].join(" • ");
 
   const layoutSummary = [
-    `${settings.marginVertical} × ${settings.marginHorizontal} pt margins`,
-    `${settings.paragraphSpacing} pt paragraphs`,
+    t("pdfExport.marginsSummary", {
+      vertical: settings.marginVertical,
+      horizontal: settings.marginHorizontal,
+    }),
+    t("coverLetterExport.paragraphsSummary", {
+      value: settings.paragraphSpacing,
+    }),
   ].join(" • ");
 
   return (
     <div className="flex flex-col gap-4">
       {hasLetterhead && (
         <DisclosureGroup
-          title="Letterhead"
-          summary={headline.trim() || "No headline"}
+          title={t("coverLetterExport.letterhead")}
+          summary={headline.trim() || t("coverLetterExport.noHeadline")}
         >
           <div className={ROW}>
             <Label
               htmlFor={`${ID_PREFIX}-headline`}
               className="cursor-pointer font-normal"
             >
-              Headline
+              {t("coverLetterExport.headline")}
             </Label>
             <Input
               id={`${ID_PREFIX}-headline`}
               value={headline}
               onChange={(event) => onHeadlineChange(event.target.value)}
-              placeholder="Leave blank to omit"
+              placeholder={t("coverLetterExport.headlinePlaceholder")}
               className="h-8 w-full text-sm"
             />
           </div>
@@ -80,10 +89,13 @@ export function CoverLetterSettingsPanel({
       )}
 
       {/* No Template row: a cover letter has exactly one style. */}
-      <DisclosureGroup title="Typography" summary={typographySummary}>
+      <DisclosureGroup
+        title={t("pdfExport.typography")}
+        summary={typographySummary}
+      >
         <SelectRow
           id={`${ID_PREFIX}-font`}
-          label="Font"
+          label={t("pdfExport.font")}
           value={settings.font}
           labels={PDF_FONT_LABELS}
           onSelect={(font) => onChange({ ...settings, font })}
@@ -102,7 +114,7 @@ export function CoverLetterSettingsPanel({
         />
       </DisclosureGroup>
 
-      <DisclosureGroup title="Layout" summary={layoutSummary}>
+      <DisclosureGroup title={t("pdfExport.layout")} summary={layoutSummary}>
         <StepperRow
           idPrefix={ID_PREFIX}
           field="marginVertical"
@@ -127,8 +139,7 @@ export function CoverLetterSettingsPanel({
           not discoverable from this dialog. */}
       {!hasLetterhead && (
         <p className="text-xs text-muted-foreground">
-          No letterhead — set a default resume with contact info to add your
-          name and contact line.
+          {t("coverLetterExport.noLetterhead")}
         </p>
       )}
 
@@ -141,7 +152,7 @@ export function CoverLetterSettingsPanel({
             onClick={onReset}
             disabled={isDefault}
           >
-            Reset to defaults
+            {t("pdfExport.resetToDefaults")}
           </Button>
         </div>
       )}

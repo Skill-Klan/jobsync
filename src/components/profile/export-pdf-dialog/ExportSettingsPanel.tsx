@@ -14,10 +14,10 @@ import {
   PDF_FONT_LABELS,
 } from "@/models/pdfExport.model";
 import {
-  RESUME_LAYOUT_LABELS,
   type ResumeExportSettings,
   type ResumeNumericSetting,
 } from "@/models/resumeExport.model";
+import { useTranslations } from "@/i18n/client";
 
 type ExportSettingsPanelProps = {
   settings: ResumeExportSettings;
@@ -37,18 +37,32 @@ export function ExportSettingsPanel({
   isDefault,
   singlePage,
 }: ExportSettingsPanelProps) {
+  const t = useTranslations("profile");
+  // Same keys and order as RESUME_LAYOUT_LABELS; the names follow the language.
+  const templateLabels = {
+    simple: t("resumeExport.templates.simple"),
+    professional: t("resumeExport.templates.professional"),
+  } satisfies Record<ResumeExportSettings["template"], string>;
   const setNumber = (field: ResumeNumericSetting) => (value: number) =>
     onChange({ ...settings, [field]: value });
 
   const typographySummary = [
     PDF_FONT_LABELS[settings.font],
     formatSettingValue("fontSize", settings.fontSize),
-    `${formatSettingValue("lineHeight", settings.lineHeight)} line`,
+    t("pdfExport.lineSummary", {
+      value: formatSettingValue("lineHeight", settings.lineHeight),
+    }),
   ].join(" • ");
 
   const layoutSummary = [
-    `${settings.marginVertical} × ${settings.marginHorizontal} pt margins`,
-    `${settings.sectionSpacing}/${settings.entrySpacing} pt spacing`,
+    t("pdfExport.marginsSummary", {
+      vertical: settings.marginVertical,
+      horizontal: settings.marginHorizontal,
+    }),
+    t("resumeExport.spacingSummary", {
+      section: settings.sectionSpacing,
+      entry: settings.entrySpacing,
+    }),
   ].join(" • ");
 
   return (
@@ -57,17 +71,20 @@ export function ExportSettingsPanel({
       <div className="rounded-lg border bg-muted/40">
         <SelectRow
           id={`${ID_PREFIX}-template`}
-          label="Template"
+          label={t("resumeExport.template")}
           value={settings.template}
-          labels={RESUME_LAYOUT_LABELS}
+          labels={templateLabels}
           onSelect={(template) => onChange({ ...settings, template })}
         />
       </div>
 
-      <DisclosureGroup title="Typography" summary={typographySummary}>
+      <DisclosureGroup
+        title={t("pdfExport.typography")}
+        summary={typographySummary}
+      >
         <SelectRow
           id={`${ID_PREFIX}-font`}
-          label="Font"
+          label={t("pdfExport.font")}
           value={settings.font}
           labels={PDF_FONT_LABELS}
           onSelect={(font) => onChange({ ...settings, font })}
@@ -86,7 +103,7 @@ export function ExportSettingsPanel({
         />
       </DisclosureGroup>
 
-      <DisclosureGroup title="Layout" summary={layoutSummary}>
+      <DisclosureGroup title={t("pdfExport.layout")} summary={layoutSummary}>
         <StepperRow
           idPrefix={ID_PREFIX}
           field="marginVertical"
@@ -116,15 +133,19 @@ export function ExportSettingsPanel({
       {/* Its only option does nothing on a one-page resume. */}
       {!singlePage && (
         <DisclosureGroup
-          title="Footer"
-          summary={`Page numbers ${settings.showPageNumbers ? "on" : "off"}`}
+          title={t("resumeExport.footer")}
+          summary={
+            settings.showPageNumbers
+              ? t("resumeExport.pageNumbersOn")
+              : t("resumeExport.pageNumbersOff")
+          }
         >
           <div className={ROW}>
             <Label
               htmlFor={`${ID_PREFIX}-showPageNumbers`}
               className="cursor-pointer font-normal"
             >
-              Show page numbers
+              {t("resumeExport.showPageNumbers")}
             </Label>
             <Switch
               id={`${ID_PREFIX}-showPageNumbers`}
@@ -147,7 +168,7 @@ export function ExportSettingsPanel({
             onClick={onReset}
             disabled={isDefault}
           >
-            Reset to defaults
+            {t("pdfExport.resetToDefaults")}
           </Button>
         </div>
       )}

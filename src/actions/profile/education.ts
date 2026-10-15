@@ -6,10 +6,12 @@ import { SectionType } from "@/models/profile.model";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { assertResumeOwnership, requireUser } from "./shared";
+import { getTranslations } from "@/i18n/server";
 
 export const addEducation = async (
   data: z.infer<typeof AddEducationFormSchema>,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("profile");
   try {
     const user = await requireUser();
 
@@ -47,7 +49,7 @@ export const addEducation = async (
     revalidatePath(`/dashboard/profile/resume/${data.resumeId}`);
     return { data: education, success: true };
   } catch (error) {
-    const msg = "Failed to create education.";
+    const msg = t("errors.educationCreateFailed");
     return handleError(error, msg);
   }
 };
@@ -55,6 +57,7 @@ export const addEducation = async (
 export const updateEducation = async (
   data: z.infer<typeof AddEducationFormSchema>,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("profile");
   try {
     const user = await requireUser();
 
@@ -76,7 +79,7 @@ export const updateEducation = async (
     revalidatePath(`/dashboard/profile/resume/${data.resumeId}`);
     return { data: summary, success: true };
   } catch (error) {
-    const msg = "Failed to update education.";
+    const msg = t("errors.educationUpdateFailed");
     return handleError(error, msg);
   }
 };

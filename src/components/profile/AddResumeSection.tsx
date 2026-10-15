@@ -21,6 +21,7 @@ import AddExperience from "./AddExperience";
 import AddEducation from "./AddEducation";
 import AddCertification from "./AddCertification";
 import AddSkills from "./AddSkills";
+import { useTranslations } from "@/i18n/client";
 
 interface AddResumeSectionProps {
   resume: Resume;
@@ -37,6 +38,7 @@ export interface AddResumeSectionRef {
 
 const AddResumeSection = forwardRef<AddResumeSectionRef, AddResumeSectionProps>(
   ({ resume }, ref) => {
+    const t = useTranslations("profile");
     const [contactInfoDialogOpen, setContactInfoDialogOpen] = useState(false);
     const [summaryDialogOpen, setSummaryDialogOpen] = useState(false);
     const [experienceDialogOpen, setExperienceDialogOpen] = useState(false);
@@ -143,7 +145,7 @@ const AddResumeSection = forwardRef<AddResumeSectionRef, AddResumeSectionProps>(
             >
               <PlusCircle className="h-3.5 w-3.5" />
               <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                Add Section
+                {t("sections.addSection")}
               </span>
             </Button>
           </DropdownMenuTrigger>
@@ -154,39 +156,39 @@ const AddResumeSection = forwardRef<AddResumeSectionRef, AddResumeSectionProps>(
                 onClick={openContactInfoDialog}
                 disabled={!!resume?.ContactInfo}
               >
-                Add Contact Info
+                {t("sections.addContactInfo")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="cursor-pointer"
                 onClick={openSummaryDialog}
                 disabled={!!summarySection}
               >
-                Add Summary
+                {t("sections.addSummary")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="cursor-pointer"
                 onClick={openSkillsDialog}
                 disabled={!!skillsSection}
               >
-                Add Skills
+                {t("sections.addSkills")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="cursor-pointer"
                 onClick={openExperienceDialog}
               >
-                Add Experience
+                {t("sections.addExperience")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="cursor-pointer"
                 onClick={openEducationDialog}
               >
-                Add Education
+                {t("sections.addEducation")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="cursor-pointer"
                 onClick={openCertificationDialog}
               >
-                Add Certification / License
+                {t("sections.addCertification")}
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>
