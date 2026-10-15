@@ -8,8 +8,10 @@ import { AgentChatInput } from "@/components/agent/AgentChatInput";
 import { AgentChatMessages } from "@/components/agent/AgentChatMessages";
 import { useAgentChat } from "@/components/agent/AgentChatProvider";
 import { AiProvider } from "@/models/ai.model";
+import { useTranslations } from "@/i18n/client";
 
 export function AgentChatPanel() {
+  const t = useTranslations("agent.panel");
   const {
     isOpen,
     close,
@@ -75,7 +77,7 @@ export function AgentChatPanel() {
 
         <div className="flex items-center gap-3 px-4 py-2.5 border-b bg-muted/20 shrink-0">
           <SheetTitle className="text-[11px] font-bold tracking-[0.15em] uppercase text-foreground leading-none shrink-0 m-0">
-            AI AGENT
+            {t("title")}
           </SheetTitle>
           <span className="text-muted-foreground/30 text-xs select-none">
             ···
@@ -96,10 +98,10 @@ export function AgentChatPanel() {
             size="sm"
             variant="ghost"
           >
-            Clear
+            {t("clear")}
           </Button>
           <Button
-            aria-label={isPanelExpanded ? "Restore panel" : "Expand panel"}
+            aria-label={isPanelExpanded ? t("restore") : t("expand")}
             className="h-6 w-6 shrink-0 rounded-sm opacity-70 hover:opacity-100 hidden lg:inline-flex"
             onClick={togglePanelExpand}
             size="icon"
@@ -108,7 +110,7 @@ export function AgentChatPanel() {
             <Scan className="h-3.5 w-3.5" />
           </Button>
           <Button
-            aria-label="Close chat"
+            aria-label={t("close")}
             className="h-6 w-6 shrink-0 rounded-sm opacity-70 hover:opacity-100"
             onClick={close}
             size="icon"

@@ -6,6 +6,7 @@ import { handleError } from "@/lib/utils";
 import { requireUser } from "@/actions/shared";
 import { NOTIFICATION_CONSTANTS } from "@/lib/constants";
 import { notificationCutoff } from "@/lib/notifications/prune";
+import { getTranslations } from "@/i18n/server";
 import type {
   NotificationItem,
   NotificationTab,
@@ -52,7 +53,7 @@ export async function getNotificationSummary() {
     ]);
     return { success: true, data: { unread, unreadErrors } };
   } catch (error) {
-    return handleError(error, "Failed to load notifications.");
+    return handleError(error, (await getTranslations("notifications.actions"))("load"));
   }
 }
 
@@ -71,7 +72,7 @@ export async function getPopoverNotifications() {
     });
     return { success: true, data: toItems(rows) };
   } catch (error) {
-    return handleError(error, "Failed to load notifications.");
+    return handleError(error, (await getTranslations("notifications.actions"))("load"));
   }
 }
 
@@ -111,7 +112,7 @@ export async function getNotificationList({
       data: { items: toItems(rows), total, counts: { all, unread, errors, runs } },
     };
   } catch (error) {
-    return handleError(error, "Failed to load notifications.");
+    return handleError(error, (await getTranslations("notifications.actions"))("load"));
   }
 }
 
@@ -129,7 +130,7 @@ export async function getNotificationFilterOptions() {
     });
     return { success: true, data: options };
   } catch (error) {
-    return handleError(error, "Failed to load automations.");
+    return handleError(error, (await getTranslations("notifications.actions"))("loadAutomations"));
   }
 }
 
@@ -142,7 +143,7 @@ export async function markNotificationRead(id: string) {
     });
     return { success: true };
   } catch (error) {
-    return handleError(error, "Failed to update notification.");
+    return handleError(error, (await getTranslations("notifications.actions"))("updateOne"));
   }
 }
 
@@ -155,7 +156,7 @@ export async function markAllNotificationsRead() {
     });
     return { success: true };
   } catch (error) {
-    return handleError(error, "Failed to update notifications.");
+    return handleError(error, (await getTranslations("notifications.actions"))("updateAll"));
   }
 }
 
@@ -170,7 +171,7 @@ export async function dismissNotification(id: string) {
     });
     return { success: true };
   } catch (error) {
-    return handleError(error, "Failed to dismiss notification.");
+    return handleError(error, (await getTranslations("notifications.actions"))("dismissOne"));
   }
 }
 
@@ -185,7 +186,7 @@ export async function dismissAllNotifications() {
     });
     return { success: true };
   } catch (error) {
-    return handleError(error, "Failed to clear notifications.");
+    return handleError(error, (await getTranslations("notifications.actions"))("clear"));
   }
 }
 
@@ -195,7 +196,7 @@ export async function deleteNotification(id: string) {
     await db.notification.deleteMany({ where: { id, userId: user.id } });
     return { success: true };
   } catch (error) {
-    return handleError(error, "Failed to delete notification.");
+    return handleError(error, (await getTranslations("notifications.actions"))("deleteOne"));
   }
 }
 
@@ -207,6 +208,6 @@ export async function clearReadNotifications() {
     });
     return { success: true };
   } catch (error) {
-    return handleError(error, "Failed to clear notifications.");
+    return handleError(error, (await getTranslations("notifications.actions"))("clear"));
   }
 }

@@ -27,6 +27,7 @@ import { useSidebar } from "@/context/SidebarContext";
 import { useResizablePanel } from "@/hooks/useResizablePanel";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { toastInfo } from "@/lib/toast";
+import { useTranslations } from "@/i18n/client";
 import {
   clearChatConversation,
   saveChatConversation,
@@ -77,6 +78,11 @@ function createdJobToolCallIds(messages: UIMessage[]): string[] {
 }
 
 function useAgentChatValue(initialMessages: UIMessage[]) {
+  // Read through a ref: the callbacks below are deliberately stable, and a
+  // new translator must not re-create them (runPreflight feeds open).
+  const t = useTranslations("agent.provider");
+  const tRef = useRef(t);
+  tRef.current = t;
   const router = useRouter();
   const pathname = usePathname();
   const { holder, requestOpen, close: releaseRail } = useRightRail();
@@ -226,7 +232,7 @@ function useAgentChatValue(initialMessages: UIMessage[]) {
       setInterruptedTurn(true);
       // The one abort the user gets no on-screen signal for — the panel they
       // would have read it in is the thing that just went away.
-      toastInfo("Generation stopped. Reopen the assistant to continue.");
+      toastInfo(tRef.current("generationStopped"));
     }
     setIsOpen(false);
     releaseRail(AGENT_CHAT_PANEL_ID);
@@ -244,8 +250,7 @@ function useAgentChatValue(initialMessages: UIMessage[]) {
       setPreflight({
         checked: true,
         ok: false,
-        error:
-          "No AI model is configured. Pick one in Settings to use the assistant.",
+        error: tRef.current("noModel"),
         provider,
       });
       return;
@@ -261,7 +266,7 @@ function useAgentChatValue(initialMessages: UIMessage[]) {
       ok: result.isConnected,
       error: result.isConnected
         ? undefined
-        : (result.error ?? "Ollama is not reachable."),
+        : (result.error ?? tRef.current("ollamaUnreachable")),
       provider,
       model: ai.model,
     });
@@ -302,7 +307,7 @@ function useAgentChatValue(initialMessages: UIMessage[]) {
     setToolStreams({});
     setQueued(undefined);
     // Clearing an idle conversation aborted nothing worth reporting.
-    if (wasStreaming) toastInfo("Conversation cleared and generation stopped.");
+    if (wasStreaming) toastInfo(tRef.current("clearedAndStopped"));
   }, [chat]);
 
   const approvalPending = useMemo(

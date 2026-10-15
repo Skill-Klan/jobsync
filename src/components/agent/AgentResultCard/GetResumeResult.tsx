@@ -3,10 +3,14 @@
 import { NoResumesNotice } from "@/components/agent/AgentResultCard/NoResumesNotice";
 import { ResumeSelectionPrompt } from "@/components/agent/AgentResultCard/ResumeSelectionPrompt";
 import type { AgentGetResumeResult } from "@/models/agent.model";
+import { useTranslations } from "@/i18n/client";
+
+const strong = (chunks: React.ReactNode) => <strong>{chunks}</strong>;
 
 // The resume text itself is never rendered: the user is about to read the
 // review, not the serialization, and the card would be a wall of text.
 export function GetResumeResult({ output }: { output: AgentGetResumeResult }) {
+  const t = useTranslations("agent.results");
   if (output.status === "no_resumes") {
     return <NoResumesNotice />;
   }
@@ -14,33 +18,31 @@ export function GetResumeResult({ output }: { output: AgentGetResumeResult }) {
   if (output.status === "unreadable") {
     return (
       <p className="text-sm">
-        Couldn&apos;t read <strong>{output.title}</strong> — {output.reason}
+        {t.rich("couldNotRead", { title: output.title, reason: output.reason, strong })}
       </p>
     );
   }
 
   if (output.status === "needs_selection") {
-    return <ResumeSelectionPrompt prompt="Which resume?" resumes={output.resumes} />;
+    return <ResumeSelectionPrompt prompt={t("whichResume")} resumes={output.resumes} />;
   }
 
-  const sourceNote =
+  const read =
     output.source === "default"
-      ? " (your default)"
+      ? "getResume.readDefault"
       : output.source === "page"
-        ? " (the one you're viewing)"
-        : "";
+        ? "getResume.readPage"
+        : "getResume.read";
+  const details = [
+    t("getResume.characters", { chars: output.chars }),
+    output.truncated && t("getResume.truncated"),
+    output.ambiguousTitle && t("getResume.ambiguous"),
+  ].filter(Boolean);
 
   return (
     <div className="text-sm">
-      <p>
-        Read <strong>{output.title}</strong>
-        {sourceNote}.
-      </p>
-      <p className="mt-1 text-xs text-muted-foreground">
-        {output.chars.toLocaleString()} characters
-        {output.truncated ? " · truncated" : ""}
-        {output.ambiguousTitle ? " · more than one resume has this title" : ""}
-      </p>
+      <p>{t.rich(read, { title: output.title, strong })}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{details.join(" · ")}</p>
     </div>
   );
 }

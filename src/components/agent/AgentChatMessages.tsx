@@ -27,13 +27,14 @@ import {
   isNestedTool,
   type AgentPastePartData,
 } from "@/models/agent.model";
+import { useTranslations } from "@/i18n/client";
 
 function PasteChip({ data }: { data: AgentPastePartData }) {
-  const chars = data.chars.toLocaleString();
+  const t = useTranslations("agent.paste");
   return (
     <span className="inline-flex items-center gap-1.5 rounded-sm border bg-muted/30 px-2 py-1 text-xs text-muted-foreground">
       <FileTextIcon className="size-3" />
-      Pasted posting · {chars} chars{data.truncated ? " (truncated)" : ""}
+      {t(data.truncated ? "chipTruncated" : "chip", { chars: data.chars })}
     </span>
   );
 }
@@ -76,6 +77,7 @@ function showThinking(messages: UIMessage[], status: string): boolean {
 }
 
 export function AgentChatMessages() {
+  const t = useTranslations("agent.messages");
   const {
     messages,
     toolStreams,
@@ -183,7 +185,7 @@ export function AgentChatMessages() {
 
         {showContinue && (
           <div className="flex items-center gap-2 rounded-md border bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
-            <span className="flex-1">This reply was interrupted.</span>
+            <span className="flex-1">{t("interrupted")}</span>
             {/* Offered, never automatic — the user closed the panel, and
                 silently restarting a 30–60s local generation on reopen undoes
                 their own action. */}
@@ -193,10 +195,10 @@ export function AgentChatMessages() {
               type="button"
               variant="outline"
             >
-              Continue
+              {t("continue")}
             </Button>
             <Button
-              aria-label="Dismiss"
+              aria-label={t("dismiss")}
               className="size-6 shrink-0"
               onClick={dismiss}
               size="icon"
@@ -208,7 +210,7 @@ export function AgentChatMessages() {
           </div>
         )}
 
-        {thinking && <AgentStatusRow label="Thinking…" />}
+        {thinking && <AgentStatusRow label={t("thinking")} />}
       </ConversationContent>
       <ConversationScrollButton />
     </Conversation>

@@ -1,1 +1,146 @@
-{}
+{
+  "trigger": {
+    "label": "AI-чат",
+    "open": "Відкрити асистента",
+    "close": "Закрити асистента",
+    "approvalPending": "Очікує підтвердження"
+  },
+  "panel": {
+    "title": "AI-асистент",
+    "clear": "Очистити",
+    "expand": "Розгорнути панель",
+    "restore": "Відновити розмір панелі",
+    "close": "Закрити чат"
+  },
+  "emptyState": {
+    "intro": "Я можу додати вакансію до вашого списку — вставте оголошення або введіть деталі, і я покажу, що вдалося витягти, перш ніж щось зберегти. Також я можу прочитати й перевірити ваші резюме, а коли ви переглядаєте вакансію — оцінити, наскільки резюме їй відповідає, або написати супровідний лист. Шукати серед ваших вакансій чи читати завдання я поки не вмію.",
+    "addJob": "Додати вакансію",
+    "reviewResume": "Перевірити резюме",
+    "matchJob": "Оцінити відповідність",
+    "coverLetter": "Написати супровідний лист"
+  },
+  "paste": {
+    "chip": "Вставлене оголошення · {chars, plural, one {# символ} few {# символи} many {# символів} other {# символу}}",
+    "chipTruncated": "Вставлене оголошення · {chars, plural, one {# символ} few {# символи} many {# символів} other {# символу}} (обрізано)"
+  },
+  "input": {
+    "dismissError": "Закрити помилку",
+    "queuedApproval": "У черзі — чекає на ваше підтвердження вище",
+    "queuedReply": "У черзі — надішлеться, коли завершиться поточна відповідь",
+    "removeFromQueue": "Прибрати з черги",
+    "removePaste": "Прибрати вставлений текст",
+    "placeholder": "Запитайте або вставте оголошення…",
+    "waitingApproval": "Чекає на ваше підтвердження вище",
+    "stop": "Зупинити відповідь",
+    "send": "Надіслати"
+  },
+  "provider": {
+    "noModel": "AI-модель не налаштовано. Оберіть її в Налаштуваннях, щоб користуватися асистентом.",
+    "ollamaUnreachable": "Немає зʼєднання з Ollama.",
+    "generationStopped": "Генерацію зупинено. Відкрийте асистента знову, щоб продовжити.",
+    "clearedAndStopped": "Розмову очищено, генерацію зупинено."
+  },
+  "messages": {
+    "interrupted": "Цю відповідь перервано.",
+    "continue": "Продовжити",
+    "dismiss": "Закрити",
+    "thinking": "Думаю…"
+  },
+  "running": {
+    "addJob": "Готую додавання вакансії…",
+    "getResume": "Читаю ваше резюме…",
+    "reviewResume": "Перевіряю ваше резюме…",
+    "matchJob": "Порівнюю ваше резюме з цією вакансією…",
+    "coverLetter": "Пишу супровідний лист…",
+    "other": "Працюю…"
+  },
+  "approval": {
+    "needsApproval": "Потрібне підтвердження",
+    "addJobTool": "Додати вакансію",
+    "company": "Компанія",
+    "jobTitle": "Посада",
+    "location": "Локація",
+    "source": "Джерело",
+    "salary": "Зарплата",
+    "tags": "Теги",
+    "noDescription": "Опису немає — асистент його попросить.",
+    "waiting": "Очікування…",
+    "reasonPlaceholder": "Що не так? (необовʼязково)",
+    "send": "Надіслати",
+    "skip": "Пропустити",
+    "confirm": "Підтвердити",
+    "cancel": "Скасувати"
+  },
+  "description": {
+    "summary": "Опис · {source} · символів: {chars}",
+    "pasted": "вставлено дослівно",
+    "model": "надано моделлю",
+    "titleOnly": "лише посада",
+    "partial": "неповний",
+    "full": "повний"
+  },
+  "results": {
+    "cancelled": "Скасовано — нічого не збережено.",
+    "failed": "Не вдалося виконати. Спробуйте запитати ще раз.",
+    "noResumes": "У вас ще немає резюме — створіть його на сторінці «Профіль».",
+    "whichResume": "Яке резюме?",
+    "couldNotRead": "Не вдалося прочитати <strong>{title}</strong> — {reason}",
+    "addJob": {
+      "couldNotAdd": "Не вдалося додати вакансію — {error}",
+      "alreadyTracked": "Уже є у списку: <strong>{title}</strong> — <strong>{company}</strong>. Другу вакансію не створено.",
+      "openExisting": "Відкрити наявну вакансію",
+      "added": "Додано <strong>{title}</strong>.",
+      "addedAt": "Додано <strong>{title}</strong> — {company}.",
+      "untitled": "вакансію",
+      "openJob": "Відкрити вакансію",
+      "newEntities": "Нові: {list}"
+    },
+    "getResume": {
+      "read": "Прочитано <strong>{title}</strong>.",
+      "readDefault": "Прочитано <strong>{title}</strong> (ваше основне).",
+      "readPage": "Прочитано <strong>{title}</strong> (те, яке ви переглядаєте).",
+      "characters": "{chars, plural, one {# символ} few {# символи} many {# символів} other {# символу}}",
+      "truncated": "обрізано",
+      "ambiguous": "таку назву має кілька резюме"
+    },
+    "reviewResume": {
+      "couldNotReview": "Не вдалося перевірити <strong>{title}</strong> — {reason}",
+      "notSaved": "Перевірку не збережено — {error}"
+    },
+    "matchJob": {
+      "noJob": "Спершу відкрийте вакансію, яку треба оцінити, — я оцінюю ту, яку ви переглядаєте.",
+      "whichResume": "З яким резюме порівняти?",
+      "couldNotMatch": "Не вдалося оцінити <strong>{title}</strong> — {reason}",
+      "footer": "{title} · порівняно з {resume}",
+      "footerAt": "{title} — {company} · порівняно з {resume}",
+      "notSaved": "Оцінку не збережено — {error}"
+    },
+    "coverLetter": {
+      "noJob": "Спершу відкрийте вакансію, для якої потрібен лист, — я пишу для тієї, яку ви переглядаєте.",
+      "noDescription": "<strong>{title}</strong> ще не має повноцінного опису. Додайте оголошення, і я напишу лист на його основі.",
+      "whichResume": "На якому резюме побудувати лист?",
+      "couldNotWrite": "Не вдалося написати лист для <strong>{title}</strong> — {reason}",
+      "footer": "{title} · на основі {resume}",
+      "footerAt": "{title} — {company} · на основі {resume}",
+      "saved": "Збережено як «{title}» — <link>редагувати в Профіль → Документи</link>",
+      "notSaved": "Лист не збережено — {error}"
+    }
+  },
+  "scores": {
+    "impact": "Вплив",
+    "clarity": "Ясність",
+    "strongMatch": "Висока відповідність",
+    "goodMatch": "Добра відповідність",
+    "partialMatch": "Часткова відповідність",
+    "weakMatch": "Слабка відповідність"
+  },
+  "resumePicker": {
+    "ariaLabel": "Оберіть резюме",
+    "placeholder": "Оберіть резюме"
+  },
+  "actions": {
+    "loadFailed": "Не вдалося завантажити розмову.",
+    "saveFailed": "Не вдалося зберегти розмову.",
+    "clearFailed": "Не вдалося очистити розмову."
+  }
+}

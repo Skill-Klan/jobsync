@@ -4,13 +4,15 @@ import { useState } from "react";
 import { AlertTriangle, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AiUsageSummary } from "@/models/aiUsage.model";
-import { formatSeconds, formatTokens, providerLabel } from "./format";
+import { formatSeconds, formatTokens, providerLabel, useUsageText } from "./format";
 
 const NUM = "text-right tabular-nums";
 
 export default function ProviderModelTable({
   providers,
 }: Pick<AiUsageSummary, "providers">) {
+  const text = useUsageText();
+  const { t, locale } = text;
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const maxTokens = Math.max(1, ...providers.map((p) => p.tokens));
   const toggle = (provider: string) =>
@@ -24,21 +26,21 @@ export default function ProviderModelTable({
   return (
     <section className="overflow-hidden rounded-lg border">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b px-5 py-3.5">
-        <h2 className="text-[15px] font-semibold">By provider and model</h2>
+        <h2 className="text-[15px] font-semibold">{t("byProvider.title")}</h2>
         <span className="text-xs text-muted-foreground">
-          Per call · chat excludes the review, match or letter it started
+          {t("byProvider.note")}
         </span>
       </div>
       <div className="overflow-x-auto">
         <div className="min-w-[720px]">
           <div className="flex items-center gap-2.5 border-b px-5 py-2.5 text-xs font-medium text-muted-foreground">
-            <span className="w-[204px]">Provider / model</span>
-            <span className="grow">Share of tokens</span>
-            <span className={cn("w-16", NUM)}>Tokens</span>
-            <span className={cn("w-12", NUM)}>Calls</span>
-            <span className={cn("w-16", NUM)}>Median</span>
+            <span className="w-[204px]">{t("byProvider.providerModel")}</span>
+            <span className="grow">{t("byProvider.share")}</span>
+            <span className={cn("w-16", NUM)}>{t("columns.tokens")}</span>
+            <span className={cn("w-12", NUM)}>{t("columns.calls")}</span>
+            <span className={cn("w-16", NUM)}>{t("columns.median")}</span>
             <span className={cn("w-16", NUM)}>p95</span>
-            <span className={cn("w-20", NUM)}>First token</span>
+            <span className={cn("w-20", NUM)}>{t("columns.firstToken")}</span>
           </div>
           {providers.map((p) => {
             const open = !collapsed.has(p.provider);
@@ -66,10 +68,10 @@ export default function ProviderModelTable({
                     />
                   </span>
                   <span className={cn("w-16 font-medium", NUM)}>
-                    {formatTokens(p.tokens)}
+                    {formatTokens(p.tokens, locale)}
                   </span>
                   <span className={cn("w-12 text-muted-foreground", NUM)}>
-                    {p.calls.toLocaleString("en-US")}
+                    {p.calls.toLocaleString(locale)}
                   </span>
                   <span className="w-16" />
                   <span className="w-16" />
@@ -91,24 +93,24 @@ export default function ProviderModelTable({
                         {m.nearContextLimit > 0 && (
                           <span className="inline-flex h-[22px] items-center gap-1.5 rounded-full bg-amber-100 px-2 text-[11px] font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-400">
                             <AlertTriangle className="h-3 w-3" />
-                            {`${m.nearContextLimit} ${m.nearContextLimit === 1 ? "call" : "calls"} near context limit`}
+                            {t("byProvider.nearContextLimit", { count: m.nearContextLimit })}
                           </span>
                         )}
                       </span>
                       <span className={cn("w-16", NUM)}>
-                        {formatTokens(m.tokens)}
+                        {formatTokens(m.tokens, locale)}
                       </span>
                       <span className={cn("w-12", NUM)}>
-                        {m.calls.toLocaleString("en-US")}
+                        {m.calls.toLocaleString(locale)}
                       </span>
                       <span className={cn("w-16", NUM)}>
-                        {formatSeconds(m.medianMs)}
+                        {formatSeconds(m.medianMs, text)}
                       </span>
                       <span className={cn("w-16", NUM)}>
-                        {formatSeconds(m.p95Ms)}
+                        {formatSeconds(m.p95Ms, text)}
                       </span>
                       <span className={cn("w-20", NUM)}>
-                        {formatSeconds(m.medianFirstTokenMs)}
+                        {formatSeconds(m.medianFirstTokenMs, text)}
                       </span>
                     </div>
                   ))}

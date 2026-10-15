@@ -3,6 +3,7 @@
 import db from "@/lib/db";
 import { requireUser } from "./shared";
 import { handleError } from "@/lib/utils";
+import { getTranslations } from "@/i18n/server";
 import { AI_USAGE_CONSTANTS } from "@/lib/constants";
 import { aiUsageCutoff } from "@/lib/aiUsage/prune";
 import { summarizeAiUsage } from "@/lib/aiUsage/summarize";
@@ -38,7 +39,7 @@ export async function getAiUsage(input: {
   try {
     const user = await requireUser();
     if (input.rangeDays !== 7 && input.rangeDays !== 30) {
-      return { success: false, message: "Invalid range" };
+      return { success: false, message: (await getTranslations("settings.actions"))("invalidRange") };
     }
     const now = new Date();
     const timeZone = validTimeZone(input.timeZone);
@@ -108,7 +109,8 @@ export async function getAiUsage(input: {
     };
   } catch (error) {
     // handleError types success as boolean; re-wrap to keep the union narrow.
-    const { message } = handleError(error, "Failed to load AI usage.");
+    const t = await getTranslations("settings.actions");
+    const { message } = handleError(error, t("usageFailed"));
     return { success: false, message };
   }
 }

@@ -11,6 +11,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { classifyDescriptionCompleteness } from "@/lib/jobs/descriptionCompleteness";
+import { useTranslations } from "@/i18n/client";
+import { useDescriptionText } from "@/components/agent/useDescriptionText";
 
 type Respond = (r: { id: string; approved: boolean; reason?: string }) => void;
 
@@ -37,8 +39,9 @@ function AddJobBody({
   input: Record<string, unknown>;
   pastedText?: string;
 }) {
+  const t = useTranslations("agent.approval");
+  const describe = useDescriptionText();
   const description = pastedText ?? text(input.jobDescription);
-  const source = pastedText ? "pasted verbatim" : "model-supplied";
   const completeness = description
     ? classifyDescriptionCompleteness(description)
     : undefined;
@@ -46,20 +49,20 @@ function AddJobBody({
 
   return (
     <div>
-      <Row label="Company" value={text(input.company)} />
-      <Row label="Job title" value={text(input.jobTitle)} />
-      <Row label="Location" value={text(input.location)} />
-      <Row label="Source" value={text(input.source)} />
+      <Row label={t("company")} value={text(input.company)} />
+      <Row label={t("jobTitle")} value={text(input.jobTitle)} />
+      <Row label={t("location")} value={text(input.location)} />
+      <Row label={t("source")} value={text(input.source)} />
       <Row label="URL" value={text(input.jobUrl)} />
-      <Row label="Salary" value={text(input.salaryRange)} />
-      <Row label="Tags" value={tags} />
+      <Row label={t("salary")} value={text(input.salaryRange)} />
+      <Row label={t("tags")} value={tags} />
       {description ? (
         <div className="mt-2 rounded-sm border bg-muted/20 p-2">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span>
-              Description · {source} · {description.length} chars
-            </span>
-            {completeness && <Badge variant="outline">{completeness}</Badge>}
+            <span>{describe.summary(!!pastedText, description.length)}</span>
+            {completeness && (
+              <Badge variant="outline">{describe.completeness(completeness)}</Badge>
+            )}
           </div>
           {/* Collapsed to ~200 chars: this is verbatim third-party content
               the model did not author, so it is the least interesting thing
@@ -69,9 +72,7 @@ function AddJobBody({
           </p>
         </div>
       ) : (
-        <p className="mt-2 text-xs text-muted-foreground">
-          No description — the assistant will ask for one.
-        </p>
+        <p className="mt-2 text-xs text-muted-foreground">{t("noDescription")}</p>
       )}
     </div>
   );
@@ -86,6 +87,7 @@ export function AgentApprovalCard({
   pastedText?: string;
   onRespond: Respond;
 }) {
+  const t = useTranslations("agent.approval");
   const [declining, setDeclining] = useState(false);
   const [reason, setReason] = useState("");
   const cardRef = useRef<HTMLDivElement>(null);
@@ -120,14 +122,16 @@ export function AgentApprovalCard({
       className="rounded-sm p-3 outline-hidden"
     >
       <div className="flex items-center gap-2">
-        <Badge variant="secondary">Needs approval</Badge>
-        <span className="text-sm font-semibold">{toolName}</span>
+        <Badge variant="secondary">{t("needsApproval")}</Badge>
+        <span className="text-sm font-semibold">
+          {toolName === "add_job" ? t("addJobTool") : toolName}
+        </span>
       </div>
 
       {body}
 
       {part.state === "approval-responded" && (
-        <p className="text-xs text-muted-foreground">Waiting…</p>
+        <p className="text-xs text-muted-foreground">{t("waiting")}</p>
       )}
 
       <ConfirmationRequest>
@@ -136,7 +140,7 @@ export function AgentApprovalCard({
             <Textarea
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="What was wrong? (optional)"
+              placeholder={t("reasonPlaceholder")}
               rows={2}
             />
             <div className="flex gap-2">
@@ -146,7 +150,7 @@ export function AgentApprovalCard({
                   onRespond({ id: approvalId, approved: false, reason })
                 }
               >
-                Send
+                {t("send")}
               </ConfirmationAction>
               <ConfirmationAction
                 variant="ghost"
@@ -154,7 +158,7 @@ export function AgentApprovalCard({
                   approvalId && onRespond({ id: approvalId, approved: false })
                 }
               >
-                Skip
+                {t("skip")}
               </ConfirmationAction>
             </div>
           </div>
@@ -168,12 +172,12 @@ export function AgentApprovalCard({
               approvalId && onRespond({ id: approvalId, approved: true })
             }
           >
-            Confirm
+            {t("confirm")}
           </ConfirmationAction>
           {/* Client-side and always available — it must not depend on a
               server round-trip succeeding. */}
           <ConfirmationAction variant="outline" onClick={() => setDeclining(true)}>
-            Cancel
+            {t("cancel")}
           </ConfirmationAction>
         </ConfirmationActions>
       )}

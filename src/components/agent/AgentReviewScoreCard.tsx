@@ -2,6 +2,7 @@
 
 import { RadialChartComponent } from "@/components/RadialChartSvg";
 import type { ResumeScores } from "@/models/ai.schemas";
+import { useTranslations } from "@/i18n/client";
 
 // Started as a copy of the retired review sheet's ScoresSection, kept
 // separate so that surface could be deleted without touching this one.
@@ -13,9 +14,10 @@ export function AgentReviewScoreCard({
   scores: ResumeScores;
   size?: number;
 }) {
+  const t = useTranslations("agent.scores");
   const items = [
-    { label: "Impact", value: scores.impact },
-    { label: "Clarity", value: scores.clarity },
+    { label: t("impact"), value: scores.impact },
+    { label: t("clarity"), value: scores.clarity },
     { label: "ATS", value: scores.atsCompatibility },
   ];
 

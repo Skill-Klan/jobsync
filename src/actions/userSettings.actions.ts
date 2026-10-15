@@ -2,6 +2,7 @@
 import prisma from "@/lib/db";
 import { handleError } from "@/lib/utils";
 import { requireUser } from "./shared";
+import { getTranslations } from "@/i18n/server";
 import {
   UserSettingsData,
   defaultUserSettings,
@@ -40,8 +41,8 @@ export const getUserSettings = async (): Promise<any | undefined> => {
       },
     };
   } catch (error) {
-    const msg = "Failed to fetch user settings.";
-    return handleError(error, msg);
+    const t = await getTranslations("settings.actions");
+    return handleError(error, t("fetchFailed"));
   }
 };
 
@@ -106,8 +107,8 @@ export const updateUserSettings = async (
       },
     };
   } catch (error) {
-    const msg = "Failed to update user settings.";
-    return handleError(error, msg);
+    const t = await getTranslations("settings.actions");
+    return handleError(error, t("updateFailed"));
   }
 };
 

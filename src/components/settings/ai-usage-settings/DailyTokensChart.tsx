@@ -3,8 +3,10 @@
 import { useMemo } from "react";
 import { useTheme } from "next-themes";
 import { ResponsiveBar } from "@nivo/bar";
-import { format, parseISO } from "date-fns";
+import { parseISO } from "date-fns";
 import type { AiUsageSummary } from "@/models/aiUsage.model";
+import { useFormatDate, useLocale, useTranslations } from "@/i18n/client";
+import { DATE_PATTERNS } from "@/i18n/dates";
 import {
   FALLBACK_PROVIDER_COLOR,
   PROVIDER_COLORS,
@@ -16,6 +18,9 @@ export default function DailyTokensChart({
   days,
   providers,
 }: Pick<AiUsageSummary, "days" | "providers">) {
+  const t = useTranslations("settings.usage");
+  const locale = useLocale();
+  const formatDate = useFormatDate();
   const { resolvedTheme } = useTheme();
   const theme = resolvedTheme === "light" ? "light" : "dark";
   const keys = providers.map((p) => p.provider);
@@ -34,7 +39,7 @@ export default function DailyTokensChart({
   return (
     <section className="flex flex-col gap-4 rounded-lg border p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-[15px] font-semibold">Daily tokens by provider</h2>
+        <h2 className="text-[15px] font-semibold">{t("dailyTokens")}</h2>
         <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
           {keys.map((key) => (
             <span key={key} className="flex items-center gap-1.5">
@@ -64,17 +69,17 @@ export default function DailyTokensChart({
             tickSize: 0,
             tickPadding: 8,
             tickValues: 4,
-            format: (v) => formatTokens(Number(v)),
+            format: (v) => formatTokens(Number(v), locale),
           }}
           axisBottom={{
             tickSize: 0,
             tickPadding: 8,
             tickValues,
-            format: (v: string) => format(parseISO(v), "MMM d"),
+            format: (v: string) => formatDate(parseISO(v), DATE_PATTERNS.dayMonth),
           }}
-          valueFormat={(v) => formatTokens(v)}
+          valueFormat={(v) => formatTokens(v, locale)}
           tooltipLabel={(bar) =>
-            `${providerLabel(String(bar.id))} · ${format(parseISO(String(bar.indexValue)), "MMM d")}`
+            `${providerLabel(String(bar.id))} · ${formatDate(parseISO(String(bar.indexValue)), DATE_PATTERNS.dayMonth)}`
           }
           theme={{
             text: { fill: "#94A3B8" },

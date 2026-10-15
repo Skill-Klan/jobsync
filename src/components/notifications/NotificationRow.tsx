@@ -10,6 +10,7 @@ import {
   formatClock,
   formatShortAge,
   isErrorNotification,
+  useNotificationText,
 } from "./notificationDisplay";
 
 interface NotificationRowProps {
@@ -22,7 +23,9 @@ interface NotificationRowProps {
 const ICONS = { run: CheckCircle2, warn: AlertTriangle, fail: XCircle };
 
 export function NotificationRow({ item, variant, onRemove, onOpenLink }: NotificationRowProps) {
-  const d = describeNotification(item);
+  const text = useNotificationText();
+  const { t, locale } = text;
+  const d = describeNotification(item, text);
   const isError = isErrorNotification(item);
   const unread = item.readAt === null;
   const isPage = variant === "page";
@@ -57,7 +60,7 @@ export function NotificationRow({ item, variant, onRemove, onOpenLink }: Notific
         <div className="flex items-center gap-1.5">
           {unread && (
             <span
-              aria-label="Unread"
+              aria-label={t("row.unread")}
               className="h-[7px] w-[7px] shrink-0 rounded-full bg-primary"
             />
           )}
@@ -71,7 +74,7 @@ export function NotificationRow({ item, variant, onRemove, onOpenLink }: Notific
           </span>
           {!isPage && (
             <span className="text-xs text-muted-foreground">
-              {formatShortAge(item.occurredAt)}
+              {formatShortAge(item.occurredAt, undefined, text)}
             </span>
           )}
         </div>
@@ -81,7 +84,7 @@ export function NotificationRow({ item, variant, onRemove, onOpenLink }: Notific
             data-testid="row-meta-mobile"
             className="truncate text-xs text-muted-foreground sm:hidden"
           >
-            {item.automation.name} · {formatClock(item.occurredAt)}
+            {item.automation.name} · {formatClock(item.occurredAt, locale)}
           </span>
         )}
         <span className="text-[13px] text-muted-foreground" title={d.hint ?? undefined}>
@@ -111,14 +114,14 @@ export function NotificationRow({ item, variant, onRemove, onOpenLink }: Notific
       </div>
       {isPage && (
         <span className="hidden w-[110px] shrink-0 pt-1.5 text-right text-xs text-muted-foreground sm:block">
-          {formatClock(item.occurredAt)}
+          {formatClock(item.occurredAt, locale)}
         </span>
       )}
       <Button
         variant="ghost"
         size="icon"
-        aria-label={isPage ? "Delete notification" : "Dismiss notification"}
-        title={isPage ? "Delete" : "Dismiss"}
+        aria-label={isPage ? t("row.deleteLabel") : t("row.dismissLabel")}
+        title={isPage ? t("row.delete") : t("row.dismiss")}
         className="h-7 w-7 shrink-0 text-muted-foreground"
         onClick={() => onRemove(item.id)}
       >

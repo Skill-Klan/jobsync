@@ -3,6 +3,7 @@
 import type { UIMessage } from "ai";
 import prisma from "@/lib/db";
 import { handleError } from "@/lib/utils";
+import { getTranslations } from "@/i18n/server";
 import { requireUser } from "./shared";
 import { APP_CONSTANTS } from "@/lib/constants";
 
@@ -28,7 +29,7 @@ export const getChatConversation = async (): Promise<{
       return { success: true, data: [] };
     }
   } catch (error) {
-    return handleError(error, "Failed to load the conversation.");
+    return handleError(error, (await getTranslations("agent.actions"))("loadFailed"));
   }
 };
 
@@ -51,7 +52,7 @@ export const saveChatConversation = async (
 
     return { success: true };
   } catch (error) {
-    return handleError(error, "Failed to save the conversation.");
+    return handleError(error, (await getTranslations("agent.actions"))("saveFailed"));
   }
 };
 
@@ -68,6 +69,6 @@ export const clearChatConversation = async (): Promise<{
 
     return { success: true };
   } catch (error) {
-    return handleError(error, "Failed to clear the conversation.");
+    return handleError(error, (await getTranslations("agent.actions"))("clearFailed"));
   }
 };

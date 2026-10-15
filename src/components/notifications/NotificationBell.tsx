@@ -17,16 +17,14 @@ import {
 import type { NotificationItem } from "@/models/notification.model";
 import { NotificationRow } from "./NotificationRow";
 import { isErrorNotification } from "./notificationDisplay";
+import { useTranslations } from "@/i18n/client";
 
 type PopoverTab = "all" | "errors" | "runs";
 
-const TABS: { id: PopoverTab; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "errors", label: "Errors" },
-  { id: "runs", label: "Runs" },
-];
+const TABS: PopoverTab[] = ["all", "errors", "runs"];
 
 export function NotificationBell() {
+  const t = useTranslations("notifications");
   const { summary, refresh } = useNotifications();
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<NotificationItem[]>([]);
@@ -80,7 +78,7 @@ export function NotificationBell() {
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="icon" className="relative" aria-label="Notifications">
+        <Button variant="outline" size="icon" className="relative" aria-label={t("bell.ariaLabel")}>
           <Bell className="h-[18px] w-[18px]" />
           {summary.unread > 0 && (
             <span
@@ -97,7 +95,7 @@ export function NotificationBell() {
       </PopoverTrigger>
       <PopoverContent align="end" className="w-[min(408px,calc(100vw-2rem))] p-0">
         <div className="flex items-center gap-2 px-4 pb-2.5 pt-3.5">
-          <h2 className="flex-grow text-[15px] font-semibold">Notifications</h2>
+          <h2 className="flex-grow text-[15px] font-semibold">{t("bell.title")}</h2>
           <Button
             variant="ghost"
             size="sm"
@@ -105,7 +103,7 @@ export function NotificationBell() {
             onClick={onMarkAll}
           >
             <CheckCheck className="h-3.5 w-3.5" />
-            Mark all read
+            {t("bell.markAllRead")}
           </Button>
           <Button
             variant="ghost"
@@ -114,26 +112,26 @@ export function NotificationBell() {
             onClick={onClearAll}
           >
             <X className="h-3.5 w-3.5" />
-            Clear all
+            {t("bell.clearAll")}
           </Button>
         </div>
         <div role="tablist" className="flex gap-1 border-b px-4">
-          {TABS.map((t) => (
+          {TABS.map((id) => (
             <button
-              key={t.id}
+              key={id}
               type="button"
               role="tab"
-              aria-selected={tab === t.id}
-              onClick={() => setTab(t.id)}
+              aria-selected={tab === id}
+              onClick={() => setTab(id)}
               className={cn(
                 "-mb-px flex items-center gap-1.5 border-b-2 px-2.5 py-2 text-[13px]",
-                tab === t.id
+                tab === id
                   ? "border-foreground font-semibold text-foreground"
                   : "border-transparent font-medium text-muted-foreground",
               )}
             >
-              {t.label}
-              {t.id === "errors" && errorCount > 0 && (
+              {t(`tabs.${id}`)}
+              {id === "errors" && errorCount > 0 && (
                 <span className="rounded-full bg-red-100 px-1.5 text-[11px] font-semibold text-red-700 dark:bg-red-950 dark:text-red-300">
                   {errorCount}
                 </span>
@@ -144,7 +142,7 @@ export function NotificationBell() {
         <ul className="flex max-h-[60vh] flex-col overflow-y-auto py-1">
           {visible.length === 0 ? (
             <li className="px-4 py-8 text-center text-[13px] text-muted-foreground">
-              You’re all caught up.
+              {t("bell.empty")}
             </li>
           ) : (
             visible.map((item) => (
@@ -164,9 +162,9 @@ export function NotificationBell() {
             onClick={() => setOpen(false)}
             className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
           >
-            View all notifications
+            {t("bell.viewAll")}
           </Link>
-          <span className="text-muted-foreground">Kept 30 days</span>
+          <span className="text-muted-foreground">{t("bell.retention")}</span>
         </div>
       </PopoverContent>
     </Popover>

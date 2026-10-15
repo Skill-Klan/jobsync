@@ -1,1 +1,146 @@
-{}
+{
+  "trigger": {
+    "label": "Chat AI",
+    "open": "Open assistant",
+    "close": "Close assistant",
+    "approvalPending": "Approval pending"
+  },
+  "panel": {
+    "title": "AI AGENT",
+    "clear": "Clear",
+    "expand": "Expand panel",
+    "restore": "Restore panel",
+    "close": "Close chat"
+  },
+  "emptyState": {
+    "intro": "I can add a job to your tracker — paste a posting or type the details, and I'll show you what I extracted before anything is saved. I can also read and review your resumes, and while you're looking at a job I can score how well one of them matches it or write you a cover letter. I can't search your existing jobs or read your tasks yet.",
+    "addJob": "Add a job posting",
+    "reviewResume": "Review resume",
+    "matchJob": "Match a job",
+    "coverLetter": "Generate cover letter"
+  },
+  "paste": {
+    "chip": "Pasted posting · {chars, number} chars",
+    "chipTruncated": "Pasted posting · {chars, number} chars (truncated)"
+  },
+  "input": {
+    "dismissError": "Dismiss error",
+    "queuedApproval": "Queued — waiting on your approval above",
+    "queuedReply": "Queued — sends when the current reply finishes",
+    "removeFromQueue": "Remove from queue",
+    "removePaste": "Remove pasted content",
+    "placeholder": "Ask or paste a job posting…",
+    "waitingApproval": "Waiting on your approval above",
+    "stop": "Stop response",
+    "send": "Send"
+  },
+  "provider": {
+    "noModel": "No AI model is configured. Pick one in Settings to use the assistant.",
+    "ollamaUnreachable": "Ollama is not reachable.",
+    "generationStopped": "Generation stopped. Reopen the assistant to continue.",
+    "clearedAndStopped": "Conversation cleared and generation stopped."
+  },
+  "messages": {
+    "interrupted": "This reply was interrupted.",
+    "continue": "Continue",
+    "dismiss": "Dismiss",
+    "thinking": "Thinking…"
+  },
+  "running": {
+    "addJob": "Preparing to add a job…",
+    "getResume": "Reading your resume…",
+    "reviewResume": "Reviewing your resume…",
+    "matchJob": "Matching your resume to this job…",
+    "coverLetter": "Writing your cover letter…",
+    "other": "Working…"
+  },
+  "approval": {
+    "needsApproval": "Needs approval",
+    "addJobTool": "add_job",
+    "company": "Company",
+    "jobTitle": "Job title",
+    "location": "Location",
+    "source": "Source",
+    "salary": "Salary",
+    "tags": "Tags",
+    "noDescription": "No description — the assistant will ask for one.",
+    "waiting": "Waiting…",
+    "reasonPlaceholder": "What was wrong? (optional)",
+    "send": "Send",
+    "skip": "Skip",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
+  },
+  "description": {
+    "summary": "Description · {source} · {chars} chars",
+    "pasted": "pasted verbatim",
+    "model": "model-supplied",
+    "titleOnly": "title-only",
+    "partial": "partial",
+    "full": "full"
+  },
+  "results": {
+    "cancelled": "Cancelled — nothing was saved.",
+    "failed": "That could not be completed. Try asking again.",
+    "noResumes": "You don't have any resumes yet — create one on the Profile page.",
+    "whichResume": "Which resume?",
+    "couldNotRead": "Couldn't read <strong>{title}</strong> — {reason}",
+    "addJob": {
+      "couldNotAdd": "Could not add the job — {error}",
+      "alreadyTracked": "Already tracked: <strong>{title}</strong> at <strong>{company}</strong>. No second job was created.",
+      "openExisting": "Open the existing job",
+      "added": "Added <strong>{title}</strong>.",
+      "addedAt": "Added <strong>{title}</strong> at {company}.",
+      "untitled": "job",
+      "openJob": "Open the job",
+      "newEntities": "New: {list}"
+    },
+    "getResume": {
+      "read": "Read <strong>{title}</strong>.",
+      "readDefault": "Read <strong>{title}</strong> (your default).",
+      "readPage": "Read <strong>{title}</strong> (the one you're viewing).",
+      "characters": "{chars, number} characters",
+      "truncated": "truncated",
+      "ambiguous": "more than one resume has this title"
+    },
+    "reviewResume": {
+      "couldNotReview": "Couldn't review <strong>{title}</strong> — {reason}",
+      "notSaved": "Review not saved — {error}"
+    },
+    "matchJob": {
+      "noJob": "Open the job you want to match first — I score the job you're looking at.",
+      "whichResume": "Which resume should I match against?",
+      "couldNotMatch": "Couldn't match <strong>{title}</strong> — {reason}",
+      "footer": "{title} · matched against {resume}",
+      "footerAt": "{title} at {company} · matched against {resume}",
+      "notSaved": "Match not saved — {error}"
+    },
+    "coverLetter": {
+      "noJob": "Open the job you want a letter for first — I write for the job you're looking at.",
+      "noDescription": "<strong>{title}</strong> has no real description yet. Add the posting and I can write a letter from it.",
+      "whichResume": "Which resume should the letter draw on?",
+      "couldNotWrite": "Couldn't write a letter for <strong>{title}</strong> — {reason}",
+      "footer": "{title} · drawn from {resume}",
+      "footerAt": "{title} at {company} · drawn from {resume}",
+      "saved": "Saved as “{title}” — <link>edit it in Profile → Documents</link>",
+      "notSaved": "Letter not saved — {error}"
+    }
+  },
+  "scores": {
+    "impact": "Impact",
+    "clarity": "Clarity",
+    "strongMatch": "strong match",
+    "goodMatch": "good match",
+    "partialMatch": "partial match",
+    "weakMatch": "weak match"
+  },
+  "resumePicker": {
+    "ariaLabel": "Select a resume",
+    "placeholder": "Pick a resume"
+  },
+  "actions": {
+    "loadFailed": "Failed to load the conversation.",
+    "saveFailed": "Failed to save the conversation.",
+    "clearFailed": "Failed to clear the conversation."
+  }
+}

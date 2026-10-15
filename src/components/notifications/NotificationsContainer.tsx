@@ -26,7 +26,7 @@ import {
 } from "@/actions/notification.actions";
 import type { NotificationItem, NotificationTab } from "@/models/notification.model";
 import { NotificationRow } from "./NotificationRow";
-import { groupByDay, isErrorNotification } from "./notificationDisplay";
+import { groupByDay, isErrorNotification, useNotificationText } from "./notificationDisplay";
 
 type Counts = Record<NotificationTab, number>;
 type PendingDelete = { kind: "clear" } | { kind: "delete"; id: string };
@@ -36,16 +36,12 @@ interface NotificationsContainerProps {
   automations: { id: string; name: string }[];
 }
 
-const TABS: { id: NotificationTab; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "unread", label: "Unread" },
-  { id: "errors", label: "Errors" },
-  { id: "runs", label: "Runs" },
-];
-const TAB_IDS = TABS.map((t) => t.id);
+const TAB_IDS: NotificationTab[] = ["all", "unread", "errors", "runs"];
 const ALL_AUTOMATIONS = "all";
 
 export function NotificationsContainer({ initial, automations }: NotificationsContainerProps) {
+  const text = useNotificationText();
+  const { t } = text;
   const { refresh } = useNotifications();
   const [rawTab, setTab] = useTabQueryParam(TAB_IDS, "all");
   const tab = rawTab as NotificationTab;
@@ -58,10 +54,10 @@ export function NotificationsContainer({ initial, automations }: NotificationsCo
   // Drops a response that a newer tab or filter pick has overtaken.
   const requestId = useRef(0);
 
-  const query = async (t: NotificationTab, automation: string | undefined, skip: number) => {
+  const query = async (which: NotificationTab, automation: string | undefined, skip: number) => {
     const id = ++requestId.current;
     setLoading(true);
-    const res = await getNotificationList({ tab: t, automationId: automation, skip });
+    const res = await getNotificationList({ tab: which, automationId: automation, skip });
     if (id !== requestId.current) return;
     setLoading(false);
     if (!res.success || !("data" in res) || !res.data) return;
@@ -145,67 +141,65 @@ export function NotificationsContainer({ initial, automations }: NotificationsCo
     setPending(null);
   };
 
-  const groups = groupByDay(items);
+  const groups = groupByDay(items, undefined, text);
 
   return (
     <Card>
       <ResponsiveCardHeader>
         <div className="flex flex-col gap-1.5">
-          <CardTitle>Notifications</CardTitle>
-          <CardDescription>
-            Automation results and job board errors from the last 30 days.
-          </CardDescription>
+          <CardTitle>{t("page.title")}</CardTitle>
+          <CardDescription>{t("page.description")}</CardDescription>
         </div>
         <div className="flex items-center gap-2 sm:ml-auto">
           <Button variant="outline" size="sm" className="gap-1.5" onClick={onMarkAll}>
             <CheckCheck className="h-4 w-4" />
-            Mark all read
+            {t("page.markAllRead")}
           </Button>
           <Button variant="ghost" size="sm" className="gap-1.5" onClick={() => setPending({ kind: "clear" })}>
             <Trash2 className="h-4 w-4" />
-            Clear read
+            {t("page.clearRead")}
           </Button>
         </div>
       </ResponsiveCardHeader>
       <CardContent>
         <div className="flex flex-col gap-3 border-b sm:flex-row sm:items-end sm:justify-between">
           <div role="tablist" className="flex gap-1 overflow-x-auto">
-            {TABS.map((t) => (
+            {TAB_IDS.map((id) => (
               <button
-                key={t.id}
+                key={id}
                 type="button"
                 role="tab"
-                aria-selected={tab === t.id}
-                onClick={() => setTab(t.id)}
+                aria-selected={tab === id}
+                onClick={() => setTab(id)}
                 className={cn(
                   "-mb-px flex items-center gap-1.5 border-b-2 px-2.5 py-2 text-sm",
-                  tab === t.id
+                  tab === id
                     ? "border-foreground font-semibold text-foreground"
                     : "border-transparent font-medium text-muted-foreground",
                 )}
               >
-                {t.label}
+                {t(`tabs.${id}`)}
                 <span
                   className={cn(
                     "rounded-full px-1.5 text-[11px] font-semibold",
-                    t.id === "errors" && counts.errors > 0
+                    id === "errors" && counts.errors > 0
                       ? "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300"
                       : "bg-muted text-muted-foreground",
                   )}
                 >
-                  {counts[t.id]}
+                  {counts[id]}
                 </span>
               </button>
             ))}
           </div>
           <div className="flex items-center gap-2 pb-2">
-            <span className="text-sm text-muted-foreground">Automation</span>
+            <span className="text-sm text-muted-foreground">{t("page.automation")}</span>
             <Select value={automationId ?? ALL_AUTOMATIONS} onValueChange={onAutomationChange}>
-              <SelectTrigger className="h-8 w-[200px]" aria-label="Automation">
+              <SelectTrigger className="h-8 w-[200px]" aria-label={t("page.automation")}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ALL_AUTOMATIONS}>All automations</SelectItem>
+                <SelectItem value={ALL_AUTOMATIONS}>{t("page.allAutomations")}</SelectItem>
                 {automations.map((a) => (
                   <SelectItem key={a.id} value={a.id}>
                     {a.name}
@@ -218,9 +212,9 @@ export function NotificationsContainer({ initial, automations }: NotificationsCo
 
         {items.length === 0 ? (
           <div className="py-12 text-center">
-            <p className="text-sm font-medium">No notifications</p>
+            <p className="text-sm font-medium">{t("page.emptyTitle")}</p>
             <p className="text-sm text-muted-foreground">
-              Automation results will appear here after the next run.
+              {t("page.emptyDescription")}
             </p>
           </div>
         ) : (
@@ -252,27 +246,27 @@ export function NotificationsContainer({ initial, automations }: NotificationsCo
               disabled={loading}
               onClick={() => query(tab, automationId, items.length)}
             >
-              Load more
+              {t("page.loadMore")}
             </Button>
           </div>
         )}
 
         <p className="pt-6 text-center text-xs text-muted-foreground">
-          Notifications older than 30 days are removed automatically.
+          {t("page.retention")}
         </p>
       </CardContent>
       <DeleteAlertDialog
-        pageTitle="notification"
+        pageTitle={t("page.deleteItem")}
         open={pending !== null}
         onOpenChange={(open) => !open && setPending(null)}
         onDelete={onConfirmDelete}
         alertTitle={
-          pending?.kind === "clear" ? "Delete all read notifications?" : "Delete this notification?"
+          pending?.kind === "clear" ? t("page.deleteReadTitle") : t("page.deleteOneTitle")
         }
         alertDescription={
           pending?.kind === "clear"
-            ? "Every read notification is deleted, including ones not loaded on this page. This cannot be undone."
-            : "This notification is deleted for good. This cannot be undone."
+            ? t("page.deleteReadDescription")
+            : t("page.deleteOneDescription")
         }
       />
     </Card>
