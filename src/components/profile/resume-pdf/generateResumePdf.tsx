@@ -2,6 +2,7 @@ import React from "react";
 import { Resume, SectionType } from "@/models/profile.model";
 import { htmlToPdfNodes } from "@/components/pdf-export/html-to-pdf";
 import { sanitizeFilename } from "@/components/pdf-export/download";
+import { defaultFontBase, registerPdfFonts } from "@/components/pdf-export/fonts";
 import type { HtmlStyleSet } from "@/components/pdf-export/types";
 import {
   RESUME_LAYOUT_LABELS,
@@ -50,11 +51,13 @@ function buildHtmlNodes(
 export async function generateResumePdfBlob(
   resume: Resume,
   settings: ResumeExportSettings = defaultResumeExportSettings,
+  fontBase: string = defaultFontBase(),
 ): Promise<{ blob: Blob; filename: string }> {
   const layout = settings.template;
 
   const { pdf, Font } = await import("@react-pdf/renderer");
   Font.registerHyphenationCallback((word) => [word]);
+  registerPdfFonts(Font, fontBase);
 
   // Branch fully so each sheet narrows to its own template's prop type
   let document: React.ReactElement;

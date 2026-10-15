@@ -1,4 +1,5 @@
 import type { BaseExportSettings, PdfFont } from "@/models/pdfExport.model";
+import { INTER } from "./fonts";
 
 export type FontQuartet = {
   regular: string;
@@ -7,15 +8,12 @@ export type FontQuartet = {
   boldItalic: string;
 };
 
-// The three standard-14 families @react-pdf/font ships; anything else
-// would need font files shipped or fetched.
+// The sans option is Inter, shipped in public/fonts (see ./fonts): the
+// standard-14 Helvetica has no Cyrillic. Its stored key stays "helvetica" —
+// people's saved settings hold it. Times and Courier are still the
+// standard-14 families and still have no Cyrillic.
 export const FONT_QUARTETS: Record<PdfFont, FontQuartet> = {
-  helvetica: {
-    regular: "Helvetica",
-    bold: "Helvetica-Bold",
-    italic: "Helvetica-Oblique",
-    boldItalic: "Helvetica-BoldOblique",
-  },
+  helvetica: INTER,
   times: {
     regular: "Times-Roman",
     bold: "Times-Bold",

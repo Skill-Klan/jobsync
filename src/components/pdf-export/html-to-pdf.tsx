@@ -1,6 +1,7 @@
 import React from "react";
 import { Text, View } from "@react-pdf/renderer";
 import { HtmlStyleSet } from "./types";
+import { INTER } from "./fonts";
 
 // Use numeric constants — the `Node` global is not available in all rendering contexts
 const TEXT_NODE = 3;
@@ -124,9 +125,9 @@ function walkNode(
 
 const DEFAULT_STYLE_SET: HtmlStyleSet = {
   bodyText: {},
-  bold: { fontFamily: "Helvetica-Bold" },
-  italic: { fontFamily: "Helvetica-Oblique" },
-  boldItalic: { fontFamily: "Helvetica-BoldOblique" },
+  bold: { fontFamily: INTER.bold },
+  italic: { fontFamily: INTER.italic },
+  boldItalic: { fontFamily: INTER.boldItalic },
   h2text: {},
   listRow: { flexDirection: "row" },
   bullet: {},
