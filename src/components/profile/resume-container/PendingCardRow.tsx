@@ -93,7 +93,7 @@ function PendingCardDetail({ card }: { card: ImportCardPayload }) {
         <DetailRow label={t("importReview.fields.issuer")} value={d.organization} />
         <DetailRow label={t("importReview.fields.issued")} value={d.issueDate} />
         <DetailRow label={t("importReview.fields.expires")} value={d.expirationDate} />
-        <DetailRow label="URL" value={d.credentialUrl} />
+        <DetailRow label={t("importReview.fields.url")} value={d.credentialUrl} />
       </div>
     );
   }

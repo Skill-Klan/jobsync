@@ -30,6 +30,7 @@
     "removeFromQueue": "Remove from queue",
     "removePaste": "Remove pasted content",
     "placeholder": "Ask or paste a job posting…",
+    "uploadFiles": "Upload files",
     "waitingApproval": "Waiting on your approval above",
     "stop": "Stop response",
     "send": "Send"
@@ -69,7 +70,8 @@
     "send": "Send",
     "skip": "Skip",
     "confirm": "Confirm",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "url": "URL"
   },
   "description": {
     "summary": "Description · {source} · {chars} chars",

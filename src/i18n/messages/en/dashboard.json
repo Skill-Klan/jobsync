@@ -76,6 +76,7 @@
     "cancel": "Cancel",
     "save": "Save goals",
     "saved": "Daily goals saved.",
-    "hoursUnit": "h"
+    "hoursUnit": "h",
+    "range": "{min} to {max}"
   }
 }

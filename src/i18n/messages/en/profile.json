@@ -207,7 +207,8 @@
       "certificationTitle": "Title",
       "issuer": "Issuer",
       "issued": "Issued",
-      "expires": "Expires"
+      "expires": "Expires",
+      "url": "URL"
     },
     "noSectionsTitle": "No sections found",
     "noSectionsDescription": "No structured data could be extracted from the document.",
@@ -249,7 +250,8 @@
     "link": "Link {number}",
     "linkHint": "(optional — portfolio, LinkedIn, GitHub, etc.)",
     "linkLabel": "Label",
-    "addLink": "+ Add another link"
+    "addLink": "+ Add another link",
+    "url": "URL"
   },
   "summary": {
     "editTitle": "Edit Summary",

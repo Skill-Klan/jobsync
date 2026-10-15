@@ -106,7 +106,8 @@
     "notesPlaceholder": "Add any context for this stage…",
     "setCurrent": "Set as current stage",
     "saveChanges": "Save Changes",
-    "add": "Add Stage"
+    "add": "Add Stage",
+    "currentLocked": "This is the current stage — tick the box on another stage to move it."
   },
   "records": {
     "ofTotal": "Showing <strong>1 to {count}</strong> of<strong> {total}</strong> {label}",

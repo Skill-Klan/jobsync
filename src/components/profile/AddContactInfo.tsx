@@ -261,7 +261,7 @@ function AddContactInfo({
                   name="url1"
                   render={({ field }) => (
                     <FormItem className="col-span-2">
-                      <FormLabel className="text-xs text-muted-foreground">URL</FormLabel>
+                      <FormLabel className="text-xs text-muted-foreground">{t("contactInfo.url")}</FormLabel>
                       <FormControl>
                         <Input placeholder="https://" {...field} />
                       </FormControl>
@@ -317,7 +317,7 @@ function AddContactInfo({
                     name="url2"
                     render={({ field }) => (
                       <FormItem className="col-span-2">
-                        <FormLabel className="text-xs text-muted-foreground">URL</FormLabel>
+                        <FormLabel className="text-xs text-muted-foreground">{t("contactInfo.url")}</FormLabel>
                         <FormControl>
                           <Input placeholder="https://" {...field} />
                         </FormControl>
