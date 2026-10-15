@@ -12,10 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import type { CreateAutomationInput } from "@/models/automation.schema";
 import { toastError } from "@/lib/toast";
-import {
-  buildIncompleteResumeHint,
-  hasMinResumeSections,
-} from "@/lib/resumeSections";
+import { hasMinResumeSections, MIN_SECTIONS } from "@/lib/resumeSections";
 import type { AutomationWithResume } from "@/models/automation.model";
 import { AtsSearchStep } from "./AtsSearchStep";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
@@ -46,6 +43,7 @@ export function AutomationWizard({
   editAutomation,
 }: AutomationWizardProps) {
   const t = useTranslations("automations");
+  const tc = useTranslations("common");
   const {
     form,
     formValues,
@@ -103,7 +101,7 @@ export function AutomationWizard({
                 selectedResume &&
                 !hasMinResumeSections(selectedResume.sectionCount)
               ) {
-                toastError(buildIncompleteResumeHint());
+                toastError(tc("resumeSections.incompleteHint", MIN_SECTIONS));
                 return;
               }
               return onSubmit(data);

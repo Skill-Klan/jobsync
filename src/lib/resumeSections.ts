@@ -5,15 +5,8 @@ export const hasMinResumeSections = (
 ): boolean =>
   (sectionCount ?? 0) >= APP_CONSTANTS.MIN_RESUME_SECTIONS_FOR_SELECTION;
 
-export const buildInsufficientSectionsMessage = (
-  action: string,
-  hint?: string,
-): string => {
-  const min = APP_CONSTANTS.MIN_RESUME_SECTIONS_FOR_SELECTION;
-  return `Add at least ${min} sections${
-    hint ? ` (${hint})` : ""
-  } before ${action}.`;
+// The `min` value for the common.resumeSections messages — the texts that say
+// why a resume with too few sections can't be used.
+export const MIN_SECTIONS = {
+  min: APP_CONSTANTS.MIN_RESUME_SECTIONS_FOR_SELECTION,
 };
-
-export const buildIncompleteResumeHint = (): string =>
-  `Add at least ${APP_CONSTANTS.MIN_RESUME_SECTIONS_FOR_SELECTION} sections to use this resume when adding a job or in an automation. An attached file does not count.`;

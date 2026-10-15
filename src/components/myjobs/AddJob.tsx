@@ -57,10 +57,7 @@ import { getResumeList } from "@/actions/profile.actions";
 import { getCoverLetterList } from "@/actions/coverLetter.actions";
 import { TagInput } from "./TagInput";
 import { IncompleteResumeHint } from "../IncompleteResumeHint";
-import {
-  buildIncompleteResumeHint,
-  hasMinResumeSections,
-} from "@/lib/resumeSections";
+import { hasMinResumeSections, MIN_SECTIONS } from "@/lib/resumeSections";
 import { APP_CONSTANTS, APPLIED_STATUS_VALUES } from "@/lib/constants";
 import {
   getFromLocalStorage,
@@ -102,6 +99,7 @@ export function AddJob({
 }: AddJobProps) {
   const router = useRouter();
   const t = useTranslations("jobs");
+  const tc = useTranslations("common");
   const label = useLabel();
   const types = useJobTypeLabels();
   const searchParams = useSearchParams();
@@ -237,7 +235,7 @@ export function AddJob({
   function onSubmit(data: z.infer<typeof AddJobFormSchema>) {
     const selected = resumes.find((r) => r.id === data.resume);
     if (selected && !hasMinResumeSections(selected._count?.ResumeSections)) {
-      toastError(buildIncompleteResumeHint());
+      toastError(tc("resumeSections.incompleteHint", MIN_SECTIONS));
       return;
     }
     startTransition(async () => {

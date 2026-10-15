@@ -113,5 +113,13 @@
     "shown": "Showing <strong>1 to {count}</strong> {label}",
     "defaultLabel": "records"
   },
-  "genericError": "Something went wrong. Please try again."
+  "genericError": "Something went wrong. Please try again.",
+  "resumeSections": {
+    "notEnoughTitle": "Not enough content",
+    "notEnough": {
+      "setDefault": "Add at least {min} sections before setting this resume as default.",
+      "copy": "Add at least {min} sections before creating a copy."
+    },
+    "incompleteHint": "Add at least {min} sections to use this resume when adding a job or in an automation. An attached file does not count."
+  }
 }

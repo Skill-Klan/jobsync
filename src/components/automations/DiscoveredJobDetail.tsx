@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import type { DiscoveredJob } from "@/models/automation.model";
 import type { JobMatchData } from "@/models/ai.schemas";
-import { getWorkplaceTypeLabel } from "@/models/job.model";
+import { useJobTypeLabels } from "@/components/myjobs/useJobTypeLabels";
 import { formatUrl } from "@/lib/utils";
 import {
   acceptDiscoveredJob,
@@ -52,6 +52,7 @@ export function DiscoveredJobDetail({
   onRefresh,
 }: DiscoveredJobDetailProps) {
   const t = useTranslations("automations");
+  const jobTypeLabels = useJobTypeLabels();
   const label = useLabel();
   const [loadingAction, setLoadingAction] = useState<
     "accept" | "dismiss" | "analyze" | null
@@ -139,7 +140,7 @@ export function DiscoveredJobDetail({
                 </span>
                 {job.workplaceType && (
                   <Badge variant="outline">
-                    {getWorkplaceTypeLabel(job.workplaceType, job.workplaceType)}
+                    {jobTypeLabels.workplaceType(job.workplaceType, job.workplaceType)}
                   </Badge>
                 )}
               </DialogDescription>

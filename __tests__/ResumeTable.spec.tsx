@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import DocumentTable from "@/components/profile/ResumeTable";
-import { buildIncompleteResumeHint } from "@/lib/resumeSections";
+const HINT =
+  "Add at least 2 sections to use this resume when adding a job or in an automation. An attached file does not count.";
 
 vi.mock("@/actions/profile.actions", () => ({
   deleteResumeById: vi.fn(),
@@ -36,7 +37,7 @@ describe("ResumeTable incomplete marker", () => {
     ]);
 
     expect(
-      screen.getByRole("img", { name: buildIncompleteResumeHint() }),
+      screen.getByRole("img", { name: HINT }),
     ).toBeInTheDocument();
   });
 
@@ -44,7 +45,7 @@ describe("ResumeTable incomplete marker", () => {
     renderTable([{ ...base, id: "r2", title: "CV", sectionCount: 3 }]);
 
     expect(
-      screen.queryByRole("img", { name: buildIncompleteResumeHint() }),
+      screen.queryByRole("img", { name: HINT }),
     ).not.toBeInTheDocument();
   });
 
@@ -54,7 +55,7 @@ describe("ResumeTable incomplete marker", () => {
     ]);
 
     expect(
-      screen.queryByRole("img", { name: buildIncompleteResumeHint() }),
+      screen.queryByRole("img", { name: HINT }),
     ).not.toBeInTheDocument();
   });
 });

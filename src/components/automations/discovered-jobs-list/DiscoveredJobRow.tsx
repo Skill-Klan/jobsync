@@ -16,7 +16,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import type { DiscoveredJob } from "@/models/automation.model";
-import { getWorkplaceTypeLabel } from "@/models/job.model";
+import { useJobTypeLabels } from "@/components/myjobs/useJobTypeLabels";
 import { isAnalyzed, getPrerankPercent } from "./matchData";
 import { useFormatDate, useLabel, useTranslations } from "@/i18n/client";
 import { DATE_PATTERNS } from "@/i18n/dates";
@@ -41,6 +41,7 @@ export function DiscoveredJobRow({
   onDismiss,
 }: DiscoveredJobRowProps) {
   const t = useTranslations("automations");
+  const jobTypeLabels = useJobTypeLabels();
   const label = useLabel();
   const formatDate = useFormatDate();
   const analyzed = isAnalyzed(job);
@@ -80,7 +81,7 @@ export function DiscoveredJobRow({
           {job.Location?.label || t("shared.notAvailable")}
           {job.workplaceType && (
             <Badge variant="outline" className="text-xs">
-              {getWorkplaceTypeLabel(job.workplaceType, job.workplaceType)}
+              {jobTypeLabels.workplaceType(job.workplaceType, job.workplaceType)}
             </Badge>
           )}
         </div>
