@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toastActionResult } from "@/lib/toast";
 import { setStageNotes } from "@/actions/jobStage.actions";
 import type { JobStage } from "@/models/jobStage.model";
+import { useTranslations } from "@/i18n/client";
 
 type StageNotesProps = {
   stage: JobStage;
@@ -12,6 +13,7 @@ type StageNotesProps = {
 };
 
 export function StageNotes({ stage, onChanged }: StageNotesProps) {
+  const t = useTranslations("jobs");
   const [draft, setDraft] = useState(stage.notes ?? "");
   const [saving, startTransition] = useTransition();
 
@@ -26,7 +28,10 @@ export function StageNotes({ stage, onChanged }: StageNotesProps) {
   const save = () => {
     startTransition(async () => {
       const res = await setStageNotes(stage.id, draft);
-      toastActionResult(res, { success: "Note saved", onSuccess: onChanged });
+      toastActionResult(res, {
+        success: t("stageNotes.saved"),
+        onSuccess: onChanged,
+      });
     });
   };
 
@@ -36,13 +41,13 @@ export function StageNotes({ stage, onChanged }: StageNotesProps) {
         htmlFor={`stage-notes-${stage.id}`}
         className="text-[11px] font-bold tracking-wide text-muted-foreground"
       >
-        NOTES
+        {t("stageNotes.label")}
       </label>
       <Textarea
         id={`stage-notes-${stage.id}`}
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
-        placeholder="What happened, what to prepare next time…"
+        placeholder={t("stageNotes.placeholder")}
         className="mt-2 min-h-18 resize-none text-sm"
       />
       {/* Only once there is something to save: the artboard shows the edit
@@ -55,7 +60,7 @@ export function StageNotes({ stage, onChanged }: StageNotesProps) {
             className="cursor-pointer"
             onClick={() => setDraft(stage.notes ?? "")}
           >
-            Cancel
+            {t("ui.cancel")}
           </Button>
           <Button
             size="sm"
@@ -63,7 +68,7 @@ export function StageNotes({ stage, onChanged }: StageNotesProps) {
             disabled={saving}
             onClick={save}
           >
-            Save Changes
+            {t("stageNotes.saveChanges")}
           </Button>
         </div>
       )}

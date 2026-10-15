@@ -1,5 +1,5 @@
 "use client";
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -17,13 +17,15 @@ import { toastActionResult } from "@/lib/toast";
 import { addJobContact } from "@/actions/contact.actions";
 import type { ContactRef, ContactRole } from "@/models/contact.model";
 import type { Company, JobLocation } from "@/models/job.model";
+import { useLabel, useTranslations } from "@/i18n/client";
 
-const LinkContactSchema = z.object({
-  contact: z.string().min(1, "Pick a contact."),
-  contactRole: z.string().min(1, "Pick a role."),
-});
+const linkContactSchema = (messages: { contact: string; role: string }) =>
+  z.object({
+    contact: z.string().min(1, messages.contact),
+    contactRole: z.string().min(1, messages.role),
+  });
 
-type LinkContactValues = z.infer<typeof LinkContactSchema>;
+type LinkContactValues = z.infer<ReturnType<typeof linkContactSchema>>;
 
 type AddJobContactFormProps = {
   jobId: string;
@@ -46,13 +48,28 @@ export function AddJobContactForm({
   onLinked,
   onContactCreated,
 }: AddJobContactFormProps) {
+  const t = useTranslations("jobs");
+  const label = useLabel();
   const [isPending, startTransition] = useTransition();
   const [newContactOpen, setNewContactOpen] = useState(false);
+  const schema = useMemo(
+    () =>
+      linkContactSchema({
+        contact: t("contacts.pickContact"),
+        role: t("contacts.pickRole"),
+      }),
+    [t],
+  );
+  // Seeded roles are stored in English; the picker shows them in the user's language.
+  const roleOptions = roles.map((role) => ({
+    ...role,
+    label: label("contactRole", role),
+  }));
   // What the contact picker's search box holds, so "New contact" can carry it
   const [typedName, setTypedName] = useState("");
 
   const form = useForm<LinkContactValues>({
-    resolver: zodResolver(LinkContactSchema),
+    resolver: zodResolver(schema),
     defaultValues: { contact: "", contactRole: "" },
   });
 
@@ -60,7 +77,7 @@ export function AddJobContactForm({
     startTransition(async () => {
       const res = await addJobContact(jobId, values.contact, values.contactRole);
       toastActionResult(res, {
-        success: "Contact has been linked to this job",
+        success: t("contacts.linked"),
         onSuccess: () => {
           form.reset();
           onLinked();
@@ -80,7 +97,7 @@ export function AddJobContactForm({
           name="contact"
           render={({ field }) => (
             <FormItem className="flex flex-col">
-              <FormLabel>Contact</FormLabel>
+              <FormLabel>{t("contacts.contact")}</FormLabel>
               <Combobox
                 options={contacts}
                 field={field}
@@ -97,15 +114,20 @@ export function AddJobContactForm({
           name="contactRole"
           render={({ field }) => (
             <FormItem className="flex flex-col">
-              <FormLabel>Role</FormLabel>
-              <Combobox options={roles} field={field} creatable label="role" />
+              <FormLabel>{t("contacts.role")}</FormLabel>
+              <Combobox
+                options={roleOptions}
+                field={field}
+                creatable
+                label="role"
+              />
               <FormMessage />
             </FormItem>
           )}
         />
 
         <Button type="submit" className="cursor-pointer" disabled={isPending}>
-          Save
+          {t("ui.save")}
         </Button>
         <Button
           type="button"
@@ -113,7 +135,7 @@ export function AddJobContactForm({
           className="cursor-pointer"
           onClick={onCancel}
         >
-          Cancel
+          {t("ui.cancel")}
         </Button>
         <Button
           type="button"
@@ -121,7 +143,7 @@ export function AddJobContactForm({
           className="cursor-pointer"
           onClick={() => setNewContactOpen(true)}
         >
-          New contact
+          {t("contacts.newContact")}
         </Button>
       </form>
 

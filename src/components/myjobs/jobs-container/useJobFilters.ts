@@ -9,6 +9,7 @@ import {
   JobSource,
   JobTitle,
 } from "@/models/job.model";
+import { useLabel } from "@/i18n/client";
 
 // Owns the URL-synced job list filters: deep-link chips (company/title/location/source/applied) and the popover facets.
 export function useJobFilters({
@@ -23,6 +24,7 @@ export function useJobFilters({
   sources: JobSource[];
 }) {
   const router = useRouter();
+  const label = useLabel();
   const pathname = usePathname();
   const queryParams = useSearchParams();
   const [companyFilter, setCompanyFilter] = useState<string | null>(
@@ -53,8 +55,11 @@ export function useJobFilters({
     ? locations.find((l) => l.value === locationFilter)?.label
     : null;
 
+  const source = sourceFilter
+    ? sources.find((s) => s.value === sourceFilter)
+    : undefined;
   const sourceLabel = sourceFilter
-    ? sources.find((s) => s.value === sourceFilter)?.label
+    ? source && label("jobSource", source)
     : null;
 
   // Parsed from the URL string so the object is stable between renders.

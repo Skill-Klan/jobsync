@@ -3,6 +3,7 @@ import { useState } from "react";
 import { JobResponse, JobStatus } from "@/models/job.model";
 import { DeleteAlertDialog } from "../DeleteAlertDialog";
 import { JobCard } from "./JobCard";
+import { useTranslations } from "@/i18n/client";
 
 type MyJobsGridProps = {
   jobs: JobResponse[];
@@ -21,6 +22,7 @@ function MyJobsGrid({
   onChangeJobStatus,
   onAddNote,
 }: MyJobsGridProps) {
+  const t = useTranslations("jobs");
   const [alertOpen, setAlertOpen] = useState(false);
   const [jobIdToDelete, setJobIdToDelete] = useState("");
 
@@ -45,7 +47,7 @@ function MyJobsGrid({
         ))}
       </div>
       <DeleteAlertDialog
-        pageTitle="job"
+        pageTitle={t("deleteItem.job")}
         open={alertOpen}
         onOpenChange={setAlertOpen}
         onDelete={() => deleteJob(jobIdToDelete)}

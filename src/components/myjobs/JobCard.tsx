@@ -8,17 +8,13 @@ import {
   StickyNote,
   Trash,
 } from "lucide-react";
-import { format } from "date-fns";
 import Link from "next/link";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { CircularScore } from "@/components/CircularScore";
-import {
-  JobResponse,
-  JobStatus,
-  getJobTypeLabel,
-  getWorkplaceTypeLabel,
-} from "@/models/job.model";
+import { JobResponse, JobStatus } from "@/models/job.model";
+import { useFormatDate, useLabel, useTranslations } from "@/i18n/client";
+import { JOB_DATE, useJobTypeLabels } from "./useJobTypeLabels";
 import { JobStatusBadge } from "./JobStatusBadge";
 import { JobActionsMenu } from "./JobActionsMenu";
 import { MatchJobButton } from "./MatchJobButton";
@@ -41,6 +37,10 @@ export function JobCard({
   onAddNote,
   onDeleteJob,
 }: JobCardProps) {
+  const t = useTranslations("jobs");
+  const label = useLabel();
+  const formatDate = useFormatDate();
+  const types = useJobTypeLabels();
   const notesCount = job._count?.Notes ?? 0;
 
   return (
@@ -98,15 +98,15 @@ export function JobCard({
         <span className="flex items-center gap-1 whitespace-nowrap">
           <Calendar className="h-3.5 w-3.5 shrink-0" />
           {job.appliedDate
-            ? format(job.appliedDate, "PP")
+            ? formatDate(job.appliedDate, JOB_DATE)
             : job.applied
-              ? "Applied"
-              : "Not applied"}
+              ? t("card.applied")
+              : t("card.notApplied")}
         </span>
         {job.JobSource?.label && (
           <span className="flex min-w-0 items-center gap-1">
             <PlusCircle className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate">{job.JobSource.label}</span>
+            <span className="truncate">{label("jobSource", job.JobSource)}</span>
           </span>
         )}
         {job.salaryRange && (
@@ -122,8 +122,8 @@ export function JobCard({
           <JobStatusBadge job={job} />
           <span className="truncate text-xs text-muted-foreground">
             {[
-              getJobTypeLabel(job.jobType),
-              job.workplaceType ? getWorkplaceTypeLabel(job.workplaceType) : null,
+              types.jobType(job.jobType),
+              job.workplaceType ? types.workplaceType(job.workplaceType) : null,
             ]
               .filter(Boolean)
               .join(" · ")}
@@ -133,8 +133,8 @@ export function JobCard({
           <Button
             variant="ghost"
             size="icon"
-            title="Edit Job"
-            aria-label="Edit Job"
+            title={t("ui.editJob")}
+            aria-label={t("ui.editJob")}
             onClick={() => editJob(job.id)}
           >
             <Pencil className="h-4 w-4" />
@@ -142,8 +142,8 @@ export function JobCard({
           <Button
             variant="ghost"
             size="icon"
-            title="Delete Job"
-            aria-label="Delete Job"
+            title={t("ui.deleteJob")}
+            aria-label={t("ui.deleteJob")}
             className="text-destructive hover:text-destructive"
             onClick={() => onDeleteJob(job.id)}
           >

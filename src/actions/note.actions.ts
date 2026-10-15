@@ -5,6 +5,7 @@ import { NoteFormSchema } from "@/models/note.schema";
 import { NoteResponse } from "@/models/note.model";
 import { requireUser } from "./shared";
 import { z } from "zod";
+import { jobsError } from "./job/errorMessages";
 
 export const getNotesByJobId = async (
   jobId: string
@@ -17,7 +18,7 @@ export const getNotesByJobId = async (
       select: { id: true },
     });
     if (!job) {
-      throw new Error("Job not found");
+      throw new Error(await jobsError("jobNotFound"));
     }
 
     const notes = await prisma.note.findMany({
@@ -32,7 +33,7 @@ export const getNotesByJobId = async (
 
     return { success: true, data };
   } catch (error) {
-    const msg = "Failed to fetch notes.";
+    const msg = await jobsError("fetchNotes");
     return handleError(error, msg);
   }
 };
@@ -50,7 +51,7 @@ export const addNote = async (
       select: { id: true },
     });
     if (!job) {
-      throw new Error("Job not found");
+      throw new Error(await jobsError("jobNotFound"));
     }
 
     const note = await prisma.note.create({
@@ -63,7 +64,7 @@ export const addNote = async (
 
     return { success: true, data: note };
   } catch (error) {
-    const msg = "Failed to add note.";
+    const msg = await jobsError("addNote");
     return handleError(error, msg);
   }
 };
@@ -76,7 +77,7 @@ export const updateNote = async (
 
     const validated = NoteFormSchema.parse(data);
     if (!validated.id) {
-      throw new Error("Note ID is required for update");
+      throw new Error(await jobsError("noteIdRequired"));
     }
 
     const note = await prisma.note.update({
@@ -86,7 +87,7 @@ export const updateNote = async (
 
     return { success: true, data: note };
   } catch (error) {
-    const msg = "Failed to update note.";
+    const msg = await jobsError("updateNote");
     return handleError(error, msg);
   }
 };
@@ -103,7 +104,7 @@ export const deleteNote = async (
 
     return { success: true };
   } catch (error) {
-    const msg = "Failed to delete note.";
+    const msg = await jobsError("deleteNote");
     return handleError(error, msg);
   }
 };

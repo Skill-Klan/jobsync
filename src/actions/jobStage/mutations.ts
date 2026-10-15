@@ -16,6 +16,8 @@ import {
   sortStages,
   syncJobFromCurrentStage,
 } from "./shared";
+import { jobsError } from "../job/errorMessages";
+import { getLabel, getTranslations } from "@/i18n/server";
 
 // Either the picked type (checked for ownership) or a resolved custom name.
 // The parent status rides back out because format, duration and location are
@@ -32,7 +34,7 @@ const resolveStageType = async (
     where: { id, createdBy: userId },
     select: { id: true, Status: { select: { value: true } } },
   });
-  if (!owned) throw new Error("Stage type not found");
+  if (!owned) throw new Error(await jobsError("stageTypeNotFound"));
   return { id: owned.id, isInterview: owned.Status.value === "interview" };
 };
 
@@ -67,7 +69,7 @@ export const addJobStage = async (
     const job = await prisma.job.count({
       where: { id: parsed.jobId, userId: user.id },
     });
-    if (job === 0) throw new Error("Job not found");
+    if (job === 0) throw new Error(await jobsError("jobNotFound"));
 
     const stageType = await resolveStageType(parsed, user.id);
 
@@ -91,7 +93,7 @@ export const addJobStage = async (
     revalidatePath("/dashboard");
     return { success: true, data: created };
   } catch (error) {
-    return handleError(error, "Failed to add stage.");
+    return handleError(error, await jobsError("addStage"));
   }
 };
 
@@ -100,7 +102,7 @@ export const updateJobStage = async (
 ): Promise<any | undefined> => {
   try {
     const user = await requireUser();
-    if (!values.id) throw new Error("Stage id is required");
+    if (!values.id) throw new Error(await jobsError("stageIdRequired"));
     const parsed = AddJobStageFormSchema.parse(values);
 
     const existing = await assertStageOwned(values.id, user.id);
@@ -118,14 +120,23 @@ export const updateJobStage = async (
         prisma.jobStagePrepQuestion.count({ where: { stageId: values.id } }),
       ]);
       if (interviewers + prepQuestions > 0) {
-        const parts = [
-          interviewers > 0 &&
-            `${interviewers} interviewer${interviewers === 1 ? "" : "s"}`,
-          prepQuestions > 0 &&
-            `${prepQuestions} prep question${prepQuestions === 1 ? "" : "s"}`,
-        ].filter(Boolean);
+        const [t, label] = await Promise.all([getTranslations("jobs"), getLabel()]);
+        const interviewerText = t("errors.stageLinksInterviewers", { count: interviewers });
+        const questionText = t("errors.stageLinksQuestions", { count: prepQuestions });
+        const links =
+          interviewers > 0 && prepQuestions > 0
+            ? t("errors.stageLinksBoth", {
+                interviewers: interviewerText,
+                questions: questionText,
+              })
+            : interviewers > 0
+              ? interviewerText
+              : questionText;
         throw new Error(
-          `"${existing.StageType.label}" still has ${parts.join(" and ")}. Remove them before changing it to a non-interview stage.`,
+          t("errors.stageStillLinked", {
+            stage: label("jobStage", existing.StageType),
+            links,
+          }),
         );
       }
     }
@@ -152,7 +163,7 @@ export const updateJobStage = async (
     revalidatePath("/dashboard");
     return { success: true, data: updated };
   } catch (error) {
-    return handleError(error, "Failed to update stage.");
+    return handleError(error, await jobsError("updateStage"));
   }
 };
 
@@ -199,7 +210,7 @@ export const deleteJobStage = async (
     revalidatePath("/dashboard");
     return { success: true };
   } catch (error) {
-    return handleError(error, "Failed to delete stage.");
+    return handleError(error, await jobsError("deleteStage"));
   }
 };
 
@@ -218,7 +229,7 @@ export const setCurrentJobStage = async (
     revalidatePath("/dashboard");
     return { success: true };
   } catch (error) {
-    return handleError(error, "Failed to set the current stage.");
+    return handleError(error, await jobsError("setCurrentStage"));
   }
 };
 
@@ -239,11 +250,11 @@ export const setStageNotes = async (
       where: { id: stageId, Job: { userId: user.id } },
       data: { notes: notes.trim() || null },
     });
-    if (res.count === 0) throw new Error("Stage not found");
+    if (res.count === 0) throw new Error(await jobsError("stageNotFound"));
 
     return { success: true };
   } catch (error) {
-    return handleError(error, "Failed to save the note.");
+    return handleError(error, await jobsError("saveStageNote"));
   }
 };
 
@@ -259,17 +270,18 @@ export const setStageOutcome = async (
     await assertStageOwned(stageId, user.id);
 
     if (outcome && !STAGE_OUTCOMES.some((o) => o.value === outcome)) {
-      throw new Error(`"${outcome}" is not a known outcome.`);
+      const t = await getTranslations("jobs");
+      throw new Error(t("errors.unknownOutcome", { outcome }));
     }
 
     const res = await prisma.jobStage.updateMany({
       where: { id: stageId, Job: { userId: user.id } },
       data: { outcome },
     });
-    if (res.count === 0) throw new Error("Stage not found");
+    if (res.count === 0) throw new Error(await jobsError("stageNotFound"));
 
     return { success: true };
   } catch (error) {
-    return handleError(error, "Failed to save the outcome.");
+    return handleError(error, await jobsError("saveOutcome"));
   }
 };

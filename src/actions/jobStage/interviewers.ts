@@ -4,6 +4,7 @@ import { handleError } from "@/lib/utils";
 import { requireUser } from "../shared";
 import { resolveContactRole } from "@/lib/jobs/resolve";
 import { assertInterviewStage, assertStageOwned } from "./shared";
+import { jobsError } from "../job/errorMessages";
 
 const INTERVIEWER_ROLE_LABEL = "Interviewer";
 
@@ -34,8 +35,8 @@ export const linkStageInterviewer = async (
       assertStageOwned(stageId, user.id),
       prisma.contact.count({ where: { id: contactId, createdBy: user.id } }),
     ]);
-    if (contact === 0) throw new Error("Contact not found");
-    assertInterviewStage(stage);
+    if (contact === 0) throw new Error(await jobsError("contactNotFound"));
+    await assertInterviewStage(stage);
 
     // The job's Contacts tab stays the single roster of everyone involved.
     // Resolve-or-create: the seeded role is renameable and deletable. Resolved
@@ -66,10 +67,10 @@ export const linkStageInterviewer = async (
     if (error?.code === "P2002") {
       return {
         success: false,
-        message: "That contact is already an interviewer on this stage.",
+        message: await jobsError("alreadyInterviewer"),
       };
     }
-    return handleError(error, "Failed to link interviewer.");
+    return handleError(error, await jobsError("linkInterviewer"));
   }
 };
 
@@ -87,9 +88,9 @@ export const unlinkStageInterviewer = async (
         Contact: { createdBy: user.id },
       },
     });
-    if (res.count === 0) throw new Error("Interviewer link not found");
+    if (res.count === 0) throw new Error(await jobsError("interviewerLinkNotFound"));
     return { success: true };
   } catch (error) {
-    return handleError(error, "Failed to unlink interviewer.");
+    return handleError(error, await jobsError("unlinkInterviewer"));
   }
 };

@@ -21,12 +21,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  JobResponse,
-  getJobTypeLabel,
-  getWorkplaceTypeLabel,
-} from "@/models/job.model";
+import { JobResponse } from "@/models/job.model";
 import { CompanyLogo } from "../CompanyLogo";
+import { useJobTypeLabels } from "../useJobTypeLabels";
+import { useTranslations } from "@/i18n/client";
 
 type JobDetailsHeaderProps = {
   job: JobResponse;
@@ -53,10 +51,12 @@ export function JobDetailsHeader({
   onDelete,
   onAddNote,
 }: JobDetailsHeaderProps) {
+  const t = useTranslations("jobs");
+  const types = useJobTypeLabels();
   const details = [
     job.Location?.label,
-    getJobTypeLabel(job.jobType),
-    job.workplaceType ? getWorkplaceTypeLabel(job.workplaceType) : null,
+    types.jobType(job.jobType),
+    job.workplaceType ? types.workplaceType(job.workplaceType) : null,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -64,7 +64,12 @@ export function JobDetailsHeader({
   return (
     <div className="flex flex-col gap-4 @5xl/main:flex-row @5xl/main:items-center">
       <div className="flex flex-1 min-w-0 items-center gap-4">
-        <Button title="Go Back" variant="ghost" size="icon" onClick={onBack}>
+        <Button
+          title={t("header.back")}
+          variant="ghost"
+          size="icon"
+          onClick={onBack}
+        >
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <CompanyLogo
@@ -93,12 +98,12 @@ export function JobDetailsHeader({
           variant="outline"
           className="cursor-pointer"
           disabled={chatBusy}
-          title={chatBusy ? "The assistant is busy" : undefined}
+          title={chatBusy ? t("ui.assistantBusy") : undefined}
           onClick={onMatch}
         >
           <Sparkles className="h-4 w-4 sm:mr-2" />
           <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-            AI Match
+            {t("header.match")}
           </span>
         </Button>
         <Button
@@ -111,21 +116,23 @@ export function JobDetailsHeader({
         >
           <FileText className="h-4 w-4 sm:mr-2" />
           <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-            {job.coverLetterId ? "Regenerate Letter" : "Cover Letter"}
+            {job.coverLetterId
+              ? t("header.regenerateLetter")
+              : t("header.coverLetter")}
           </span>
         </Button>
         <Button
-          title="Edit"
+          title={t("ui.edit")}
           variant="outline"
           size="icon"
           onClick={onEdit}
           data-testid="job-details-edit-btn"
         >
           <Pencil className="h-4 w-4" />
-          <span className="sr-only">Edit</span>
+          <span className="sr-only">{t("ui.edit")}</span>
         </Button>
         <Button
-          title="Delete"
+          title={t("ui.delete")}
           variant="outline"
           size="icon"
           className="text-destructive hover:text-destructive"
@@ -133,7 +140,7 @@ export function JobDetailsHeader({
           data-testid="job-details-delete-btn"
         >
           <Trash2 className="h-4 w-4" />
-          <span className="sr-only">Delete</span>
+          <span className="sr-only">{t("ui.delete")}</span>
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -144,19 +151,19 @@ export function JobDetailsHeader({
               data-testid="job-details-actions-menu-btn"
             >
               <MoreVertical className="h-4 w-4" />
-              <span className="sr-only">Toggle menu</span>
+              <span className="sr-only">{t("ui.toggleMenu")}</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-[200px]">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuLabel>{t("ui.actions")}</DropdownMenuLabel>
             <DropdownMenuGroup>
               <DropdownMenuItem className="cursor-pointer" onClick={onEdit}>
                 <Pencil className="mr-2 h-4 w-4" />
-                Edit Job
+                {t("ui.editJob")}
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer" onClick={onAddNote}>
                 <StickyNote className="mr-2 h-4 w-4" />
-                Add a Note
+                {t("ui.addNote")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -164,7 +171,7 @@ export function JobDetailsHeader({
                 onClick={onDelete}
               >
                 <Trash className="mr-2 h-4 w-4" />
-                Delete
+                {t("ui.delete")}
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>

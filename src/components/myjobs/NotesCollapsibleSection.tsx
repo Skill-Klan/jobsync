@@ -18,6 +18,7 @@ import {
 } from "../ui/collapsible";
 import { toastError, toastSuccess } from "@/lib/toast";
 import TiptapEditor from "../TiptapEditor";
+import { useTranslations } from "@/i18n/client";
 
 type NotesCollapsibleSectionProps = {
   jobId: string;
@@ -26,6 +27,7 @@ type NotesCollapsibleSectionProps = {
 export function NotesCollapsibleSection({
   jobId,
 }: NotesCollapsibleSectionProps) {
+  const t = useTranslations("jobs");
   const [notes, setNotes] = useState<NoteResponse[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<NoteResponse | null>(null);
@@ -77,7 +79,7 @@ export function NotesCollapsibleSection({
         : await addNote({ jobId, content: editorContent });
 
       if (result.success) {
-        toastSuccess(`Note ${editingNote ? "updated" : "added"} successfully`);
+        toastSuccess(editingNote ? t("notes.updated") : t("notes.added"));
         handleCancel();
         loadNotes();
       } else {
@@ -96,7 +98,7 @@ export function NotesCollapsibleSection({
     startTransition(async () => {
       const result = await deleteNote(deleteConfirmId);
       if (result.success) {
-        toastSuccess("Note deleted successfully");
+        toastSuccess(t("notes.deleted"));
         setDeleteConfirmId(null);
         loadNotes();
       } else {
@@ -108,7 +110,7 @@ export function NotesCollapsibleSection({
   const inlineEditor = (
     <div className="border rounded-lg p-4 space-y-3">
       <p className="text-sm font-medium">
-        {editingNote ? "Edit Note" : "Add Note"}
+        {editingNote ? t("notes.editTitle") : t("notes.addTitle")}
       </p>
       <TiptapEditor
         field={
@@ -128,7 +130,7 @@ export function NotesCollapsibleSection({
           size="sm"
           onClick={handleCancel}
         >
-          Cancel
+          {t("ui.cancel")}
         </Button>
         <Button
           type="button"
@@ -136,7 +138,7 @@ export function NotesCollapsibleSection({
           onClick={handleSave}
           disabled={isPending || !editorContent.trim()}
         >
-          Save
+          {t("ui.save")}
           {isPending && <Loader className="ml-2 h-4 w-4 shrink-0 spinner" />}
         </Button>
       </div>
@@ -152,7 +154,7 @@ export function NotesCollapsibleSection({
       <div className="flex items-center gap-2">
         <CollapsibleTrigger className="flex items-center gap-2 hover:opacity-80">
           <StickyNote className="h-4 w-4" />
-          <span className="text-sm font-medium">Notes</span>
+          <span className="text-sm font-medium">{t("notes.heading")}</span>
           {notes.length > 0 && (
             <Badge variant="secondary" className="text-xs">
               {notes.length}
@@ -170,13 +172,13 @@ export function NotesCollapsibleSection({
           onClick={handleAddNote}
         >
           <PlusCircle className="h-3.5 w-3.5" />
-          New Note
+          {t("notes.newNote")}
         </Button>
       </div>
       <CollapsibleContent className="mt-3 space-y-3">
         {isAdding && inlineEditor}
         {notes.length === 0 && !isAdding ? (
-          <p className="text-sm text-muted-foreground">No notes yet.</p>
+          <p className="text-sm text-muted-foreground">{t("notes.empty")}</p>
         ) : (
           notes.map((note) =>
             editingNote?.id === note.id ? (
@@ -187,10 +189,10 @@ export function NotesCollapsibleSection({
                 className="border border-destructive rounded-lg p-4 space-y-3"
               >
                 <p className="text-sm font-medium">
-                  Are you sure you want to delete this note?
+                  {t("notes.confirmDelete")}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  This action cannot be undone.
+                  {t("notes.cannotUndo")}
                 </p>
                 <div className="flex justify-end gap-2">
                   <Button
@@ -199,7 +201,7 @@ export function NotesCollapsibleSection({
                     size="sm"
                     onClick={() => setDeleteConfirmId(null)}
                   >
-                    Cancel
+                    {t("ui.cancel")}
                   </Button>
                   <Button
                     type="button"
@@ -208,7 +210,7 @@ export function NotesCollapsibleSection({
                     onClick={handleDeleteConfirm}
                     disabled={isPending}
                   >
-                    Delete
+                    {t("ui.delete")}
                     {isPending && (
                       <Loader className="ml-2 h-4 w-4 shrink-0 spinner" />
                     )}

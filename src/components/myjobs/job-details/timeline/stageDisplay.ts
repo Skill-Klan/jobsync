@@ -1,10 +1,41 @@
-import { format } from "date-fns";
+import { createTranslator } from "use-intl/core";
 import { TERMINAL_STAGE_STATUSES } from "@/lib/constants";
 import type { JobStage, JobStageTypeRef } from "@/models/jobStage.model";
+import { TIME_ZONE, type Locale } from "@/i18n/config";
+import { MESSAGES } from "@/i18n/messages";
+import { fallbackMessage } from "@/i18n/fallback";
+import { DATE_PATTERNS, formatDate, type DatePattern } from "@/i18n/dates";
+import { labelFor, type LabelsTranslator } from "@/i18n/labels";
+
+// Plain functions, not hooks, so callers pass the user's locale (useLocale()).
+// It defaults to English, the language the suite asserts in.
+const STAGE_DATE_TIME: DatePattern = {
+  en: "MMM d, yyyy · h:mm a",
+  uk: "d MMM yyyy · HH:mm",
+};
+
+const translators = new Map<Locale, ReturnType<typeof makeTranslators>>();
+
+function makeTranslators(locale: Locale) {
+  const base = { locale, messages: MESSAGES[locale], timeZone: TIME_ZONE, getMessageFallback: fallbackMessage };
+  return {
+    t: createTranslator({ ...base, namespace: "jobs.timeline" }),
+    labels: createTranslator({ ...base, namespace: "labels" }) as unknown as LabelsTranslator,
+  };
+}
+
+function translatorsFor(locale: Locale) {
+  let found = translators.get(locale);
+  if (!found) {
+    found = makeTranslators(locale);
+    translators.set(locale, found);
+  }
+  return found;
+}
 
 // An undated stage renders an em dash, never a fabricated date or a blank.
-export function formatStageDate(occurredAt: Date | null): string {
-  return occurredAt ? format(occurredAt, "MMM d") : "—";
+export function formatStageDate(occurredAt: Date | null, locale: Locale = "en"): string {
+  return occurredAt ? formatDate(occurredAt, DATE_PATTERNS.dayMonth, locale) : "—";
 }
 
 // "Scheduled for" only while the stage is still ahead (the artboard's wording,
@@ -13,20 +44,25 @@ export function formatStageDate(occurredAt: Date | null): string {
 export function formatStageDateTime(
   occurredAt: Date | null,
   durationMins: number | null,
+  locale: Locale = "en",
 ): string {
-  if (!occurredAt) return "No date set";
-  const base = format(occurredAt, "MMM d, yyyy · h:mm a");
-  const withDuration = durationMins ? `${base} · ${durationMins} min` : base;
+  const { t } = translatorsFor(locale);
+  if (!occurredAt) return t("noDate");
+  const base = formatDate(occurredAt, STAGE_DATE_TIME, locale);
+  const withDuration = durationMins
+    ? `${base} · ${t("minutes", { count: durationMins })}`
+    : base;
   return occurredAt.getTime() > Date.now()
-    ? `Scheduled for ${withDuration}`
+    ? t("scheduledFor", { when: withDuration })
     : withDuration;
 }
 
 // The subtitle both stage dialogs put under their title.
-export function stageHeading(stage: JobStage): string {
-  const label = stage.StageType?.label ?? "Stage";
+export function stageHeading(stage: JobStage, locale: Locale = "en"): string {
+  const { t, labels } = translatorsFor(locale);
+  const label = stage.StageType ? labelFor(labels, "jobStage", stage.StageType) : t("stage");
   return stage.occurredAt
-    ? `${label} · ${format(stage.occurredAt, "MMM d, yyyy")}`
+    ? `${label} · ${formatDate(stage.occurredAt, DATE_PATTERNS.date, locale)}`
     : label;
 }
 

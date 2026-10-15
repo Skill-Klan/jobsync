@@ -11,17 +11,16 @@ import {
   countJobFacets,
   normalizeJobFacets,
 } from "@/lib/jobs/jobFacets";
-import {
-  JOB_TYPES,
-  JobFacets,
-  JobListScope,
-  JobStatus,
-  WORKPLACE_TYPES,
-} from "@/models/job.model";
+import { JobFacets, JobListScope, JobStatus } from "@/models/job.model";
 import { useJobFilterCounts } from "./useJobFilterCounts";
+import { useLabel, useTranslations } from "@/i18n/client";
+import {
+  JOB_TYPE_CODES,
+  WORKPLACE_CODES,
+  useJobTypeLabels,
+} from "../useJobTypeLabels";
 
 const STATUS_ORDER: string[] = JOB_STATUSES.map((s) => s.value);
-const ACCEPTED_LABEL = "Accepted (discovered)";
 const SECTION_LABEL =
   "text-xs font-semibold uppercase tracking-wide text-muted-foreground";
 
@@ -42,6 +41,9 @@ export function JobsFilterPopover({
   scope: JobListScope;
   onApply: (facets: JobFacets) => void;
 }) {
+  const t = useTranslations("jobs");
+  const label = useLabel();
+  const types = useJobTypeLabels();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<JobFacets>(facets);
   const normalized = normalizeJobFacets(draft);
@@ -85,16 +87,17 @@ export function JobsFilterPopover({
   const total = counts?.total;
   const applyLabel =
     total === undefined
-      ? "Show jobs"
-      : `Show ${total} ${total === 1 ? "job" : "jobs"}`;
+      ? t("filters.showJobs")
+      : t("filters.showCount", { count: total });
 
   const segmented = (
-    options: Record<string, string>,
+    codes: readonly string[],
+    labelOf: (code: string) => string,
     picked: string[],
     onToggle: (code: string) => void,
   ) => (
     <div className="flex gap-1.5">
-      {Object.entries(options).map(([code, label]) => (
+      {codes.map((code) => (
         <Toggle
           key={code}
           variant="outline"
@@ -103,7 +106,7 @@ export function JobsFilterPopover({
           onPressedChange={() => onToggle(code)}
           className="h-8 flex-1 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
         >
-          {label}
+          {labelOf(code)}
         </Toggle>
       ))}
     </div>
@@ -111,7 +114,7 @@ export function JobsFilterPopover({
 
   const statusRow = (
     key: string,
-    label: string,
+    text: string,
     checked: boolean,
     count: number | undefined,
     onChange: () => void,
@@ -120,11 +123,11 @@ export function JobsFilterPopover({
       <input
         type="checkbox"
         className="h-4 w-4 shrink-0"
-        aria-label={label}
+        aria-label={text}
         checked={checked}
         onChange={onChange}
       />
-      <span className="flex-1 truncate">{label}</span>
+      <span className="flex-1 truncate">{text}</span>
       <span className="text-xs text-muted-foreground">
         {counts ? (count ?? 0) : "–"}
       </span>
@@ -138,7 +141,11 @@ export function JobsFilterPopover({
           size="sm"
           variant="outline"
           data-testid="job-filter-button"
-          aria-label={active ? `Filter jobs, ${active} active` : "Filter jobs"}
+          aria-label={
+            active
+              ? t("filters.buttonActive", { count: active })
+              : t("filters.button")
+          }
           className={cn(
             "relative h-8 w-8 p-0",
             active > 0 && "border-foreground ring-2 ring-foreground/10",
@@ -155,26 +162,26 @@ export function JobsFilterPopover({
       <PopoverContent
         align="end"
         collisionPadding={16}
-        aria-label="Filter jobs"
+        aria-label={t("filters.button")}
         className="flex w-[min(380px,calc(100vw-32px))] flex-col p-0"
       >
         <div className="max-h-[min(70vh,560px)] overflow-y-auto">
           <div className="flex flex-col gap-2.5 border-b p-4 pb-3">
             <div className="flex items-center justify-between">
-              <span className={SECTION_LABEL}>Status</span>
+              <span className={SECTION_LABEL}>{t("filters.status")}</span>
               <button
                 type="button"
                 className="text-xs text-muted-foreground hover:text-foreground"
                 onClick={toggleAllStatuses}
               >
-                {allStatusesPicked ? "Clear" : "Select all"}
+                {allStatusesPicked ? t("filters.clear") : t("filters.selectAll")}
               </button>
             </div>
             <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[13px]">
               {orderedStatuses.map((s) =>
                 statusRow(
                   s.id,
-                  s.label,
+                  label("jobStatus", s),
                   draft.statuses.includes(s.value),
                   counts?.statusCounts[s.id],
                   () =>
@@ -186,7 +193,7 @@ export function JobsFilterPopover({
               )}
               {statusRow(
                 "accepted",
-                ACCEPTED_LABEL,
+                t("filters.accepted"),
                 draft.acceptedDiscovered,
                 counts?.acceptedDiscovered,
                 () =>
@@ -198,14 +205,14 @@ export function JobsFilterPopover({
             </div>
           </div>
           <div className="flex flex-col gap-2.5 border-b px-4 py-3">
-            <span className={SECTION_LABEL}>Job type</span>
-            {segmented(JOB_TYPES, draft.jobTypes, (code) =>
+            <span className={SECTION_LABEL}>{t("filters.jobType")}</span>
+            {segmented(JOB_TYPE_CODES, types.jobType, draft.jobTypes, (code) =>
               setDraft((d) => ({ ...d, jobTypes: toggleIn(d.jobTypes, code) })),
             )}
           </div>
           <div className="flex flex-col gap-2.5 border-b px-4 py-3">
-            <span className={SECTION_LABEL}>Workplace</span>
-            {segmented(WORKPLACE_TYPES, draft.workplaces, (code) =>
+            <span className={SECTION_LABEL}>{t("filters.workplace")}</span>
+            {segmented(WORKPLACE_CODES, types.workplaceType, draft.workplaces, (code) =>
               setDraft((d) => ({
                 ...d,
                 workplaces: toggleIn(d.workplaces, code),
@@ -216,13 +223,13 @@ export function JobsFilterPopover({
             <input
               type="checkbox"
               className="h-4 w-4 shrink-0"
-              aria-label="Include dismissed discovered jobs"
+              aria-label={t("filters.includeDismissed")}
               checked={draft.includeDismissed}
               onChange={() =>
                 setDraft((d) => ({ ...d, includeDismissed: !d.includeDismissed }))
               }
             />
-            <span>Include dismissed discovered jobs</span>
+            <span>{t("filters.includeDismissed")}</span>
           </label>
         </div>
         <div className="flex items-center justify-between px-4 py-3">
@@ -232,7 +239,7 @@ export function JobsFilterPopover({
             className="text-muted-foreground"
             onClick={() => setDraft(EMPTY_JOB_FACETS)}
           >
-            Clear all
+            {t("ui.clearAll")}
           </Button>
           <Button size="sm" onClick={apply}>
             {applyLabel}

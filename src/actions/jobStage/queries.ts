@@ -3,6 +3,7 @@ import prisma from "@/lib/db";
 import { handleError } from "@/lib/utils";
 import { requireUser } from "../shared";
 import { STAGE_DETAIL_INCLUDE, sortStages } from "./shared";
+import { jobsError } from "../job/errorMessages";
 
 export const getJobStages = async (
   jobId: string,
@@ -15,6 +16,6 @@ export const getJobStages = async (
     });
     return sortStages(stages);
   } catch (error) {
-    return handleError(error, "Failed to fetch job stages. ");
+    return handleError(error, await jobsError("fetchStages"));
   }
 };

@@ -1,7 +1,15 @@
 import { format } from "date-fns";
 import { toastError, toastSuccess } from "@/lib/toast";
 
-export async function downloadJobsList() {
+// The toasts are passed in already translated: this runs from a click, not
+// from a component render, so it cannot take the translation hook itself.
+export type DownloadJobsMessages = {
+  downloaded: string;
+  failed: string;
+  unknownError: string;
+};
+
+export async function downloadJobsList(messages: DownloadJobsMessages) {
   try {
     const res = await fetch("/api/jobs/export", {
       method: "POST",
@@ -10,7 +18,7 @@ export async function downloadJobsList() {
       },
     });
     if (!res.ok) {
-      throw new Error("Failed to download jobs!");
+      throw new Error(messages.failed);
     }
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
@@ -20,10 +28,10 @@ export async function downloadJobsList() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toastSuccess("Downloaded successfully!");
+    toastSuccess(messages.downloaded);
   } catch (error) {
     toastError(
-      error instanceof Error ? error.message : "Unknown error occurred.",
+      error instanceof Error ? error.message : messages.unknownError,
     );
   }
 }

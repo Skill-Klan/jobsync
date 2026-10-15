@@ -10,15 +10,10 @@ import {
 import { Pencil, StickyNote, Trash } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import { format } from "date-fns";
 import { useState } from "react";
-import {
-  JobResponse,
-  JobSortField,
-  JobStatus,
-  getJobTypeLabel,
-  getWorkplaceTypeLabel,
-} from "@/models/job.model";
+import { JobResponse, JobSortField, JobStatus } from "@/models/job.model";
+import { useFormatDate, useLabel, useTranslations } from "@/i18n/client";
+import { JOB_DATE, useJobTypeLabels } from "./useJobTypeLabels";
 import type { SortState } from "@/models/sort.model";
 import { SortableTableHead } from "../SortableTableHead";
 import Link from "next/link";
@@ -51,6 +46,10 @@ function MyJobsTable({
   sort,
   onSort,
 }: MyJobsTableProps) {
+  const t = useTranslations("jobs");
+  const label = useLabel();
+  const formatDate = useFormatDate();
+  const types = useJobTypeLabels();
   const [alertOpen, setAlertOpen] = useState(false);
   const [jobIdToDelete, setJobIdToDelete] = useState("");
 
@@ -65,7 +64,7 @@ function MyJobsTable({
         <TableHeader>
           <TableRow>
             <TableHead className="hidden w-[100px] sm:table-cell">
-              <span className="sr-only">Company Logo</span>
+              <span className="sr-only">{t("table.companyLogo")}</span>
             </TableHead>
             <SortableTableHead
               field="appliedDate"
@@ -73,13 +72,13 @@ function MyJobsTable({
               onSort={onSort}
               className="hidden md:table-cell"
             >
-              Applied
+              {t("table.applied")}
             </SortableTableHead>
             <SortableTableHead field="title" sort={sort} onSort={onSort}>
-              Title
+              {t("table.title")}
             </SortableTableHead>
             <SortableTableHead field="company" sort={sort} onSort={onSort}>
-              Company
+              {t("table.company")}
             </SortableTableHead>
             <SortableTableHead
               field="location"
@@ -87,16 +86,16 @@ function MyJobsTable({
               onSort={onSort}
               className="hidden md:table-cell"
             >
-              Location
+              {t("table.location")}
             </SortableTableHead>
-            <TableHead>Status</TableHead>
+            <TableHead>{t("table.status")}</TableHead>
             <SortableTableHead
               field="matchScore"
               sort={sort}
               onSort={onSort}
               className="hidden md:table-cell text-center"
             >
-              Match
+              {t("table.match")}
             </SortableTableHead>
             <SortableTableHead
               field="source"
@@ -104,10 +103,10 @@ function MyJobsTable({
               onSort={onSort}
               className="hidden md:table-cell"
             >
-              Source
+              {t("table.source")}
             </SortableTableHead>
             <TableHead>
-              <span className="sr-only">Actions</span>
+              <span className="sr-only">{t("ui.actions")}</span>
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -123,11 +122,13 @@ function MyJobsTable({
                 </TableCell>
                 <TableCell className="hidden md:table-cell w-[120px] whitespace-nowrap">
                   {job.appliedDate
-                    ? format(job.appliedDate, "PP")
-                    : "Not Applied"}
+                    ? formatDate(job.appliedDate, JOB_DATE)
+                    : t("table.notApplied")}
                   {job.createdAt && (
                     <span className="block text-xs text-muted-foreground">
-                      Added {format(job.createdAt, "PP")}
+                      {t("table.added", {
+                        date: formatDate(job.createdAt, JOB_DATE),
+                      })}
                     </span>
                   )}
                 </TableCell>
@@ -151,9 +152,9 @@ function MyJobsTable({
                   </div>
                   <span className="block truncate text-xs font-normal text-muted-foreground">
                     {[
-                      getJobTypeLabel(job.jobType),
+                      types.jobType(job.jobType),
                       job.workplaceType
-                        ? getWorkplaceTypeLabel(job.workplaceType)
+                        ? types.workplaceType(job.workplaceType)
                         : null,
                     ]
                       .filter(Boolean)
@@ -196,15 +197,15 @@ function MyJobsTable({
                   )}
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
-                  {job.JobSource?.label}
+                  {job.JobSource ? label("jobSource", job.JobSource) : null}
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-1">
                     <Button
                       variant="ghost"
                       size="icon"
-                      title="Edit Job"
-                      aria-label="Edit Job"
+                      title={t("ui.editJob")}
+                      aria-label={t("ui.editJob")}
                       onClick={() => editJob(job.id)}
                     >
                       <Pencil className="h-4 w-4" />
@@ -212,8 +213,8 @@ function MyJobsTable({
                     <Button
                       variant="ghost"
                       size="icon"
-                      title="Delete Job"
-                      aria-label="Delete Job"
+                      title={t("ui.deleteJob")}
+                      aria-label={t("ui.deleteJob")}
                       className="text-destructive hover:text-destructive"
                       onClick={() => onDeleteJob(job.id)}
                     >
@@ -233,7 +234,7 @@ function MyJobsTable({
         </TableBody>
       </Table>
       <DeleteAlertDialog
-        pageTitle="job"
+        pageTitle={t("deleteItem.job")}
         open={alertOpen}
         onOpenChange={setAlertOpen}
         onDelete={() => deleteJob(jobIdToDelete)}

@@ -10,6 +10,7 @@ import { appendStatusStage } from "./shared";
 import { jobFieldsForStage } from "../jobStage/shared";
 import { resolveStageTypeForStatusId } from "@/lib/jobs/resolve";
 import { APPLIED_STATUS_VALUES } from "@/lib/constants";
+import { jobsError } from "./errorMessages";
 
 type JobRefs = {
   jobTitleId?: string | null;
@@ -55,13 +56,13 @@ const assertJobRefsOwned = async (userId: string, refs: JobRefs) => {
         : 0,
     ]);
 
-  if (title === 0) throw new Error("Job title not found");
-  if (company === 0) throw new Error("Company not found");
-  if (location === 0) throw new Error("Location not found");
-  if (source === 0) throw new Error("Job source not found");
-  if (resume === 0) throw new Error("Resume not found");
-  if (coverLetter === 0) throw new Error("Cover letter not found");
-  if (tags !== tagIds.length) throw new Error("Tag not found");
+  if (title === 0) throw new Error(await jobsError("jobTitleNotFound"));
+  if (company === 0) throw new Error(await jobsError("companyNotFound"));
+  if (location === 0) throw new Error(await jobsError("locationNotFound"));
+  if (source === 0) throw new Error(await jobsError("sourceNotFound"));
+  if (resume === 0) throw new Error(await jobsError("resumeNotFound"));
+  if (coverLetter === 0) throw new Error(await jobsError("coverLetterNotFound"));
+  if (tags !== tagIds.length) throw new Error(await jobsError("tagNotFound"));
 };
 
 export const addJob = async (
@@ -119,7 +120,7 @@ export const addJob = async (
     revalidatePath("/dashboard");
     return { success: true, data: job };
   } catch (error) {
-    const msg = "Failed to create job. ";
+    const msg = await jobsError("createJob");
     return handleError(error, msg);
   }
 };
@@ -130,7 +131,7 @@ export const updateJob = async (
   try {
     const user = await requireUser();
     if (!data.id) {
-      throw new Error("Job id is required");
+      throw new Error(await jobsError("jobIdRequired"));
     }
 
     const {
@@ -168,7 +169,7 @@ export const updateJob = async (
       },
     });
     if (!current) {
-      throw new Error("Job not found");
+      throw new Error(await jobsError("jobNotFound"));
     }
 
     // Only newly attached ids are checked: migration 20260212202940 gave every
@@ -246,7 +247,7 @@ export const updateJob = async (
     revalidatePath("/dashboard");
     return { success: true, data: job };
   } catch (error) {
-    const msg = "Failed to update job. ";
+    const msg = await jobsError("updateJob");
     return handleError(error, msg);
   }
 };
@@ -266,7 +267,7 @@ export const deleteJobById = async (
     revalidatePath("/dashboard");
     return { res, success: true };
   } catch (error) {
-    const msg = "Failed to delete job.";
+    const msg = await jobsError("deleteJob");
     return handleError(error, msg);
   }
 };

@@ -17,6 +17,7 @@ import {
 import { StageOverviewTab } from "./StageOverviewTab";
 import { StageInterviewersTab } from "./StageInterviewersTab";
 import { StagePrepList } from "./StagePrepList";
+import { useLabel, useLocale, useTranslations } from "@/i18n/client";
 
 // Underline tabs rather than the app's filled pills: this row sits inside the
 // job's own pill tab bar, and two nested pill bars read as competing controls.
@@ -40,6 +41,10 @@ export function StageDetailPanel({
   onAddPrepQuestions,
   onChanged,
 }: StageDetailPanelProps) {
+  const t = useTranslations("jobs");
+  const label = useLabel();
+  const locale = useLocale();
+  const stageLabel = label("jobStage", stage.StageType);
   const [, startTransition] = useTransition();
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [tab, setTab] = useState("overview");
@@ -61,40 +66,41 @@ export function StageDetailPanel({
     isCurrent || hasLinks ? (
       <>
         {isCurrent && (
-          <p>
-            This is the current stage. Deleting it makes the furthest-along
-            dated stage current, and the job&apos;s status follows that stage.
-          </p>
+          <p>{t("stageDetail.deleteCurrent")}</p>
         )}
         {hasLinks && (
           <>
-            <p className={cn(isCurrent && "mt-2")}>Deleting it also removes:</p>
+            <p className={cn(isCurrent && "mt-2")}>
+              {t("stageDetail.deleteAlsoRemoves")}
+            </p>
             <ul className="mt-1.5 list-disc space-y-1 pl-5">
               {interviewerCount > 0 && (
                 <li>
-                  <span className="font-semibold text-foreground">
-                    {interviewerCount} linked{" "}
-                    {interviewerCount === 1 ? "interviewer" : "interviewers"}
-                  </span>{" "}
-                  on this stage
+                  {t.rich("stageDetail.deleteInterviewers", {
+                    count: interviewerCount,
+                    b: (chunks) => (
+                      <span className="font-semibold text-foreground">{chunks}</span>
+                    ),
+                  })}
                 </li>
               )}
               {prepCount > 0 && (
                 <li>
-                  <span className="font-semibold text-foreground">
-                    {prepCount} prep{" "}
-                    {prepCount === 1 ? "question" : "questions"}
-                  </span>{" "}
-                  on this stage, and which of them were asked
+                  {t.rich("stageDetail.deleteQuestions", {
+                    count: prepCount,
+                    b: (chunks) => (
+                      <span className="font-semibold text-foreground">{chunks}</span>
+                    ),
+                  })}
                 </li>
               )}
             </ul>
             <p className="mt-2">
               {interviewerCount > 0 && prepCount > 0
-                ? "Nothing is removed from the job's Contacts tab or your question bank."
+                ? t("stageDetail.keptBoth")
                 : interviewerCount > 0
-                  ? "Nothing is removed from the job's Contacts tab."
-                  : "Nothing is removed from your question bank."}
+                  ? t("stageDetail.keptContacts")
+                  : t("stageDetail.keptQuestions")}
             </p>
           </>
         )}
@@ -106,7 +112,7 @@ export function StageDetailPanel({
     startTransition(async () => {
       const res = await deleteJobStage(stage.id);
       toastActionResult(res, {
-        success: "Stage has been deleted",
+        success: t("stageDetail.deleted"),
         onSuccess: onChanged,
       });
     });
@@ -116,10 +122,10 @@ export function StageDetailPanel({
     <div className="flex-1 rounded-lg border bg-card p-6">
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2.5">
-          <h3 className="text-lg font-bold">{stage.StageType.label}</h3>
+          <h3 className="text-lg font-bold">{stageLabel}</h3>
           {isCurrent && (
             <StatusBadge
-              label="CURRENT STAGE"
+              label={t("stageDetail.currentBadge")}
               color="emerald"
               className="text-[11px] font-bold"
             />
@@ -130,7 +136,7 @@ export function StageDetailPanel({
             variant="outline"
             size="icon"
             className="h-8 w-8 cursor-pointer"
-            aria-label={`Edit ${stage.StageType.label}`}
+            aria-label={t("stageDetail.editStage", { stage: stageLabel })}
             onClick={onEdit}
           >
             <Pencil className="h-3.5 w-3.5" />
@@ -139,7 +145,7 @@ export function StageDetailPanel({
             variant="outline"
             size="icon"
             className="h-8 w-8 cursor-pointer text-destructive hover:text-destructive"
-            aria-label={`Delete ${stage.StageType.label}`}
+            aria-label={t("stageDetail.deleteStage", { stage: stageLabel })}
             onClick={() => setDeleteOpen(true)}
           >
             <Trash2 className="h-3.5 w-3.5" />
@@ -152,6 +158,7 @@ export function StageDetailPanel({
         {formatStageDateTime(
           stage.occurredAt,
           interview ? stage.durationMins : null,
+          locale,
         )}
       </p>
 
@@ -161,10 +168,10 @@ export function StageDetailPanel({
         <Tabs value={tab} onValueChange={setTab} className="mt-4">
           <TabsList className="h-auto w-full justify-start gap-6 rounded-none border-b bg-transparent p-0">
             <TabsTrigger value="overview" className={TAB_TRIGGER}>
-              Overview
+              {t("stageDetail.overview")}
             </TabsTrigger>
             <TabsTrigger value="interviewer" className={TAB_TRIGGER}>
-              Interviewer
+              {t("stageDetail.interviewer")}
               {stage.interviewers.length > 0 && (
                 <span className="ml-2 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
                   {stage.interviewers.length}
@@ -172,10 +179,10 @@ export function StageDetailPanel({
               )}
             </TabsTrigger>
             <TabsTrigger value="prep" className={TAB_TRIGGER}>
-              Prep List
+              {t("stageDetail.prepList")}
               {total > 0 && (
                 <span className="ml-2 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
-                  {asked} of {total}
+                  {t("stageDetail.askedOf", { asked, total })}
                 </span>
               )}
             </TabsTrigger>
@@ -206,11 +213,11 @@ export function StageDetailPanel({
       )}
 
       <DeleteAlertDialog
-        pageTitle="stage"
+        pageTitle={t("deleteItem.stage")}
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
         onDelete={onDelete}
-        alertTitle={`Delete the ${stage.StageType.label} stage?`}
+        alertTitle={t("stageDetail.deleteTitle", { stage: stageLabel })}
         alertDescription={deleteDescription}
       />
     </div>

@@ -4,6 +4,7 @@ import { handleError } from "@/lib/utils";
 import { canonicalizeEntityValue } from "@/lib/jobs/canonicalize";
 import { JOB_STATUSES } from "@/lib/constants";
 import { requireUser } from "../shared";
+import { jobsError } from "./errorMessages";
 
 // JobStatus is global reference data with no createdBy column, so unlike every
 // other list here it is not scoped to the current user. Sorted in JS because
@@ -19,7 +20,7 @@ export const getStatusList = async (): Promise<any | undefined> => {
       STATUS_ORDER.get(value) ?? JOB_STATUSES.length;
     return statuses.sort((a, b) => rank(a.value) - rank(b.value));
   } catch (error) {
-    const msg = "Failed to fetch status list. ";
+    const msg = await jobsError("fetchStatuses");
     return handleError(error, msg);
   }
 };
@@ -34,7 +35,7 @@ export const getJobSourceList = async (): Promise<any | undefined> => {
     });
     return list;
   } catch (error) {
-    const msg = "Failed to fetch job source list. ";
+    const msg = await jobsError("fetchSources");
     return handleError(error, msg);
   }
 };
@@ -48,7 +49,7 @@ export const createLocation = async (
     const value = canonicalizeEntityValue(label.trim());
 
     if (!value) {
-      throw new Error("Please provide location name");
+      throw new Error(await jobsError("locationNameRequired"));
     }
 
     const existing = await prisma.location.findFirst({
@@ -64,7 +65,7 @@ export const createLocation = async (
 
     return { data: location, success: true };
   } catch (error) {
-    const msg = "Failed to create job location. ";
+    const msg = await jobsError("createLocation");
     return handleError(error, msg);
   }
 };
@@ -78,7 +79,7 @@ export const createJobSource = async (
     const value = canonicalizeEntityValue(label.trim());
 
     if (!value) {
-      throw new Error("Please provide job source name");
+      throw new Error(await jobsError("sourceNameRequired"));
     }
 
     const existing = await prisma.jobSource.findFirst({
@@ -94,7 +95,7 @@ export const createJobSource = async (
 
     return { data: jobSource, success: true };
   } catch (error) {
-    const msg = "Failed to create job source. ";
+    const msg = await jobsError("createSource");
     return handleError(error, msg);
   }
 };

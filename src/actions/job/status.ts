@@ -7,6 +7,7 @@ import { requireUser } from "../shared";
 import { appendStatusStage } from "./shared";
 import { jobFieldsForStage } from "../jobStage/shared";
 import { resolveStageTypeForStatusId } from "@/lib/jobs/resolve";
+import { jobsError } from "./errorMessages";
 
 export const updateJobStatus = async (
   jobId: string,
@@ -18,7 +19,7 @@ export const updateJobStatus = async (
     const owned = await prisma.job.count({
       where: { id: jobId, userId: user.id },
     });
-    if (owned === 0) throw new Error("Job not found");
+    if (owned === 0) throw new Error(await jobsError("jobNotFound"));
 
     // Outside the transaction on purpose: this resolve can create a row, and
     // it writes through the base client (D4).
@@ -44,7 +45,7 @@ export const updateJobStatus = async (
     revalidatePath("/dashboard");
     return { job, success: true };
   } catch (error) {
-    const msg = "Failed to update job status.";
+    const msg = await jobsError("updateStatus");
     return handleError(error, msg);
   }
 };
@@ -64,7 +65,7 @@ export const saveJobMatchResult = async (
 
     return { success: true };
   } catch (error) {
-    const msg = "Failed to save match result.";
+    const msg = await jobsError("saveMatch");
     return handleError(error, msg);
   }
 };
