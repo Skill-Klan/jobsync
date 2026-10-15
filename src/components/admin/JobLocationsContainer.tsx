@@ -10,8 +10,10 @@ import Loading from "../Loading";
 import { Loader } from "lucide-react";
 import { RecordsCount } from "../RecordsCount";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
+import { useTranslations } from "@/i18n/client";
 
 function JobLocationsContainer() {
+  const t = useTranslations("library");
   const [locations, setLocations] = useState<JobTitle[]>([]);
   const [totalJobLocations, setTotalJobLocations] = useState<number>(0);
   const [page, setPage] = useState<number>(1);
@@ -61,9 +63,9 @@ function JobLocationsContainer() {
         <Card x-chunk="dashboard-06-chunk-0">
           <ResponsiveCardHeader>
             <div className="flex items-baseline gap-2">
-              <CardTitle>Job Locations</CardTitle>
+              <CardTitle>{t("locations.title")}</CardTitle>
               {!initialLoading && totalJobLocations > 0 && (
-                <RecordsCount count={locations.length} total={totalJobLocations} label="job locations" />
+                <RecordsCount count={locations.length} total={totalJobLocations} label={t("locations.records")} />
               )}
             </div>
             <div className="flex flex-wrap items-center justify-end gap-2 sm:ml-auto">

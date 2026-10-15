@@ -29,6 +29,7 @@ import { COMPANY_SIZES } from "@/lib/constants";
 import { toastActionResult } from "@/lib/toast";
 import { addCompany, updateCompany } from "@/actions/company.actions";
 import { Company } from "@/models/job.model";
+import { useTranslations } from "@/i18n/client";
 
 type AddCompanyProps = {
   reloadCompanies: () => void;
@@ -47,9 +48,12 @@ function AddCompany({
   setDialogOpen,
   hideTrigger,
 }: AddCompanyProps) {
+  const t = useTranslations("library");
   const [isPending, startTransition] = useTransition();
 
-  const pageTitle = editCompany ? "Edit Company" : "Add Company";
+  const pageTitle = editCompany
+    ? t("addCompany.editTitle")
+    : t("addCompany.addTitle");
 
   const form = useForm<z.infer<typeof AddCompanyFormSchema>>({
     resolver: zodResolver(AddCompanyFormSchema),
@@ -107,7 +111,7 @@ function AddCompany({
         ? await updateCompany(data)
         : await addCompany(data);
       toastActionResult(res, {
-        success: `Company has been ${editCompany ? "updated" : "created"} successfully`,
+        success: editCompany ? t("addCompany.updated") : t("addCompany.created"),
         onSuccess: () => {
           reset();
           setDialogOpen(false);
@@ -129,7 +133,7 @@ function AddCompany({
         >
           <PlusCircle className="h-3.5 w-3.5" />
           <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-            New Company
+            {t("addCompany.newCompany")}
           </span>
         </Button>
       )}
@@ -139,8 +143,7 @@ function AddCompany({
             <DialogTitle>{pageTitle}</DialogTitle>
             {editCompany && (
               <DialogDescription className="text-orange-600 dark:text-orange-500">
-                Caution: Editing name of the company will affect all the
-                related job records including your resume.
+                {t("addCompany.caution")}
               </DialogDescription>
             )}
           </DialogHeader>
@@ -156,7 +159,7 @@ function AddCompany({
                   name="company"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Company Name</FormLabel>
+                      <FormLabel>{t("addCompany.name")}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -173,7 +176,7 @@ function AddCompany({
                   name="logoUrl"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Company Logo URL</FormLabel>
+                      <FormLabel>{t("addCompany.logoUrl")}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -188,7 +191,7 @@ function AddCompany({
                 name="websiteUrl"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Website</FormLabel>
+                    <FormLabel>{t("addCompany.website")}</FormLabel>
                     <FormControl>
                       <Input placeholder="https://example.com" {...field} />
                     </FormControl>
@@ -203,7 +206,7 @@ function AddCompany({
                 name="careersUrl"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Careers Page</FormLabel>
+                    <FormLabel>{t("addCompany.careersPage")}</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="https://example.com/careers"
@@ -221,9 +224,12 @@ function AddCompany({
                 name="industry"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Industry</FormLabel>
+                    <FormLabel>{t("addCompany.industry")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Financial Services" {...field} />
+                      <Input
+                        placeholder={t("addCompany.industryPlaceholder")}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -236,9 +242,9 @@ function AddCompany({
                 name="size"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Size</FormLabel>
+                    <FormLabel>{t("addCompany.size")}</FormLabel>
                     <SelectFormCtrl
-                      label="size"
+                      label={t("addCompany.sizeSelect")}
                       options={COMPANY_SIZES.map((s) => ({ id: s, label: s }))}
                       field={field}
                     />
@@ -274,11 +280,11 @@ function AddCompany({
                   name="notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Notes</FormLabel>
+                      <FormLabel>{t("addCompany.notes")}</FormLabel>
                       <FormControl>
                         <Textarea
                           className="min-h-24"
-                          placeholder="Culture, red flags, what you learned on calls..."
+                          placeholder={t("addCompany.notesPlaceholder")}
                           {...field}
                         />
                       </FormControl>
@@ -299,11 +305,11 @@ function AddCompany({
                       className="mt-2 md:mt-0 w-full"
                       onClick={closeDialog}
                     >
-                      Cancel
+                      {t("shared.cancel")}
                     </Button>
                   </div>
                   <Button type="submit" disabled={!formState.isDirty}>
-                    Save
+                    {t("shared.save")}
                     {isPending && (
                       <Loader className="h-4 w-4 shrink-0 spinner" />
                     )}

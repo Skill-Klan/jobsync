@@ -4,6 +4,7 @@ import { handleError } from "@/lib/utils";
 import { requireUser } from "./shared";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { resolveTag as resolveTagCore } from "@/lib/jobs/resolve";
+import { getTranslations } from "@/i18n/server";
 
 export const getAllTags = async (): Promise<any | undefined> => {
   try {
@@ -57,17 +58,18 @@ export const getTagList = async (
 };
 
 export const createTag = async (label: string): Promise<any | undefined> => {
+  const t = await getTranslations("library");
   try {
     const user = await requireUser();
 
     if (!label.trim()) {
-      throw new Error("Tag label cannot be empty.");
+      throw new Error(t("errors.tag.emptyLabel"));
     }
 
     const { created: _, ...tag } = await resolveTagCore(label, user.id);
     return { data: tag, success: true };
   } catch (error) {
-    const msg = "Failed to create tag. ";
+    const msg = t("errors.tag.createFailed");
     return handleError(error, msg);
   }
 };
@@ -75,6 +77,7 @@ export const createTag = async (label: string): Promise<any | undefined> => {
 export const deleteTagById = async (
   tagId: string,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("library");
   try {
     const user = await requireUser();
 
@@ -86,16 +89,14 @@ export const deleteTagById = async (
 
     if (jobs > 0 || questions > 0 || skills > 0) {
       const links = [
-        jobs > 0 ? `${jobs} job(s)` : "",
-        questions > 0 ? `${questions} question(s)` : "",
-        skills > 0 ? `${skills} skill(s)` : "",
+        jobs > 0 ? t("skills.jobsCount", { count: jobs }) : "",
+        questions > 0 ? t("skills.questionsCount", { count: questions }) : "",
+        skills > 0 ? t("skills.skillsCount", { count: skills }) : "",
       ]
         .filter(Boolean)
-        .join(" and ");
+        .join(` ${t("shared.and")} `);
 
-      throw new Error(
-        `Skill tag cannot be deleted because it is linked to ${links}.`,
-      );
+      throw new Error(t("errors.tag.inUse", { links }));
     }
 
     const res = await prisma.tag.delete({
@@ -104,7 +105,7 @@ export const deleteTagById = async (
 
     return { res, success: true };
   } catch (error) {
-    const msg = "Failed to delete tag.";
+    const msg = t("errors.tag.deleteFailed");
     return handleError(error, msg);
   }
 };

@@ -1,6 +1,5 @@
 "use client";
 import Link from "next/link";
-import { format } from "date-fns";
 import {
   ChevronDown,
   ChevronRight,
@@ -18,7 +17,9 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { TableCell, TableRow } from "../ui/table";
-import type { Contact } from "@/models/contact.model";
+import type { Contact, ContactRole } from "@/models/contact.model";
+import { useFormatDate, useLabel, useTranslations } from "@/i18n/client";
+import type { DatePattern } from "@/i18n/dates";
 
 type ContactRowProps = {
   contact: Contact;
@@ -29,11 +30,10 @@ type ContactRowProps = {
   hideCompanyColumn?: boolean;
 };
 
-function overlapLabel(contact: Contact) {
-  if (!contact.workedFrom) return null;
-  const to = contact.workedTo ? format(contact.workedTo, "MMM yyyy") : "present";
-  return `${format(contact.workedFrom, "MMM yyyy")} – ${to}`;
-}
+// English keeps the patterns the screen used ("PP", "MMM yyyy"); Ukrainian
+// puts the day first and uses the standalone month.
+const LAST_CONTACTED: DatePattern = { en: "PP", uk: "d MMM yyyy" };
+const WORKED_MONTH: DatePattern = { en: "MMM yyyy", uk: "LLL yyyy" };
 
 function ContactRow({
   contact,
@@ -43,15 +43,24 @@ function ContactRow({
   onDelete,
   hideCompanyColumn,
 }: ContactRowProps) {
+  const t = useTranslations("library");
+  const label = useLabel();
+  const formatDate = useFormatDate();
   const links = contact.jobLinks ?? [];
   // The standing role first, then any per-job role it does not already cover
   const roles = Array.from(
     new Map([
-      ...(contact.Role ? [[contact.Role.id, contact.Role.label]] : []),
-      ...links.map((link) => [link.Role.id, link.Role.label]),
-    ] as [string, string][]).entries(),
+      ...(contact.Role ? [[contact.Role.id, contact.Role]] : []),
+      ...links.map((link) => [link.Role.id, link.Role]),
+    ] as [string, ContactRole][]).entries(),
   );
-  const overlap = overlapLabel(contact);
+  const overlap = contact.workedFrom
+    ? `${formatDate(contact.workedFrom, WORKED_MONTH)} – ${
+        contact.workedTo
+          ? formatDate(contact.workedTo, WORKED_MONTH)
+          : t("contacts.present")
+      }`
+    : null;
   const hasContactBlock =
     contact.email || contact.phone || contact.linkedinUrl || contact.Location;
   const hasHistoryBlock =
@@ -65,7 +74,9 @@ function ContactRow({
             variant="ghost"
             size="icon"
             onClick={onToggle}
-            aria-label={`${expanded ? "Collapse" : "Expand"} ${contact.name}`}
+            aria-label={t(expanded ? "contacts.collapseAria" : "contacts.expandAria", {
+              name: contact.name,
+            })}
           >
             {expanded ? (
               <ChevronDown className="h-4 w-4" />
@@ -84,14 +95,14 @@ function ContactRow({
         <TableCell>
           {roles.length > 0 ? (
             <span className="flex flex-wrap gap-1">
-              {roles.map(([id, label]) => (
+              {roles.map(([id, role]) => (
                 <Badge
                   key={id}
                   variant={
                     id === contact.roleId ? "default" : "secondary"
                   }
                 >
-                  {label}
+                  {label("contactRole", role)}
                 </Badge>
               ))}
             </span>
@@ -101,28 +112,30 @@ function ContactRow({
         </TableCell>
         <TableCell>{contact._count?.jobLinks ?? 0}</TableCell>
         <TableCell>
-          {contact.lastContactedAt ? format(contact.lastContactedAt, "PP") : "—"}
+          {contact.lastContactedAt
+            ? formatDate(contact.lastContactedAt, LAST_CONTACTED)
+            : "—"}
         </TableCell>
         <TableCell>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button aria-haspopup="true" size="icon" variant="ghost">
                 <MoreVertical className="h-4 w-4" />
-                <span className="sr-only">Toggle menu</span>
+                <span className="sr-only">{t("shared.toggleMenu")}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuLabel>{t("shared.actions")}</DropdownMenuLabel>
               <DropdownMenuItem className="cursor-pointer" onClick={onEdit}>
                 <Pencil className="mr-2 h-4 w-4" />
-                Edit Contact
+                {t("contacts.editContact")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="text-red-600 cursor-pointer"
                 onClick={onDelete}
               >
                 <Trash className="mr-2 h-4 w-4" />
-                Delete
+                {t("shared.delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -163,7 +176,7 @@ function ContactRow({
               {hasHistoryBlock && (
                 <div className="space-y-1">
                   <div className="font-medium text-muted-foreground">
-                    How you know them
+                    {t("contacts.howYouKnow")}
                   </div>
                   {contact.relationship && <div>{contact.relationship}</div>}
                   {contact.WorkedAtCompany && (
@@ -187,10 +200,13 @@ function ContactRow({
                         href={`/dashboard/myjobs/${link.Job?.id}`}
                         className="text-primary underline-offset-4 hover:underline"
                       >
-                        {link.Job?.JobTitle.label} at {link.Job?.Company.label}
+                        {t("contacts.jobAt", {
+                          title: link.Job?.JobTitle.label ?? "",
+                          company: link.Job?.Company.label ?? "",
+                        })}
                       </Link>
                       {" — "}
-                      {link.Role.label}
+                      {label("contactRole", link.Role)}
                     </li>
                   ))}
                 </ul>

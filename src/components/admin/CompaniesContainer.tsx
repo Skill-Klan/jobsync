@@ -22,8 +22,10 @@ import {
   useCompanyScope,
 } from "./companies-container/useCompanyScope";
 import type { LeverCompany } from "@/models/automation.model";
+import { useTranslations } from "@/i18n/client";
 
 function CompaniesContainer() {
+  const t = useTranslations("library");
   const { scope, setScope } = useCompanyScope();
   const provider = boardProvider(scope);
   const [searchTerm, setSearchTerm] = useState("");
@@ -47,14 +49,14 @@ function CompaniesContainer() {
       const res = await watchBoardCompany(provider, company);
       if (res.success) {
         browse.markWatched(company.token, res.data.companyId);
-        toastSuccess(`${company.name} added to your watchlist`);
+        toastSuccess(t("companies.added", { name: company.name }));
       } else if ("needsConfirm" in res) {
         setPendingMerge({ provider, board: company, existing: res.existing });
       } else {
         toastError(res.message);
       }
     },
-    [browse, provider],
+    [browse, provider, t],
   );
 
   const confirmMerge = async () => {
@@ -64,7 +66,7 @@ function CompaniesContainer() {
     setPendingMerge(null);
     if (res.success) {
       browse.markWatched(board.token, res.data.companyId);
-      toastSuccess(`${board.name} linked and added to your watchlist`);
+      toastSuccess(t("companies.linkedAndAdded", { name: board.name }));
     } else if (!("needsConfirm" in res)) {
       toastError(res.message);
     }
@@ -83,12 +85,12 @@ function CompaniesContainer() {
         <Card x-chunk="dashboard-06-chunk-0">
           <ResponsiveCardHeader>
             <div className="flex items-baseline gap-2">
-              <CardTitle>Companies</CardTitle>
+              <CardTitle>{t("companies.title")}</CardTitle>
               {!loading && shownCount > 0 && (
                 <RecordsCount
                   count={shownCount}
                   total={shownTotal}
-                  label="companies"
+                  label={t("companies.records")}
                 />
               )}
             </div>
@@ -97,7 +99,7 @@ function CompaniesContainer() {
               <SearchInput
                 value={searchTerm}
                 onChange={setSearchTerm}
-                placeholder="Search companies..."
+                placeholder={t("companies.search")}
               />
               <AddCompany
                 editCompany={editCompany}

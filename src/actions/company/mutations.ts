@@ -7,6 +7,11 @@ import { AddCompanyFormSchema } from "@/models/addCompanyForm.schema";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "../shared";
+import { getTranslations } from "@/i18n/server";
+
+// What a person reads is in their language; the translator is passed to
+// the sync helpers below, which cannot await it themselves.
+type LibraryT = Awaited<ReturnType<typeof getTranslations<"library">>>;
 
 const isValidImageUrl = (url: string): boolean => {
   if (!url) return true;
@@ -34,19 +39,21 @@ const isValidHttpUrl = (url: string): boolean => {
 };
 
 const assertLinkedinSizeNotes = (
+  t: LibraryT,
   linkedinUrl?: string,
   size?: string,
   notes?: string,
 ) => {
   if (linkedinUrl && !isValidHttpUrl(linkedinUrl)) {
-    throw new Error("LinkedIn page must be a full http or https URL.");
+    throw new Error(t("errors.company.linkedinUrl"));
   }
   if (size && !(COMPANY_SIZES as readonly string[]).includes(size)) {
-    throw new Error("Invalid company size.");
+    throw new Error(t("errors.company.invalidSize"));
   }
   if (notes && notes.length > COMPANY_NOTES_MAX_LENGTH) {
     throw new Error(
-      `Notes must be ${COMPANY_NOTES_MAX_LENGTH} characters or fewer.`,
+      // A string, so the number is not grouped ("5,000")
+      t("errors.company.notesTooLong", { max: String(COMPANY_NOTES_MAX_LENGTH) }),
     );
   }
 };
@@ -54,6 +61,7 @@ const assertLinkedinSizeNotes = (
 export const addCompany = async (
   data: z.infer<typeof AddCompanyFormSchema>,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("library");
   try {
     const user = await requireUser();
 
@@ -70,18 +78,16 @@ export const addCompany = async (
 
     // Validate image URL
     if (logoUrl && !isValidImageUrl(logoUrl)) {
-      throw new Error(
-        "Invalid logo URL. Only http and https protocols are allowed.",
-      );
+      throw new Error(t("errors.company.invalidLogo"));
     }
 
     if (websiteUrl && !isValidHttpUrl(websiteUrl)) {
-      throw new Error("Website must be a full http or https URL.");
+      throw new Error(t("errors.company.websiteUrl"));
     }
     if (careersUrl && !isValidHttpUrl(careersUrl)) {
-      throw new Error("Careers page must be a full http or https URL.");
+      throw new Error(t("errors.company.careersUrl"));
     }
-    assertLinkedinSizeNotes(linkedinUrl, size, notes);
+    assertLinkedinSizeNotes(t, linkedinUrl, size, notes);
 
     const value = canonicalizeEntityValue(company.trim(), { stripLegalSuffix: true });
 
@@ -93,7 +99,7 @@ export const addCompany = async (
     });
 
     if (companyExists) {
-      throw new Error("Company already exists!");
+      throw new Error(t("errors.company.exists"));
     }
 
     const res = await prisma.company.create({
@@ -113,7 +119,7 @@ export const addCompany = async (
     revalidatePath("/dashboard/myjobs", "page");
     return { success: true, data: res };
   } catch (error) {
-    const msg = "Failed to create company.";
+    const msg = t("errors.company.createFailed");
     return handleError(error, msg);
   }
 };
@@ -121,6 +127,7 @@ export const addCompany = async (
 export const updateCompany = async (
   data: z.infer<typeof AddCompanyFormSchema>,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("library");
   try {
     const user = await requireUser();
 
@@ -143,18 +150,16 @@ export const updateCompany = async (
 
     // Validate image URL
     if (logoUrl && !isValidImageUrl(logoUrl)) {
-      throw new Error(
-        "Invalid logo URL. Only http and https protocols are allowed.",
-      );
+      throw new Error(t("errors.company.invalidLogo"));
     }
 
     if (websiteUrl && !isValidHttpUrl(websiteUrl)) {
-      throw new Error("Website must be a full http or https URL.");
+      throw new Error(t("errors.company.websiteUrl"));
     }
     if (careersUrl && !isValidHttpUrl(careersUrl)) {
-      throw new Error("Careers page must be a full http or https URL.");
+      throw new Error(t("errors.company.careersUrl"));
     }
-    assertLinkedinSizeNotes(linkedinUrl, size, notes);
+    assertLinkedinSizeNotes(t, linkedinUrl, size, notes);
 
     const existingCompany = await prisma.company.findFirst({
       where: {
@@ -164,7 +169,7 @@ export const updateCompany = async (
     });
 
     if (!existingCompany) {
-      throw new Error("Company not found");
+      throw new Error(t("errors.company.notFound"));
     }
 
     const trimmedLabel = company.trim();
@@ -185,7 +190,7 @@ export const updateCompany = async (
       });
 
       if (companyExists && companyExists.id !== id) {
-        throw new Error("Company already exists!");
+        throw new Error(t("errors.company.exists"));
       }
     }
 
@@ -209,7 +214,7 @@ export const updateCompany = async (
 
     return { success: true, data: res };
   } catch (error) {
-    const msg = "Failed to update company.";
+    const msg = t("errors.company.updateFailed");
     return handleError(error, msg);
   }
 };
@@ -217,6 +222,7 @@ export const updateCompany = async (
 export const deleteCompanyById = async (
   companyId: string,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("library");
   try {
     const user = await requireUser();
 
@@ -233,9 +239,7 @@ export const deleteCompanyById = async (
       },
     });
     if (experiences > 0) {
-      throw new Error(
-        `Company cannot be deleted due to its use in experience section of one of the resume! `,
-      );
+      throw new Error(t("errors.company.inResume"));
     }
     const jobs = await prisma.job.count({
       where: {
@@ -245,9 +249,7 @@ export const deleteCompanyById = async (
     });
 
     if (jobs > 0) {
-      throw new Error(
-        `Company cannot be deleted due to ${jobs} number of associated jobs! `,
-      );
+      throw new Error(t("errors.company.hasJobs", { count: jobs }));
     }
 
     // Contact.companyId and .workedAtCompanyId are optional relations, whose
@@ -260,9 +262,7 @@ export const deleteCompanyById = async (
       },
     });
     if (contacts > 0) {
-      throw new Error(
-        `Company cannot be deleted due to ${contacts} associated contact${contacts === 1 ? "" : "s"}! `,
-      );
+      throw new Error(t("errors.company.hasContacts", { count: contacts }));
     }
 
     const res = await prisma.company.delete({
@@ -273,7 +273,7 @@ export const deleteCompanyById = async (
     });
     return { res, success: true };
   } catch (error) {
-    const msg = "Failed to delete company.";
+    const msg = t("errors.company.deleteFailed");
     return handleError(error, msg);
   }
 };

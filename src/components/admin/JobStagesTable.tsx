@@ -28,6 +28,7 @@ import {
   updateJobStageType,
 } from "@/actions/jobStageType.actions";
 import { toastSuccess, toastError } from "@/lib/toast";
+import { useLabel, useTranslations } from "@/i18n/client";
 
 type JobStagesTableProps = {
   types: JobStageTypeRef[];
@@ -36,6 +37,8 @@ type JobStagesTableProps = {
 };
 
 function JobStagesTable({ types, reloadTypes, onEdit }: JobStagesTableProps) {
+  const t = useTranslations("library");
+  const label = useLabel();
   const [alert, setAlert] = useState<AlertDialog>({
     openState: false,
     deleteAction: false,
@@ -46,10 +49,8 @@ function JobStagesTable({ types, reloadTypes, onEdit }: JobStagesTableProps) {
     if (stages > 0) {
       setAlert({
         openState: true,
-        title: "Stage type is in use!",
-        description: `This stage type is used by ${stages} job stage${
-          stages === 1 ? "" : "s"
-        }. Change or remove those stages before deleting the type.`,
+        title: t("stages.inUseTitle"),
+        description: t("stages.inUse", { count: stages }),
         deleteAction: false,
       });
     } else {
@@ -61,7 +62,7 @@ function JobStagesTable({ types, reloadTypes, onEdit }: JobStagesTableProps) {
     if (typeId) {
       const { success, message } = await deleteJobStageTypeById(typeId);
       if (success) {
-        toastSuccess("Stage type has been deleted successfully");
+        toastSuccess(t("stages.deleted"));
         reloadTypes();
       } else {
         toastError(message);
@@ -102,12 +103,12 @@ function JobStagesTable({ types, reloadTypes, onEdit }: JobStagesTableProps) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Stage</TableHead>
-            <TableHead>Parent Status</TableHead>
-            <TableHead className="hidden sm:table-cell">Order</TableHead>
-            <TableHead>Stages</TableHead>
+            <TableHead>{t("stages.stage")}</TableHead>
+            <TableHead>{t("stages.parentStatus")}</TableHead>
+            <TableHead className="hidden sm:table-cell">{t("stages.order")}</TableHead>
+            <TableHead>{t("stages.stagesCount")}</TableHead>
             <TableHead>
-              <span className="sr-only">Actions</span>
+              <span className="sr-only">{t("shared.actions")}</span>
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -115,11 +116,13 @@ function JobStagesTable({ types, reloadTypes, onEdit }: JobStagesTableProps) {
           {types.map((type: JobStageTypeRef, index: number) => {
             return (
               <TableRow key={type.id}>
-                <TableCell className="font-medium">{type.label}</TableCell>
+                <TableCell className="font-medium">
+                  {label("jobStage", type)}
+                </TableCell>
                 <TableCell>
                   {type.Status && (
                     <StatusBadge
-                      label={type.Status.label}
+                      label={label("jobStatus", type.Status)}
                       color={getJobStatusBadgeColor(type.Status.value)}
                     />
                   )}
@@ -135,17 +138,17 @@ function JobStagesTable({ types, reloadTypes, onEdit }: JobStagesTableProps) {
                     <DropdownMenuTrigger asChild>
                       <Button aria-haspopup="true" size="icon" variant="ghost">
                         <MoreVertical className="h-4 w-4" />
-                        <span className="sr-only">Toggle menu</span>
+                        <span className="sr-only">{t("shared.toggleMenu")}</span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuLabel>{t("shared.actions")}</DropdownMenuLabel>
                       <DropdownMenuItem
                         className="cursor-pointer"
                         onClick={() => onEdit(type)}
                       >
                         <Pencil className="mr-2 h-4 w-4" />
-                        Edit
+                        {t("shared.edit")}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         className="cursor-pointer"
@@ -153,7 +156,7 @@ function JobStagesTable({ types, reloadTypes, onEdit }: JobStagesTableProps) {
                         onClick={() => move(index, -1)}
                       >
                         <ArrowUp className="mr-2 h-4 w-4" />
-                        Move Up
+                        {t("stages.moveUp")}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         className="cursor-pointer"
@@ -161,14 +164,14 @@ function JobStagesTable({ types, reloadTypes, onEdit }: JobStagesTableProps) {
                         onClick={() => move(index, 1)}
                       >
                         <ArrowDown className="mr-2 h-4 w-4" />
-                        Move Down
+                        {t("stages.moveDown")}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-red-600 cursor-pointer"
                         onClick={() => onDeleteType(type)}
                       >
                         <Trash className="mr-2 h-4 w-4" />
-                        Delete
+                        {t("shared.delete")}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -179,7 +182,7 @@ function JobStagesTable({ types, reloadTypes, onEdit }: JobStagesTableProps) {
         </TableBody>
       </Table>
       <DeleteAlertDialog
-        pageTitle="stage type"
+        pageTitle={t("stages.deleteItem")}
         open={alert.openState}
         onOpenChange={() => setAlert({ openState: false, deleteAction: false })}
         onDelete={() => deleteType(alert.itemId!)}

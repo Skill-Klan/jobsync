@@ -2,6 +2,7 @@
 import prisma from "@/lib/db";
 import { handleError } from "@/lib/utils";
 import { requireUser } from "../shared";
+import { getTranslations } from "@/i18n/server";
 
 const JOB_CONTACT_INCLUDE = {
   Role: true,
@@ -39,6 +40,7 @@ export const addJobContact = async (
   contactId: string,
   roleId: string,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("library");
   try {
     const user = await requireUser();
 
@@ -49,9 +51,9 @@ export const addJobContact = async (
       prisma.contact.count({ where: { id: contactId, createdBy: user.id } }),
       prisma.contactRole.count({ where: { id: roleId, createdBy: user.id } }),
     ]);
-    if (job === 0) throw new Error("Job not found");
-    if (contact === 0) throw new Error("Contact not found");
-    if (role === 0) throw new Error("Role not found");
+    if (job === 0) throw new Error(t("errors.contact.jobNotFound"));
+    if (contact === 0) throw new Error(t("errors.contact.contactNotFound"));
+    if (role === 0) throw new Error(t("errors.contact.roleNotFound"));
 
     const data = await prisma.jobContact.create({
       data: { jobId, contactId, roleId },
@@ -62,16 +64,17 @@ export const addJobContact = async (
     if (error?.code === "P2002") {
       return {
         success: false,
-        message: "That contact already holds this role on this job.",
+        message: t("errors.contact.roleTaken"),
       };
     }
-    return handleError(error, "Failed to link contact to job.");
+    return handleError(error, t("errors.contact.linkFailed"));
   }
 };
 
 export const removeJobContact = async (
   linkId: string,
 ): Promise<any | undefined> => {
+  const t = await getTranslations("library");
   try {
     const user = await requireUser();
     const res = await prisma.jobContact.deleteMany({
@@ -81,9 +84,9 @@ export const removeJobContact = async (
         Contact: { createdBy: user.id },
       },
     });
-    if (res.count === 0) throw new Error("Link not found");
+    if (res.count === 0) throw new Error(t("errors.contact.linkNotFound"));
     return { success: true };
   } catch (error) {
-    return handleError(error, "Failed to unlink contact.");
+    return handleError(error, t("errors.contact.unlinkFailed"));
   }
 };

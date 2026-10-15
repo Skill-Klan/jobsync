@@ -4,6 +4,7 @@ import { handleError } from "@/lib/utils";
 import { requireUser } from "./shared";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { getReferenceEntityList } from "./referenceList";
+import { getTranslations } from "@/i18n/server";
 
 export const getAllJobLocations = async (): Promise<any | undefined> => {
   try {
@@ -48,6 +49,7 @@ export const getJobLocationsList = async (
 export const deleteJobLocationById = async (
   locationId: string
 ): Promise<any | undefined> => {
+  const t = await getTranslations("library");
   try {
     const user = await requireUser();
 
@@ -57,9 +59,7 @@ export const deleteJobLocationById = async (
       },
     });
     if (experiences > 0) {
-      throw new Error(
-        `Job location cannot be deleted due to its use in experience section of one of the resume! `
-      );
+      throw new Error(t("errors.location.inExperience"));
     }
 
     const educations = await prisma.education.count({
@@ -68,9 +68,7 @@ export const deleteJobLocationById = async (
       },
     });
     if (educations > 0) {
-      throw new Error(
-        `Job location cannot be deleted due to its use in education section of one of the resume! `
-      );
+      throw new Error(t("errors.location.inEducation"));
     }
 
     const jobs = await prisma.job.count({
@@ -81,9 +79,7 @@ export const deleteJobLocationById = async (
     });
 
     if (jobs > 0) {
-      throw new Error(
-        `Location cannot be deleted due to ${jobs} number of associated jobs! `
-      );
+      throw new Error(t("errors.location.hasJobs", { count: jobs }));
     }
 
     // Optional relation, so the Prisma default is SetNull; same reasoning as
@@ -92,9 +88,7 @@ export const deleteJobLocationById = async (
       where: { locationId, createdBy: user.id },
     });
     if (contacts > 0) {
-      throw new Error(
-        `Location cannot be deleted due to ${contacts} associated contact${contacts === 1 ? "" : "s"}! `
-      );
+      throw new Error(t("errors.location.hasContacts", { count: contacts }));
     }
 
     const res = await prisma.location.delete({
@@ -105,7 +99,7 @@ export const deleteJobLocationById = async (
     });
     return { res, success: true };
   } catch (error) {
-    const msg = "Failed to delete job location.";
+    const msg = t("errors.location.deleteFailed");
     return handleError(error, msg);
   }
 };

@@ -1,5 +1,5 @@
 "use client";
-import { useTransition, useState } from "react";
+import { useMemo, useTransition, useState } from "react";
 import { Button } from "../ui/button";
 import {
   Dialog,
@@ -24,24 +24,39 @@ import {
 import { Input } from "../ui/input";
 import { toastSuccess, toastError } from "@/lib/toast";
 import { createTag } from "@/actions/tag.actions";
+import { useTranslations } from "@/i18n/client";
 
-const AddTagFormSchema = z.object({
-  label: z
-    .string({ error: "Skill label is required." })
-    .min(1, { message: "Skill label cannot be empty." })
-    .max(60, { message: "Skill label must be 60 characters or fewer." }),
-});
+// Built per render language: the messages are what the form shows.
+const addTagFormSchema = (m: { required: string; empty: string; tooLong: string }) =>
+  z.object({
+    label: z
+      .string({ error: m.required })
+      .min(1, { message: m.empty })
+      .max(60, { message: m.tooLong }),
+  });
+
+type AddTagFormValues = z.infer<ReturnType<typeof addTagFormSchema>>;
 
 type AddTagProps = {
   reloadTags: () => void;
 };
 
 function AddTag({ reloadTags }: AddTagProps) {
+  const t = useTranslations("library");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const schema = useMemo(
+    () =>
+      addTagFormSchema({
+        required: t("skills.required"),
+        empty: t("skills.empty"),
+        tooLong: t("skills.tooLong"),
+      }),
+    [t],
+  );
 
-  const form = useForm<z.infer<typeof AddTagFormSchema>>({
-    resolver: zodResolver(AddTagFormSchema),
+  const form = useForm<AddTagFormValues>({
+    resolver: zodResolver(schema),
     defaultValues: { label: "" },
   });
 
@@ -52,16 +67,16 @@ function AddTag({ reloadTags }: AddTagProps) {
     setDialogOpen(true);
   };
 
-  const onSubmit = (values: z.infer<typeof AddTagFormSchema>) => {
+  const onSubmit = (values: AddTagFormValues) => {
     startTransition(async () => {
       const result = await createTag(values.label);
       if (result?.success) {
-        toastSuccess("Skill tag has been added successfully.");
+        toastSuccess(t("skills.added"));
         setDialogOpen(false);
         reset();
         reloadTags();
       } else {
-        toastError(result?.message ?? "Failed to create skill tag.");
+        toastError(result?.message ?? t("skills.addFailed"));
       }
     });
   };
@@ -76,15 +91,15 @@ function AddTag({ reloadTags }: AddTagProps) {
       >
         <PlusCircle className="h-3.5 w-3.5" />
         <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-          New Skill
+          {t("skills.newSkill")}
         </span>
       </Button>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add New Skill</DialogTitle>
+            <DialogTitle>{t("skills.addTitle")}</DialogTitle>
             <DialogDescription>
-              Add a new skill tag to use across your job applications.
+              {t("skills.addDescription")}
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -94,9 +109,9 @@ function AddTag({ reloadTags }: AddTagProps) {
                 name="label"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Skill Name</FormLabel>
+                    <FormLabel>{t("skills.nameLabel")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. React, AWS, Python" {...field} />
+                      <Input placeholder={t("skills.namePlaceholder")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -108,10 +123,10 @@ function AddTag({ reloadTags }: AddTagProps) {
                   variant="outline"
                   onClick={() => setDialogOpen(false)}
                 >
-                  Cancel
+                  {t("shared.cancel")}
                 </Button>
                 <Button type="submit" disabled={isPending}>
-                  Save
+                  {t("shared.save")}
                   {isPending && (
                     <Loader className="ml-2 h-4 w-4 shrink-0 spinner" />
                   )}

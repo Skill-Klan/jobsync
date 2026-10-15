@@ -11,8 +11,10 @@ import Loading from "../Loading";
 import { Button } from "../ui/button";
 import { RecordsCount } from "../RecordsCount";
 import { SearchInput } from "../SearchInput";
+import { useTranslations } from "@/i18n/client";
 
 function ContactRolesContainer() {
+  const t = useTranslations("library");
   const [roles, setRoles] = useState<ContactRole[]>([]);
   const [totalRoles, setTotalRoles] = useState<number>(0);
   const [page, setPage] = useState<number>(1);
@@ -54,12 +56,12 @@ function ContactRolesContainer() {
       <Card x-chunk="dashboard-06-chunk-0">
         <ResponsiveCardHeader>
           <div className="flex items-baseline gap-2">
-            <CardTitle>Contact Roles</CardTitle>
+            <CardTitle>{t("roles.title")}</CardTitle>
             {!loading && totalRoles > 0 && (
               <RecordsCount
                 count={roles.length}
                 total={totalRoles}
-                label="roles"
+                label={t("roles.records")}
               />
             )}
           </div>
@@ -67,7 +69,7 @@ function ContactRolesContainer() {
             <SearchInput
               value={searchTerm}
               onChange={setSearchTerm}
-              placeholder="Search roles..."
+              placeholder={t("roles.search")}
             />
             <AddContactRole reloadRoles={reloadRoles} />
           </div>
@@ -86,7 +88,7 @@ function ContactRolesContainer() {
                 disabled={loading}
                 className="btn btn-primary"
               >
-                {loading ? "Loading..." : "Load More"}
+                {loading ? t("shared.loading") : t("shared.loadMore")}
               </Button>
             </div>
           )}

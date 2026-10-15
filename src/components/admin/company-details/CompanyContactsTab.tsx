@@ -13,6 +13,7 @@ import { getAllJobLocations } from "@/actions/jobLocation.actions";
 import { getAllContactRoles } from "@/actions/contactRole.actions";
 import type { Contact, ContactRole } from "@/models/contact.model";
 import type { Company, JobLocation } from "@/models/job.model";
+import { useTranslations } from "@/i18n/client";
 
 type CompanyContactsTabProps = {
   companyId: string;
@@ -25,6 +26,7 @@ export function CompanyContactsTab({
   currentContacts,
   formerContacts,
 }: CompanyContactsTabProps) {
+  const t = useTranslations("library");
   const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editContact, setEditContact] = useState<Contact | null>(null);
@@ -70,14 +72,16 @@ export function CompanyContactsTab({
         <div className="flex justify-end">
           <Button variant="outline" size="sm" className="h-7 gap-1" onClick={onAdd}>
             <PlusCircle className="h-3.5 w-3.5" />
-            Add Contact
+            {t("companyDetails.contacts.add")}
           </Button>
         </div>
       )}
 
       {currentContacts.length > 0 && (
         <section className="space-y-2">
-          <h3 className="text-sm font-medium text-muted-foreground">Works here</h3>
+          <h3 className="text-sm font-medium text-muted-foreground">
+            {t("companyDetails.contacts.worksHere")}
+          </h3>
           <ContactsTable
             contacts={currentContacts}
             reloadContacts={reload}
@@ -90,7 +94,7 @@ export function CompanyContactsTab({
       {formerContacts.length > 0 && (
         <section className="space-y-2">
           <h3 className="text-sm font-medium text-muted-foreground">
-            Worked with you here
+            {t("companyDetails.contacts.workedWithYou")}
           </h3>
           <ContactsTable
             contacts={formerContacts}
@@ -103,9 +107,9 @@ export function CompanyContactsTab({
       {!hasAny && (
         <JobTabEmptyState
           icon={Users}
-          title="No contacts at this company yet"
-          description="Add the recruiters, hiring managers and colleagues you know here."
-          actionLabel="Add Contact"
+          title={t("companyDetails.contacts.emptyTitle")}
+          description={t("companyDetails.contacts.emptyDescription")}
+          actionLabel={t("companyDetails.contacts.add")}
           onAction={onAdd}
         />
       )}

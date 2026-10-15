@@ -22,6 +22,7 @@ import { deleteTagById } from "@/actions/tag.actions";
 import { toastSuccess, toastError } from "@/lib/toast";
 import { DeleteAlertDialog } from "../DeleteAlertDialog";
 import { AlertDialog } from "@/models/alertDialog.model";
+import { useTranslations } from "@/i18n/client";
 
 type TagsTableProps = {
   tags: Tag[];
@@ -29,6 +30,7 @@ type TagsTableProps = {
 };
 
 function TagsTable({ tags, reloadTags }: TagsTableProps) {
+  const t = useTranslations("library");
   const [alert, setAlert] = useState<AlertDialog>({
     openState: false,
     deleteAction: false,
@@ -41,17 +43,19 @@ function TagsTable({ tags, reloadTags }: TagsTableProps) {
 
     if (jobCount > 0 || questionCount > 0 || skillCount > 0) {
       const links = [
-        jobCount > 0 ? `${jobCount} job(s)` : "",
-        questionCount > 0 ? `${questionCount} question(s)` : "",
-        skillCount > 0 ? `${skillCount} skill(s)` : "",
+        jobCount > 0 ? t("skills.jobsCount", { count: jobCount }) : "",
+        questionCount > 0
+          ? t("skills.questionsCount", { count: questionCount })
+          : "",
+        skillCount > 0 ? t("skills.skillsCount", { count: skillCount }) : "",
       ]
         .filter(Boolean)
-        .join(" and ");
+        .join(` ${t("shared.and")} `);
 
       setAlert({
         openState: true,
-        title: "Skill is in use!",
-        description: `This skill is linked to ${links} and cannot be deleted.`,
+        title: t("skills.inUseTitle"),
+        description: t("skills.inUse", { links }),
         deleteAction: false,
       });
     } else {
@@ -67,7 +71,7 @@ function TagsTable({ tags, reloadTags }: TagsTableProps) {
     if (!tagId) return;
     const { success, message } = await deleteTagById(tagId);
     if (success) {
-      toastSuccess("Skill tag has been deleted successfully");
+      toastSuccess(t("skills.deleted"));
       reloadTags();
     } else {
       toastError(message);
@@ -79,11 +83,11 @@ function TagsTable({ tags, reloadTags }: TagsTableProps) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Skill Label</TableHead>
-            <TableHead className="hidden sm:table-cell">Value</TableHead>
-            <TableHead># Jobs</TableHead>
-            <TableHead># Questions</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead>{t("skills.label")}</TableHead>
+            <TableHead className="hidden sm:table-cell">{t("shared.value")}</TableHead>
+            <TableHead>{t("skills.jobs")}</TableHead>
+            <TableHead>{t("skills.questions")}</TableHead>
+            <TableHead>{t("shared.actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -104,17 +108,17 @@ function TagsTable({ tags, reloadTags }: TagsTableProps) {
                   <DropdownMenuTrigger asChild>
                     <Button aria-haspopup="true" size="icon" variant="ghost">
                       <MoreVertical className="h-4 w-4" />
-                      <span className="sr-only">Toggle menu</span>
+                      <span className="sr-only">{t("shared.toggleMenu")}</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuLabel>{t("shared.actions")}</DropdownMenuLabel>
                     <DropdownMenuItem
                       className="text-red-600 cursor-pointer"
                       onClick={() => onDeleteTag(tag)}
                     >
                       <Trash className="mr-2 h-4 w-4" />
-                      Delete
+                      {t("shared.delete")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -124,7 +128,7 @@ function TagsTable({ tags, reloadTags }: TagsTableProps) {
         </TableBody>
       </Table>
       <DeleteAlertDialog
-        pageTitle="skill"
+        pageTitle={t("skills.deleteItem")}
         open={alert.openState}
         onOpenChange={() => setAlert({ openState: false, deleteAction: false })}
         onDelete={() => deleteTag(alert.itemId)}

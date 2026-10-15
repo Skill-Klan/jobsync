@@ -1,5 +1,5 @@
 "use client";
-import { useTransition, useState } from "react";
+import { useMemo, useTransition, useState } from "react";
 import { Button } from "../ui/button";
 import {
   Dialog,
@@ -24,24 +24,45 @@ import {
 import { Input } from "../ui/input";
 import { toastActionResult } from "@/lib/toast";
 import { createContactRole } from "@/actions/contactRole.actions";
+import { useTranslations } from "@/i18n/client";
 
-const AddContactRoleFormSchema = z.object({
-  label: z
-    .string({ error: "Role name is required." })
-    .min(1, { message: "Role name cannot be empty." })
-    .max(60, { message: "Role name must be 60 characters or fewer." }),
-});
+// Built per render language: the messages are what the form shows.
+const addContactRoleFormSchema = (m: {
+  required: string;
+  empty: string;
+  tooLong: string;
+}) =>
+  z.object({
+    label: z
+      .string({ error: m.required })
+      .min(1, { message: m.empty })
+      .max(60, { message: m.tooLong }),
+  });
+
+type AddContactRoleFormValues = z.infer<
+  ReturnType<typeof addContactRoleFormSchema>
+>;
 
 type AddContactRoleProps = {
   reloadRoles: () => void;
 };
 
 function AddContactRole({ reloadRoles }: AddContactRoleProps) {
+  const t = useTranslations("library");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const schema = useMemo(
+    () =>
+      addContactRoleFormSchema({
+        required: t("roles.required"),
+        empty: t("roles.empty"),
+        tooLong: t("roles.tooLong"),
+      }),
+    [t],
+  );
 
-  const form = useForm<z.infer<typeof AddContactRoleFormSchema>>({
-    resolver: zodResolver(AddContactRoleFormSchema),
+  const form = useForm<AddContactRoleFormValues>({
+    resolver: zodResolver(schema),
     defaultValues: { label: "" },
   });
 
@@ -52,11 +73,11 @@ function AddContactRole({ reloadRoles }: AddContactRoleProps) {
     setDialogOpen(true);
   };
 
-  const onSubmit = (values: z.infer<typeof AddContactRoleFormSchema>) => {
+  const onSubmit = (values: AddContactRoleFormValues) => {
     startTransition(async () => {
       const res = await createContactRole(values.label);
       toastActionResult(res, {
-        success: "Role has been added successfully.",
+        success: t("roles.added"),
         onSuccess: () => {
           setDialogOpen(false);
           reset();
@@ -76,16 +97,15 @@ function AddContactRole({ reloadRoles }: AddContactRoleProps) {
       >
         <PlusCircle className="h-3.5 w-3.5" />
         <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-          New Role
+          {t("roles.newRole")}
         </span>
       </Button>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add New Contact Role</DialogTitle>
+            <DialogTitle>{t("roles.addTitle")}</DialogTitle>
             <DialogDescription>
-              Roles describe what a person was to you on one job — recruiter,
-              interviewer, reference.
+              {t("roles.addDescription")}
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -95,9 +115,9 @@ function AddContactRole({ reloadRoles }: AddContactRoleProps) {
                 name="label"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Role Name</FormLabel>
+                    <FormLabel>{t("roles.nameLabel")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Panel Lead, Referrer" {...field} />
+                      <Input placeholder={t("roles.namePlaceholder")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -109,10 +129,10 @@ function AddContactRole({ reloadRoles }: AddContactRoleProps) {
                   variant="outline"
                   onClick={() => setDialogOpen(false)}
                 >
-                  Cancel
+                  {t("shared.cancel")}
                 </Button>
                 <Button type="submit" disabled={isPending}>
-                  Save
+                  {t("shared.save")}
                   {isPending && (
                     <Loader className="ml-2 h-4 w-4 shrink-0 spinner" />
                   )}

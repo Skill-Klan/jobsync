@@ -13,6 +13,7 @@ import { deleteContactById } from "@/actions/contact.actions";
 import { toastSuccess, toastError } from "@/lib/toast";
 import { AlertDialog } from "@/models/alertDialog.model";
 import type { Contact } from "@/models/contact.model";
+import { useTranslations } from "@/i18n/client";
 
 type ContactsTableProps = {
   contacts: Contact[];
@@ -27,6 +28,7 @@ function ContactsTable({
   editContact,
   hideCompanyColumn,
 }: ContactsTableProps) {
+  const t = useTranslations("library");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [alert, setAlert] = useState<AlertDialog>({
     openState: false,
@@ -41,10 +43,10 @@ function ContactsTable({
       openState: true,
       deleteAction: true,
       itemId: contact.id,
-      title: jobs > 0 ? "Delete this contact?" : undefined,
+      title: jobs > 0 ? t("contacts.deleteTitle") : undefined,
       description:
         jobs > 0
-          ? `${contact.name} is linked to ${jobs} job${jobs === 1 ? "" : "s"}. Deleting the contact removes those links. This cannot be undone.`
+          ? t("contacts.deleteLinked", { name: contact.name, count: jobs })
           : undefined,
     });
   };
@@ -53,7 +55,7 @@ function ContactsTable({
     if (contactId) {
       const { success, message } = await deleteContactById(contactId);
       if (success) {
-        toastSuccess("Contact has been deleted successfully");
+        toastSuccess(t("contacts.deleted"));
         reloadContacts();
       } else {
         toastError(message);
@@ -67,16 +69,16 @@ function ContactsTable({
         <TableHeader>
           <TableRow>
             <TableHead className="w-8">
-              <span className="sr-only">Expand</span>
+              <span className="sr-only">{t("contacts.expand")}</span>
             </TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead className="hidden sm:table-cell">Title</TableHead>
-            {!hideCompanyColumn && <TableHead>Company</TableHead>}
-            <TableHead>Roles</TableHead>
-            <TableHead>Jobs</TableHead>
-            <TableHead>Last contacted</TableHead>
+            <TableHead>{t("contacts.name")}</TableHead>
+            <TableHead className="hidden sm:table-cell">{t("contacts.jobTitle")}</TableHead>
+            {!hideCompanyColumn && <TableHead>{t("contacts.company")}</TableHead>}
+            <TableHead>{t("contacts.roles")}</TableHead>
+            <TableHead>{t("contacts.jobs")}</TableHead>
+            <TableHead>{t("contacts.lastContacted")}</TableHead>
             <TableHead>
-              <span className="sr-only">Actions</span>
+              <span className="sr-only">{t("shared.actions")}</span>
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -99,7 +101,7 @@ function ContactsTable({
         </TableBody>
       </Table>
       <DeleteAlertDialog
-        pageTitle="contact"
+        pageTitle={t("contacts.deleteItem")}
         open={alert.openState}
         onOpenChange={() => setAlert({ openState: false, deleteAction: false })}
         onDelete={() => deleteContact(alert.itemId)}

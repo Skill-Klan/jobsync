@@ -14,8 +14,10 @@ import { Button } from "../ui/button";
 import { PlusCircle } from "lucide-react";
 import { RecordsCount } from "../RecordsCount";
 import { SearchInput } from "../SearchInput";
+import { useTranslations } from "@/i18n/client";
 
 function JobStagesContainer() {
+  const t = useTranslations("library");
   const [types, setTypes] = useState<JobStageTypeRef[]>([]);
   const [totalTypes, setTotalTypes] = useState<number>(0);
   const [statuses, setStatuses] = useState<JobStatus[]>([]);
@@ -74,12 +76,12 @@ function JobStagesContainer() {
       <Card x-chunk="dashboard-06-chunk-0">
         <ResponsiveCardHeader>
           <div className="flex items-baseline gap-2">
-            <CardTitle>Job Stages</CardTitle>
+            <CardTitle>{t("stages.title")}</CardTitle>
             {!loading && totalTypes > 0 && (
               <RecordsCount
                 count={types.length}
                 total={totalTypes}
-                label="stages"
+                label={t("stages.records")}
               />
             )}
           </div>
@@ -87,7 +89,7 @@ function JobStagesContainer() {
             <SearchInput
               value={searchTerm}
               onChange={setSearchTerm}
-              placeholder="Search stages..."
+              placeholder={t("stages.search")}
             />
             <Button
               size="sm"
@@ -97,7 +99,7 @@ function JobStagesContainer() {
             >
               <PlusCircle className="h-3.5 w-3.5" />
               <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                New Stage
+                {t("stages.newStage")}
               </span>
             </Button>
           </div>
@@ -120,7 +122,7 @@ function JobStagesContainer() {
                 disabled={loading}
                 className="btn btn-primary"
               >
-                {loading ? "Loading..." : "Load More"}
+                {loading ? t("shared.loading") : t("shared.loadMore")}
               </Button>
             </div>
           )}

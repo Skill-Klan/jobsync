@@ -23,6 +23,7 @@ import { AlertDialog } from "@/models/alertDialog.model";
 import { DeleteAlertDialog } from "../DeleteAlertDialog";
 import { deleteContactRoleById } from "@/actions/contactRole.actions";
 import { toastSuccess, toastError } from "@/lib/toast";
+import { useLabel, useTranslations } from "@/i18n/client";
 
 type ContactRolesTableProps = {
   roles: ContactRole[];
@@ -30,6 +31,8 @@ type ContactRolesTableProps = {
 };
 
 function ContactRolesTable({ roles, reloadRoles }: ContactRolesTableProps) {
+  const t = useTranslations("library");
+  const label = useLabel();
   const [alert, setAlert] = useState<AlertDialog>({
     openState: false,
     deleteAction: false,
@@ -41,14 +44,10 @@ function ContactRolesTable({ roles, reloadRoles }: ContactRolesTableProps) {
     if (links > 0 || holders > 0) {
       setAlert({
         openState: true,
-        title: "Associated contacts exist!",
+        title: t("roles.inUseTitle"),
         description: links
-          ? `This role is used by ${links} contact link${
-              links === 1 ? "" : "s"
-            }. Remove those links before deleting the role.`
-          : `This role is set on ${holders} contact${
-              holders === 1 ? "" : "s"
-            }. Change their role before deleting it.`,
+          ? t("roles.usedByLinks", { count: links })
+          : t("roles.setOnContacts", { count: holders }),
         deleteAction: false,
       });
     } else {
@@ -60,7 +59,7 @@ function ContactRolesTable({ roles, reloadRoles }: ContactRolesTableProps) {
     if (roleId) {
       const { success, message } = await deleteContactRoleById(roleId);
       if (success) {
-        toastSuccess("Contact role has been deleted successfully");
+        toastSuccess(t("roles.deleted"));
         reloadRoles();
       } else {
         toastError(message);
@@ -73,11 +72,11 @@ function ContactRolesTable({ roles, reloadRoles }: ContactRolesTableProps) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Role</TableHead>
-            <TableHead className="hidden sm:table-cell">Value</TableHead>
-            <TableHead>Contacts Linked</TableHead>
+            <TableHead>{t("roles.header")}</TableHead>
+            <TableHead className="hidden sm:table-cell">{t("shared.value")}</TableHead>
+            <TableHead>{t("roles.linked")}</TableHead>
             <TableHead>
-              <span className="sr-only">Actions</span>
+              <span className="sr-only">{t("shared.actions")}</span>
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -85,7 +84,9 @@ function ContactRolesTable({ roles, reloadRoles }: ContactRolesTableProps) {
           {roles.map((role: ContactRole) => {
             return (
               <TableRow key={role.id}>
-                <TableCell className="font-medium">{role.label}</TableCell>
+                <TableCell className="font-medium">
+                  {label("contactRole", role)}
+                </TableCell>
                 <TableCell className="font-medium hidden sm:table-cell">
                   {role.value}
                 </TableCell>
@@ -97,17 +98,17 @@ function ContactRolesTable({ roles, reloadRoles }: ContactRolesTableProps) {
                     <DropdownMenuTrigger asChild>
                       <Button aria-haspopup="true" size="icon" variant="ghost">
                         <MoreVertical className="h-4 w-4" />
-                        <span className="sr-only">Toggle menu</span>
+                        <span className="sr-only">{t("shared.toggleMenu")}</span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuLabel>{t("shared.actions")}</DropdownMenuLabel>
                       <DropdownMenuItem
                         className="text-red-600 cursor-pointer"
                         onClick={() => onDeleteRole(role)}
                       >
                         <Trash className="mr-2 h-4 w-4" />
-                        Delete
+                        {t("shared.delete")}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -118,7 +119,7 @@ function ContactRolesTable({ roles, reloadRoles }: ContactRolesTableProps) {
         </TableBody>
       </Table>
       <DeleteAlertDialog
-        pageTitle="role"
+        pageTitle={t("roles.deleteItem")}
         open={alert.openState}
         onOpenChange={() => setAlert({ openState: false, deleteAction: false })}
         onDelete={() => deleteRole(alert.itemId!)}

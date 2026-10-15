@@ -6,6 +6,7 @@ import { BoardCell } from "@/components/admin/BoardCell";
 import { formatUrl } from "@/lib/utils";
 import type { Company } from "@/models/job.model";
 import { hostnameOf } from "./hostname";
+import { useDateFnsLocale, useTranslations } from "@/i18n/client";
 
 type CompanySummaryCardProps = {
   company: Company;
@@ -44,47 +45,50 @@ export function CompanySummaryCard({
   appliedCount,
   contactsCount,
 }: CompanySummaryCardProps) {
+  const t = useTranslations("library");
+  const dateLocale = useDateFnsLocale();
   return (
     <Card data-testid="company-summary">
       <CardContent className="pt-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Fact label="Watchlist">
+          <Fact label={t("companyDetails.summary.watchlist")}>
             {company.watched ? (
               <>
-                Watched
+                {t("companyDetails.summary.watched")}
                 {company.watchedAt && (
                   <span className="block text-sm font-normal text-muted-foreground">
                     {formatDistanceToNow(new Date(company.watchedAt), {
                       addSuffix: true,
+                      locale: dateLocale,
                     })}
                   </span>
                 )}
               </>
             ) : (
-              "Not watched"
+              t("companyDetails.summary.notWatched")
             )}
           </Fact>
-          <Fact label="Board">
+          <Fact label={t("companyDetails.summary.board")}>
             <BoardCell company={company} />
           </Fact>
-          <Fact label="Industry">{company.industry || "—"}</Fact>
-          <Fact label="Size">{company.size || "—"}</Fact>
-          <Fact label="Website">
+          <Fact label={t("companyDetails.summary.industry")}>{company.industry || "—"}</Fact>
+          <Fact label={t("companyDetails.summary.size")}>{company.size || "—"}</Fact>
+          <Fact label={t("companyDetails.summary.website")}>
             <HostLink url={company.websiteUrl} />
           </Fact>
-          <Fact label="Careers page">
+          <Fact label={t("companyDetails.summary.careersPage")}>
             <HostLink url={company.careersUrl} />
           </Fact>
           <Fact label="LinkedIn">
             <HostLink url={company.linkedinUrl} />
           </Fact>
-          <Fact label="Jobs">{jobsCount}</Fact>
-          <Fact label="Applied">{appliedCount}</Fact>
-          <Fact label="Contacts">{contactsCount}</Fact>
+          <Fact label={t("companyDetails.summary.jobs")}>{jobsCount}</Fact>
+          <Fact label={t("companyDetails.summary.applied")}>{appliedCount}</Fact>
+          <Fact label={t("companyDetails.summary.contacts")}>{contactsCount}</Fact>
         </div>
         {company.notes && (
           <div className="mt-4 border-t pt-4" data-testid="company-notes">
-            <p className="text-sm text-muted-foreground">Notes</p>
+            <p className="text-sm text-muted-foreground">{t("companyDetails.summary.notes")}</p>
             <p className="mt-1 whitespace-pre-wrap">{company.notes}</p>
           </div>
         )}

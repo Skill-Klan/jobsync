@@ -1,5 +1,5 @@
 "use client";
-import { useTransition, useEffect } from "react";
+import { useMemo, useTransition, useEffect } from "react";
 import { Button } from "../ui/button";
 import {
   Dialog,
@@ -30,16 +30,29 @@ import {
   createJobStageType,
   updateJobStageType,
 } from "@/actions/jobStageType.actions";
+import { useLabel, useTranslations } from "@/i18n/client";
 
-const AddJobStageTypeFormSchema = z.object({
-  label: z
-    .string({ error: "Stage name is required." })
-    .min(1, { message: "Stage name cannot be empty." })
-    .max(80, { message: "Stage name must be 80 characters or fewer." }),
-  statusId: z
-    .string({ error: "Parent status is required." })
-    .min(1, { message: "Pick the status this stage means." }),
-});
+// Built per render language: the messages are what the form shows.
+const addJobStageTypeFormSchema = (m: {
+  required: string;
+  empty: string;
+  tooLong: string;
+  statusRequired: string;
+  statusPick: string;
+}) =>
+  z.object({
+    label: z
+      .string({ error: m.required })
+      .min(1, { message: m.empty })
+      .max(80, { message: m.tooLong }),
+    statusId: z
+      .string({ error: m.statusRequired })
+      .min(1, { message: m.statusPick }),
+  });
+
+type AddJobStageTypeFormValues = z.infer<
+  ReturnType<typeof addJobStageTypeFormSchema>
+>;
 
 type AddJobStageTypeProps = {
   open: boolean;
@@ -56,10 +69,23 @@ function AddJobStageType({
   statuses,
   reloadTypes,
 }: AddJobStageTypeProps) {
+  const t = useTranslations("library");
+  const label = useLabel();
   const [isPending, startTransition] = useTransition();
+  const schema = useMemo(
+    () =>
+      addJobStageTypeFormSchema({
+        required: t("stages.required"),
+        empty: t("stages.empty"),
+        tooLong: t("stages.tooLong"),
+        statusRequired: t("stages.statusRequired"),
+        statusPick: t("stages.statusPick"),
+      }),
+    [t],
+  );
 
-  const form = useForm<z.infer<typeof AddJobStageTypeFormSchema>>({
-    resolver: zodResolver(AddJobStageTypeFormSchema),
+  const form = useForm<AddJobStageTypeFormValues>({
+    resolver: zodResolver(schema),
     defaultValues: { label: "", statusId: "" },
   });
 
@@ -77,7 +103,7 @@ function AddJobStageType({
     });
   }, [open, type, statuses, reset]);
 
-  const onSubmit = (values: z.infer<typeof AddJobStageTypeFormSchema>) => {
+  const onSubmit = (values: AddJobStageTypeFormValues) => {
     startTransition(async () => {
       const res = type
         ? await updateJobStageType(
@@ -88,7 +114,7 @@ function AddJobStageType({
           )
         : await createJobStageType(values.label, values.statusId);
       toastActionResult(res, {
-        success: `Stage has been ${type ? "updated" : "added"} successfully.`,
+        success: type ? t("stages.updated") : t("stages.added"),
         onSuccess: () => {
           onOpenChange(false);
           reset();
@@ -103,11 +129,10 @@ function AddJobStageType({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {type ? "Edit Stage" : "Add New Stage"}
+            {type ? t("stages.editTitle") : t("stages.addTitle")}
           </DialogTitle>
           <DialogDescription>
-            Stages are the steps a job moves through — each one belongs to a
-            status, which the job takes on when the stage becomes current.
+            {t("stages.description")}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -117,10 +142,10 @@ function AddJobStageType({
               name="label"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Stage Name</FormLabel>
+                  <FormLabel>{t("stages.nameLabel")}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="e.g. Take-home Exercise"
+                      placeholder={t("stages.namePlaceholder")}
                       {...field}
                     />
                   </FormControl>
@@ -133,10 +158,13 @@ function AddJobStageType({
               name="statusId"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Parent Status</FormLabel>
+                  <FormLabel>{t("stages.parentStatus")}</FormLabel>
                   <SelectFormCtrl
-                    label="status"
-                    options={statuses}
+                    label={t("stages.statusSelect")}
+                    options={statuses.map((status) => ({
+                      ...status,
+                      label: label("jobStatus", status),
+                    }))}
                     field={field}
                   />
                   <FormMessage />
@@ -149,10 +177,10 @@ function AddJobStageType({
                 variant="outline"
                 onClick={() => onOpenChange(false)}
               >
-                Cancel
+                {t("shared.cancel")}
               </Button>
               <Button type="submit" disabled={isPending}>
-                Save
+                {t("shared.save")}
                 {isPending && (
                   <Loader className="ml-2 h-4 w-4 shrink-0 spinner" />
                 )}
