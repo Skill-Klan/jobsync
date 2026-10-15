@@ -12,7 +12,7 @@ import { TIME_ZONE, type Locale } from "./config";
 // checked, not when a module loads: a schema's message is a function,
 // `{ error: () => vt("…") }`, and a language switch applies without a reload.
 // No DOM — the server — means English: the server only re-checks what the
-// form has already checked. Only the two small `validation` dictionaries are
+// form has already checked; zod's own defaults stay technical there. Only the two small `validation` dictionaries are
 // imported, not the whole app's messages.
 
 type ValidationMessages = typeof enValidation;
@@ -47,10 +47,17 @@ export function vt(key: ValidationKey, values?: Record<string, string | number>)
 
 const EMPTY = new Set<unknown>([undefined, null, ""]);
 
-// zod's own messages, for a field without one of ours. Plain words instead of
-// zod's "Too small: expected string to have >=1 characters"; zod's built-in
-// Ukrainian (z.locales.uk) is not used — it reads «string матиме >=1 символів».
-function defaultMessage(issue: z.core.$ZodRawIssue): string {
+// The server keeps zod's own English: "expected string, received undefined"
+// is what a log, the backup import error and the AI tools need. Only a page,
+// where a person reads it under a form field, gets the plain words below.
+const zodEnglish = z.locales.en().localeError;
+
+// zod's own messages, for a field without one of ours. On a page: plain words
+// instead of zod's "Too small: expected string to have >=1 characters"; zod's
+// built-in Ukrainian (z.locales.uk) is not used — it reads «string матиме >=1
+// символів».
+function defaultMessage(issue: z.core.$ZodRawIssue): ReturnType<typeof zodEnglish> {
+  if (typeof document === "undefined") return zodEnglish(issue);
   switch (issue.code) {
     case "too_small": {
       const min = Number(issue.minimum);
