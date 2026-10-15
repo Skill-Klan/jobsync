@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "@/i18n/client";
 
 import { useEffect, useRef, useState } from "react";
 
@@ -44,6 +45,7 @@ export function RadialChartComponent({
   score: number;
   size?: number;
 }) {
+  const t = useTranslations("common");
   const cx = 130;
   const cy = 130;
   const innerRadius = 80;
@@ -150,7 +152,7 @@ export function RadialChartComponent({
           </tspan>
         </text>
         <text x={cx} y={cy + 8} textAnchor="middle" dominantBaseline="middle">
-          <tspan className="fill-muted-foreground text-sm">Score</tspan>
+          <tspan className="fill-muted-foreground text-sm">{t("score")}</tspan>
         </text>
       </svg>
     </div>

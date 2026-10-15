@@ -1,4 +1,6 @@
+"use client";
 import { DialogFooter } from "./ui/dialog";
+import { useTranslations } from "@/i18n/client";
 import { Button } from "./ui/button";
 import { Loader } from "lucide-react";
 
@@ -14,6 +16,7 @@ export function FormDialogFooter({
   isPending,
   saveDisabled,
 }: FormDialogFooterProps) {
+  const t = useTranslations("common");
   return (
     <div className="md:col-span-2 mt-4">
       <DialogFooter>
@@ -24,11 +27,11 @@ export function FormDialogFooter({
             className="mt-2 md:mt-0 w-full"
             onClick={onCancel}
           >
-            Cancel
+            {t("cancel")}
           </Button>
         </div>
         <Button type="submit" disabled={saveDisabled}>
-          Save
+          {t("save")}
           {isPending && <Loader className="h-4 w-4 shrink-0 spinner" />}
         </Button>
       </DialogFooter>

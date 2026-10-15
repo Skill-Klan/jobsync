@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "@/i18n/client";
 
 import { JobForm } from "@/models/job.model";
 import { useEditor, EditorContent } from "@tiptap/react";
@@ -9,6 +10,7 @@ import { Toggle } from "./ui/toggle";
 import { Bold, Heading2, Italic, List, ListOrdered } from "lucide-react";
 
 const Tiptap = ({ field }: { field: ControllerRenderProps<any, any> }) => {
+  const t = useTranslations("common");
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -91,7 +93,7 @@ const Tiptap = ({ field }: { field: ControllerRenderProps<any, any> }) => {
       )}
       <EditorContent
         aria-labelledby="job-description-label"
-        placeholder="enter here..."
+        placeholder={t("editor.placeholder")}
         editor={editor}
       />
     </div>

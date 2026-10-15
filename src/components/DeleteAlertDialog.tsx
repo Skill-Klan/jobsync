@@ -1,4 +1,6 @@
+"use client";
 import type { ReactNode } from "react";
+import { useTranslations } from "@/i18n/client";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,6 +14,8 @@ import {
 import { buttonVariants } from "./ui/button";
 
 interface DeleteAlertDialogProps {
+  // What is deleted, in the user's language, ready for the sentence: en "job",
+  // uk the accusative with a demonstrative — «цю вакансію» (common.deleteDialog.title).
   pageTitle: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -29,31 +33,32 @@ export function DeleteAlertDialog({
   onOpenChange,
   onDelete,
   alertTitle,
-  alertDescription = "This action cannot be undone. This will permanently delete and remove data from server.",
+  alertDescription,
   deleteAction = true,
-  actionLabel = "Delete",
+  actionLabel,
   actionVariant = "destructive",
 }: DeleteAlertDialogProps) {
+  const t = useTranslations("common");
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            {alertTitle ?? `Are you sure you want to delete this ${pageTitle}?`}
+            {alertTitle ?? t("deleteDialog.title", { item: pageTitle })}
           </AlertDialogTitle>
           {/* asChild: a description may carry a list, which cannot nest in a p. */}
           <AlertDialogDescription asChild>
-            <div>{alertDescription}</div>
+            <div>{alertDescription ?? t("deleteDialog.description")}</div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
           {deleteAction && (
             <AlertDialogAction
               className={buttonVariants({ variant: actionVariant })}
               onClick={onDelete}
             >
-              {actionLabel}
+              {actionLabel ?? t("deleteDialog.delete")}
             </AlertDialogAction>
           )}
         </AlertDialogFooter>

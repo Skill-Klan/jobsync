@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "@/i18n/client";
 
 import { Clock, Minus, Plus } from "lucide-react";
 import { addMinutes, format, parse } from "date-fns";
@@ -96,6 +97,7 @@ interface TimePickerProps {
 }
 
 export function TimePicker({ field, fullWidth }: TimePickerProps) {
+  const t = useTranslations("common");
   const [isPopoverOpen, setIsPopoverOpen] = useState<boolean>(false);
   const { hour, minute, meridiem } = parseTime(field.value);
 
@@ -137,19 +139,19 @@ export function TimePicker({ field, fullWidth }: TimePickerProps) {
               )}
             >
               <Clock className="mr-2 h-4 w-4" />
-              {field.value ? field.value : <span>Pick a time</span>}
+              {field.value ? field.value : <span>{t("timePicker.pick")}</span>}
             </Button>
           </FormControl>
         </PopoverTrigger>
         <PopoverContent className="flex w-auto gap-2 p-2" align="start">
           <TimeColumn
-            label="Hour"
+            label={t("timePicker.hour")}
             options={HOURS}
             selected={hour}
             onSelect={(value) => update({ hour: value })}
           />
           <TimeColumn
-            label="Minute"
+            label={t("timePicker.minute")}
             options={MINUTES}
             selected={minute}
             onSelect={(value) => update({ minute: value })}
@@ -166,7 +168,7 @@ export function TimePicker({ field, fullWidth }: TimePickerProps) {
         type="button"
         variant="outline"
         size="icon"
-        aria-label={`${STEP_MINUTES} minutes earlier`}
+        aria-label={t("timePicker.earlier", { minutes: STEP_MINUTES })}
         className="shrink-0 rounded-none border-l-0"
         onClick={() => shift(-STEP_MINUTES)}
       >
@@ -176,7 +178,7 @@ export function TimePicker({ field, fullWidth }: TimePickerProps) {
         type="button"
         variant="outline"
         size="icon"
-        aria-label={`${STEP_MINUTES} minutes later`}
+        aria-label={t("timePicker.later", { minutes: STEP_MINUTES })}
         className="shrink-0 rounded-l-none border-l-0"
         onClick={() => shift(STEP_MINUTES)}
       >

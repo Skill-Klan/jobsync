@@ -3,5 +3,109 @@
   "language": "Мова",
   "toggleMenu": "Відкрити меню",
   "navigationMenu": "Меню навігації",
-  "appSubtitle": "Помічник у пошуку роботи"
+  "appSubtitle": "Помічник у пошуку роботи",
+  "close": "Закрити",
+  "loading": "Завантаження",
+  "save": "Зберегти",
+  "cancel": "Скасувати",
+  "deleteDialog": {
+    "title": "Справді видалити {item}?",
+    "description": "Цю дію не можна скасувати: дані буде видалено назавжди.",
+    "delete": "Видалити"
+  },
+  "comboBox": {
+    "select": "Оберіть зі списку",
+    "search": "Пошук…",
+    "createOrSearch": "Пошук або нове значення…",
+    "create": "Створити:",
+    "notFound": "Нічого не знайдено"
+  },
+  "select": {
+    "placeholder": "Оберіть…"
+  },
+  "datePicker": {
+    "pick": "Оберіть дату",
+    "preset": "Швидкий вибір",
+    "today": "Сьогодні",
+    "tomorrow": "Завтра",
+    "in3days": "Через 3 дні",
+    "inWeek": "Через тиждень"
+  },
+  "timePicker": {
+    "pick": "Оберіть час",
+    "hour": "Година",
+    "minute": "Хвилина",
+    "earlier": "На {minutes} хв раніше",
+    "later": "На {minutes} хв пізніше"
+  },
+  "editor": {
+    "placeholder": "Введіть текст…"
+  },
+  "score": "Відповідність",
+  "support": {
+    "title": "Підтримка",
+    "about": "{brand} — трекер пошуку роботи для студентів і випускників SkillKlan.",
+    "version": "Версія",
+    "copyright": "Авторські права",
+    "license": "© {year} {brand}. На основі JobSync від gsync, ліцензія MIT."
+  },
+  "staleSession": "Сесія більше не дійсна. Виходимо…",
+  "slowResponse": "Модель відповідає довше, ніж зазвичай. Зачекайте або оберіть швидшу модель у розділі <settings>Налаштування</settings>.",
+  "notFound": {
+    "title": "Не знайдено",
+    "body": "Такої сторінки немає, або запис видалено.",
+    "back": "На головну"
+  },
+  "contactForm": {
+    "addTitle": "Додати контакт",
+    "editTitle": "Редагувати контакт",
+    "newContact": "Новий контакт",
+    "saved": "Контакт збережено",
+    "created": "Контакт створено",
+    "name": "Імʼя",
+    "namePlaceholder": "напр. Олена Коваль",
+    "title": "Посада",
+    "titlePlaceholder": "напр. Engineering Manager",
+    "email": "Ел. пошта",
+    "phone": "Телефон",
+    "phonePlaceholder": "напр. +380 67 123 4567",
+    "linkedin": "Профіль LinkedIn",
+    "whereTheyWork": "Де працює",
+    "company": "Компанія",
+    "location": "Локація",
+    "role": "Роль",
+    "howYouKnowThem": "Звідки ви знайомі",
+    "relationship": "Хто вам ця людина",
+    "relationshipPlaceholder": "напр. мій керівник, колега",
+    "workedTogetherAt": "Працювали разом у",
+    "from": "З",
+    "to": "До",
+    "followUp": "Наступний контакт",
+    "lastContacted": "Останній контакт",
+    "notes": "Нотатки",
+    "notesPlaceholder": "Як познайомились, про що домовились…"
+  },
+  "stageDialog": {
+    "addTitle": "Додати етап",
+    "editTitle": "Редагувати етап",
+    "added": "Етап додано",
+    "updated": "Етап оновлено",
+    "stage": "ЕТАП",
+    "customName": "АБО ВВЕДІТЬ СВОЮ НАЗВУ ЕТАПУ",
+    "customNamePlaceholder": "напр. співбесіда з командою, перевірка рекомендацій…",
+    "parentStatus": "СТАТУС ВАКАНСІЇ",
+    "date": "ДАТА",
+    "time": "ЧАС",
+    "format": "ФОРМАТ",
+    "formatPlaceholder": "напр. відео, телефон",
+    "duration": "ТРИВАЛІСТЬ (ХВ)",
+    "location": "МІСЦЕ",
+    "locationPlaceholder": "напр. вул. Хрещатик, 1, або посилання на зустріч",
+    "outcome": "РЕЗУЛЬТАТ",
+    "notes": "НОТАТКИ (НЕОБОВʼЯЗКОВО)",
+    "notesPlaceholder": "Додайте контекст до цього етапу…",
+    "setCurrent": "Зробити поточним етапом",
+    "saveChanges": "Зберегти зміни",
+    "add": "Додати етап"
+  }
 }

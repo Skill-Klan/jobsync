@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useTranslations } from "@/i18n/client";
 
 // Clearing the cookie is the only way out of a session whose user row is
 // gone: redirecting alone loops, because auth.config sends anyone holding a
@@ -10,6 +11,7 @@ function StaleSessionSignOut({
 }: {
   signOutAction: () => Promise<void>;
 }) {
+  const t = useTranslations("common");
   useEffect(() => {
     signOutAction();
   }, [signOutAction]);
@@ -17,7 +19,7 @@ function StaleSessionSignOut({
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-muted/40">
       <p className="text-sm text-muted-foreground">
-        Your session is no longer valid. Signing you out&hellip;
+        {t("staleSession")}
       </p>
     </div>
   );

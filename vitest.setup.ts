@@ -39,15 +39,26 @@ vi.mock("@/i18n/client", async () => {
   const { labelFor } = await import("@/i18n/labels");
   type DatePattern = import("@/i18n/dates").DatePattern;
   type LabelKind = import("@/i18n/labels").LabelKind;
+  // One translator per locale and namespace, like the real hook (it memoizes),
+  // so a component may list `t` in effect dependencies without looping.
+  const translators = new Map<string, unknown>();
   return {
-    useTranslations: (namespace?: string) =>
-      createTranslator({
-        locale: i18nTest.locale,
-        messages: MESSAGES[i18nTest.locale],
-        namespace: namespace as never,
-        timeZone: TIME_ZONE,
-        getMessageFallback: fallbackMessage,
-      }),
+    useTranslations: (namespace?: string) => {
+      const key = `${i18nTest.locale}|${namespace ?? ""}`;
+      if (!translators.has(key)) {
+        translators.set(
+          key,
+          createTranslator({
+            locale: i18nTest.locale,
+            messages: MESSAGES[i18nTest.locale],
+            namespace: namespace as never,
+            timeZone: TIME_ZONE,
+            getMessageFallback: fallbackMessage,
+          }),
+        );
+      }
+      return translators.get(key);
+    },
     useLocale: () => i18nTest.locale,
     useFormatter: () => createFormatter({ locale: i18nTest.locale, timeZone: TIME_ZONE }),
     useDateFnsLocale: () => dateFnsLocale(i18nTest.locale),
