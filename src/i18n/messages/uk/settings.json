@@ -224,7 +224,7 @@
       "JobTitle": "Посади",
       "Location": "Локації",
       "JobSource": "Джерела вакансій",
-      "Tag": "Теги",
+      "Tag": "Навички",
       "ActivityType": "Типи активностей",
       "ContactRole": "Ролі контактів",
       "Profile": "Профілі",
@@ -253,8 +253,8 @@
       "Activity": "Активності",
       "AutomationRun": "Запуски автопошуку",
       "UserSettings": "Налаштування",
-      "_JobToTag": "Теги вакансій",
-      "_QuestionToTag": "Теги питань"
+      "_JobToTag": "Навички вакансій",
+      "_QuestionToTag": "Навички питань"
     }
   },
   "actions": {
