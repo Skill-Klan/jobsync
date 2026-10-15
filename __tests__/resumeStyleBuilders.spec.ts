@@ -20,7 +20,7 @@ describe("buildSimpleStyles at the defaults", () => {
   // The defaults are copied from this sheet, so this is a hard identity.
   it("keeps the page exactly as the static sheet had it", () => {
     expect(s.page).toEqual({
-      fontFamily: "Helvetica",
+      fontFamily: "Inter",
       fontSize: 11,
       paddingTop: 40,
       paddingBottom: 40,
@@ -33,7 +33,7 @@ describe("buildSimpleStyles at the defaults", () => {
   it("keeps the section title exactly as the static sheet had it", () => {
     expect(s.sectionTitle).toEqual({
       fontSize: 11,
-      fontFamily: "Helvetica-Bold",
+      fontFamily: "Inter-Bold",
       textTransform: "uppercase",
       letterSpacing: 0.8,
       marginBottom: 3,
@@ -85,7 +85,7 @@ describe("buildProfessionalStyles at the defaults", () => {
   });
 
   it("keeps everything else on the page exactly as it was", () => {
-    expect(s.page.fontFamily).toBe("Helvetica");
+    expect(s.page.fontFamily).toBe("Inter");
     expect(s.page.fontSize).toBe(11);
     expect(s.page.paddingBottom).toBe(40);
     expect(s.page.color).toBe("#1a1a1a");

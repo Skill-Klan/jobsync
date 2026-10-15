@@ -10,12 +10,12 @@ const tokens = (patch: Partial<typeof defaultResumeExportSettings> = {}) =>
   resumeStyleTokens({ ...defaultResumeExportSettings, ...patch });
 
 describe("FONT_QUARTETS", () => {
-  it("names all four faces of each standard-14 family", () => {
+  it("names all four faces of each family (sans: Inter, shipped; Times, Courier: standard-14)", () => {
     expect(FONT_QUARTETS.helvetica).toEqual({
-      regular: "Helvetica",
-      bold: "Helvetica-Bold",
-      italic: "Helvetica-Oblique",
-      boldItalic: "Helvetica-BoldOblique",
+      regular: "Inter",
+      bold: "Inter-Bold",
+      italic: "Inter-Italic",
+      boldItalic: "Inter-BoldItalic",
     });
     expect(FONT_QUARTETS.courier).toEqual({
       regular: "Courier",

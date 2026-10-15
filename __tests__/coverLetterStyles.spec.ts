@@ -11,7 +11,7 @@ describe("buildLetterStyles at the defaults", () => {
 
   it("keeps the page as the shipped sheet has it", () => {
     expect(s.page).toEqual({
-      fontFamily: "Helvetica",
+      fontFamily: "Inter",
       fontSize: 11,
       paddingTop: 54,
       paddingBottom: 54,
@@ -23,7 +23,7 @@ describe("buildLetterStyles at the defaults", () => {
 
   it("sizes the letterhead off the base", () => {
     expect(s.name.fontSize).toBe(16);
-    expect(s.name.fontFamily).toBe("Helvetica-Bold");
+    expect(s.name.fontFamily).toBe("Inter-Bold");
     expect(s.headline.fontSize).toBe(11);
     expect(s.contactLine.fontSize).toBe(10);
     expect(s.contactLine.color).toBe("#444444");
@@ -53,7 +53,7 @@ describe("buildLetterStyles at the defaults", () => {
       ].sort(),
     );
     expect(htmlStyles.bulletChar).toBe("•");
-    expect(htmlStyles.bold.fontFamily).toBe("Helvetica-Bold");
+    expect(htmlStyles.bold.fontFamily).toBe("Inter-Bold");
   });
 });
 

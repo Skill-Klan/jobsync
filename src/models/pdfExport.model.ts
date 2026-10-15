@@ -1,7 +1,7 @@
 export type PdfFont = "helvetica" | "times" | "courier";
 
 export const PDF_FONT_LABELS: Record<PdfFont, string> = {
-  helvetica: "Helvetica",
+  helvetica: "Inter",
   times: "Times",
   courier: "Courier",
 };

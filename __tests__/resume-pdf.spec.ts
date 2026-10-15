@@ -80,7 +80,7 @@ describe("htmlToPdfNodes", () => {
     expect(nodes).toHaveLength(1);
     // The nested Text should carry boldItalic style
     const inner = JSON.stringify(nodes[0]);
-    expect(inner).toContain("Helvetica-BoldOblique");
+    expect(inner).toContain("Inter-BoldItalic");
   });
 
   it("produces bullet rows for <ul><li>", () => {

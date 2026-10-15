@@ -27,7 +27,7 @@ const { pdf, toBlob, registerHyphenationCallback, htmlToPdfNodes } = vi.hoisted(
 // letter.styles.ts still returns a plain object tree.
 vi.mock("@react-pdf/renderer", () => ({
   pdf,
-  Font: { registerHyphenationCallback },
+  Font: { registerHyphenationCallback, register: vi.fn() },
   StyleSheet: { create: (sheet: unknown) => sheet },
   Document: () => null,
   Page: () => null,

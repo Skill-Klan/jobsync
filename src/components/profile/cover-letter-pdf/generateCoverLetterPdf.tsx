@@ -2,6 +2,7 @@ import React from "react";
 import { format } from "date-fns";
 import { htmlToPdfNodes } from "@/components/pdf-export/html-to-pdf";
 import { sanitizeFilename } from "@/components/pdf-export/download";
+import { defaultFontBase, registerPdfFonts } from "@/components/pdf-export/fonts";
 import type { ContactInfo } from "@/models/profile.model";
 import type { CoverLetterExportSettings } from "@/models/coverLetterExport.model";
 import { buildLetterStyles } from "./styles/letter.styles";
@@ -11,9 +12,11 @@ export async function generateCoverLetterPdfBlob(
   letter: { title: string; content: string },
   contactInfo: ContactInfo | null,
   settings: CoverLetterExportSettings,
+  fontBase: string = defaultFontBase(),
 ): Promise<{ blob: Blob; filename: string }> {
   const { pdf, Font } = await import("@react-pdf/renderer");
   Font.registerHyphenationCallback((word) => [word]);
+  registerPdfFonts(Font, fontBase);
 
   const { styles, htmlStyles } = buildLetterStyles(settings);
   // Parse on the main thread before entering react-pdf's rendering context.

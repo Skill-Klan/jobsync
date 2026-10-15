@@ -53,9 +53,9 @@ describe("defaultResumeExportSettings", () => {
 });
 
 describe("PDF_FONT_LABELS", () => {
-  it("labels the three standard-14 families", () => {
+  it("labels the three families — sans is Inter, which has Cyrillic", () => {
     expect(PDF_FONT_LABELS).toEqual({
-      helvetica: "Helvetica",
+      helvetica: "Inter",
       times: "Times",
       courier: "Courier",
     });
