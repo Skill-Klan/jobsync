@@ -101,5 +101,17 @@
     "monthChanged": "The month has changed — reload the page.",
     "invalidTargets": "Invalid goal targets.",
     "saveFailed": "Failed to save daily goals."
+  },
+  "context": {
+    "discarded": "Activity not saved because duration was less than {minutes} minutes",
+    "autoStopped": "Activity auto-stopped after reaching maximum duration of {hours} hours",
+    "stopped": "Activity stopped successfully",
+    "started": "Activity started successfully"
+  },
+  "switchConfirm": {
+    "title": "Stop current activity and start a new one?",
+    "description": "\"{name}\" is currently in progress. Stop it and start the new activity?",
+    "action": "Stop & Start",
+    "item": "activity"
   }
 }

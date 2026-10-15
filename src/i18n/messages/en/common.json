@@ -107,5 +107,11 @@
     "setCurrent": "Set as current stage",
     "saveChanges": "Save Changes",
     "add": "Add Stage"
-  }
+  },
+  "records": {
+    "ofTotal": "Showing <strong>1 to {count}</strong> of<strong> {total}</strong> {label}",
+    "shown": "Showing <strong>1 to {count}</strong> {label}",
+    "defaultLabel": "records"
+  },
+  "genericError": "Something went wrong. Please try again."
 }

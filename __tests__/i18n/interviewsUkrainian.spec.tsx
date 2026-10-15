@@ -105,7 +105,7 @@ describe("Interviews in Ukrainian", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Розгорнути «Тестувальник»" }));
     expect(screen.getByText("Інтервʼюери (0)")).toBeInTheDocument();
     expect(
-      screen.getByText("Ще нікого не привʼязано — додайте інтервʼюерів на вкладці «Хронологія» вакансії."),
+      screen.getByText("Ще нікого не привʼязано — додайте інтервʼюерів на вкладці «Етапи» вакансії."),
     ).toBeInTheDocument();
     expect(screen.getByText("Питання для підготовки (0)")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Згорнути «Тестувальник»" })).toBeInTheDocument();
@@ -131,7 +131,7 @@ describe("Interviews in Ukrainian", () => {
 
     expect(
       await screen.findByText(
-        "Співбесід ще немає. Додайте етап співбесіди на вкладці «Хронологія» вакансії — і він зʼявиться тут.",
+        "Співбесід ще немає. Додайте етап співбесіди на вкладці «Етапи» вакансії — і він зʼявиться тут.",
       ),
     ).toBeInTheDocument();
   });

@@ -2,11 +2,13 @@
 import { useCallback, useState } from "react";
 import { useActivity } from "@/context/ActivityContext";
 import { DeleteAlertDialog } from "@/components/DeleteAlertDialog";
+import { useTranslations } from "@/i18n/client";
 
 // Returning false means the start was rejected; anything else counts as done.
 type StartAction = () => boolean | void | Promise<boolean | void>;
 
 export function useActivitySwitchConfirm() {
+  const t = useTranslations("activities");
   const { currentActivity, stopActivity, refreshCurrentActivity } =
     useActivity();
   const [pendingAction, setPendingAction] = useState<StartAction | null>(null);
@@ -46,17 +48,17 @@ export function useActivitySwitchConfirm() {
 
   const confirmDialog = (
     <DeleteAlertDialog
-      pageTitle="activity"
+      pageTitle={t("switchConfirm.item")}
       open={pendingAction !== null}
       onOpenChange={(open) => !open && setPendingAction(null)}
       onDelete={confirmSwitch}
-      alertTitle="Stop current activity and start a new one?"
+      alertTitle={t("switchConfirm.title")}
       alertDescription={
         currentActivity
-          ? `"${currentActivity.activityName}" is currently in progress. Stop it and start the new activity?`
+          ? t("switchConfirm.description", { name: currentActivity.activityName })
           : undefined
       }
-      actionLabel="Stop & Start"
+      actionLabel={t("switchConfirm.action")}
       actionVariant="default"
     />
   );
