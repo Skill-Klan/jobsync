@@ -28,8 +28,8 @@ const EXCLUDED = [
   "src/components/profile/resume-pdf/",
 ];
 
-// Known and decided: the 12-hour time picker column. Switching it to 24-hour
-// time is a separate change, not a translation.
+// Known and decided: the AM/PM column of the time picker. It is rendered in
+// English only — Ukrainian uses the 24-hour clock without it (D36).
 const KNOWN = new Set(["src/components/TimePicker.tsx\tlabel\tAM/PM"]);
 
 const LATIN_WORD = /[A-Za-z]{2,}/;

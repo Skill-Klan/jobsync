@@ -1,5 +1,5 @@
 "use client";
-import { useTranslations } from "@/i18n/client";
+import { useLocale, useTranslations } from "@/i18n/client";
 
 import { Clock, Minus, Plus } from "lucide-react";
 import { addMinutes, format, parse } from "date-fns";
@@ -22,6 +22,9 @@ const MINUTES = Array.from({ length: 60 }, (_, i) =>
   String(i).padStart(2, "0")
 );
 const MERIDIEMS = ["AM", "PM"];
+const HOURS_24 = Array.from({ length: 24 }, (_, i) =>
+  String(i).padStart(2, "0")
+);
 
 const TIME_PATTERN = /^(0[1-9]|1[0-2]):([0-5][0-9]) (AM|PM)$/;
 
@@ -34,6 +37,21 @@ type TimeParts = {
   minute: string | null;
   meridiem: string | null;
 };
+
+// Ukrainian reads the 24-hour clock (D36). The form value stays "hh:mm AM"
+// either way — only what the picker shows and offers changes.
+function to24(hour: string, meridiem: string): string {
+  const h = Number(hour) % 12;
+  return String(meridiem === "PM" ? h + 12 : h).padStart(2, "0");
+}
+
+function from24(hour24: string): { hour: string; meridiem: string } {
+  const h = Number(hour24);
+  return {
+    hour: String(h % 12 === 0 ? 12 : h % 12).padStart(2, "0"),
+    meridiem: h < 12 ? "AM" : "PM",
+  };
+}
 
 function parseTime(value: unknown): TimeParts {
   const match = typeof value === "string" ? value.match(TIME_PATTERN) : null;
@@ -98,8 +116,13 @@ interface TimePickerProps {
 
 export function TimePicker({ field, fullWidth }: TimePickerProps) {
   const t = useTranslations("common");
+  const clock24 = useLocale() === "uk";
   const [isPopoverOpen, setIsPopoverOpen] = useState<boolean>(false);
   const { hour, minute, meridiem } = parseTime(field.value);
+  const shown =
+    clock24 && hour && minute && meridiem
+      ? `${to24(hour, meridiem)}:${minute}`
+      : field.value;
 
   const update = (parts: Partial<TimeParts>) => {
     const next = {
@@ -139,29 +162,40 @@ export function TimePicker({ field, fullWidth }: TimePickerProps) {
               )}
             >
               <Clock className="mr-2 h-4 w-4" />
-              {field.value ? field.value : <span>{t("timePicker.pick")}</span>}
+              {field.value ? shown : <span>{t("timePicker.pick")}</span>}
             </Button>
           </FormControl>
         </PopoverTrigger>
         <PopoverContent className="flex w-auto gap-2 p-2" align="start">
-          <TimeColumn
-            label={t("timePicker.hour")}
-            options={HOURS}
-            selected={hour}
-            onSelect={(value) => update({ hour: value })}
-          />
+          {clock24 ? (
+            <TimeColumn
+              label={t("timePicker.hour")}
+              options={HOURS_24}
+              selected={hour && meridiem ? to24(hour, meridiem) : null}
+              onSelect={(value) => update(from24(value))}
+            />
+          ) : (
+            <TimeColumn
+              label={t("timePicker.hour")}
+              options={HOURS}
+              selected={hour}
+              onSelect={(value) => update({ hour: value })}
+            />
+          )}
           <TimeColumn
             label={t("timePicker.minute")}
             options={MINUTES}
             selected={minute}
             onSelect={(value) => update({ minute: value })}
           />
-          <TimeColumn
-            label="AM/PM"
-            options={MERIDIEMS}
-            selected={meridiem}
-            onSelect={(value) => update({ meridiem: value })}
-          />
+          {!clock24 && (
+            <TimeColumn
+              label="AM/PM"
+              options={MERIDIEMS}
+              selected={meridiem}
+              onSelect={(value) => update({ meridiem: value })}
+            />
+          )}
         </PopoverContent>
       </Popover>
       <Button
