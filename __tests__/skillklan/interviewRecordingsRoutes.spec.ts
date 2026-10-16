@@ -3,8 +3,9 @@
 // to SkillKlan Job except the excluded ("as always" — an excluded student's
 // session ends within 5 minutes, so no session → nothing here). Listening
 // loads the file from Google Drive through this server: seeking works (206
-// with Content-Range), "download" saves it, only library files are served,
-// and Google's failures do not leak to the browser.
+// with Content-Range), only library files are served, and Google's failures do
+// not leak to the browser. Listening only — "there must be no way to
+// download" (owner 2026-10-16): always inline, never an attachment.
 import { NextRequest } from "next/server";
 
 const ctx = vi.hoisted(() => ({
@@ -91,15 +92,13 @@ describe("one recording", () => {
     expect(res.headers.get("accept-ranges")).toBe("bytes");
     // The type is the recording's, not whatever Drive said.
     expect(res.headers.get("content-type")).toBe("audio/mpeg");
-    expect(res.headers.get("content-disposition")).toBeNull();
+    expect(res.headers.get("content-disposition")).toBe("inline");
     expect(await res.text()).toBe("abc");
   });
 
-  it("?download=1 → saved as a file named after the recording", async () => {
-    const res = await stream("/api/skillklan/interview-recordings/fileQaTech001?download=1");
-    expect(res.headers.get("content-disposition")).toBe(
-      `attachment; filename*=UTF-8''${encodeURIComponent(`${RECORDING.title}.mp3`)}`,
-    );
+  it.each(["?download=1", "?download=true", "?dl=1"])("%s → still inline, never an attachment", async (query) => {
+    const res = await stream(`/api/skillklan/interview-recordings/fileQaTech001${query}`);
+    expect(res.headers.get("content-disposition")).toBe("inline");
   });
 
   it("no session → 401, nothing looked up or fetched", async () => {

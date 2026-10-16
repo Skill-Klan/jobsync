@@ -2,8 +2,9 @@
 // (not a new menu item) where everyone can listen to every recording the bot
 // collected — shown as a library, not tied to people, each with the name of
 // whoever uploaded it. Listening plays it from Google Drive through this
-// server; a format the browser cannot play can still be downloaded. Until
-// Drive is connected the page is exactly as before.
+// server — and only plays it: "there must be no way to download" (no button,
+// no "Download" in the player's menu, no "Save audio as"). Until Drive is
+// connected the page is exactly as before.
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import InterviewRecordingsLibrary from "@/components/interviews/InterviewRecordingsLibrary";
@@ -67,22 +68,30 @@ describe("the library", () => {
     const player = rows()[1].querySelector("audio")!;
     expect(player).toHaveAttribute("src", "/api/skillklan/interview-recordings/fileQaTech001");
     expect(player).toHaveAttribute("controls");
+    // No "Download" in the browser's own player menu, no "Save audio as".
+    expect(player).toHaveAttribute("controlslist", "nodownload");
+    expect(fireEvent.contextMenu(player)).toBe(false);
     expect(document.querySelectorAll("audio")).toHaveLength(1);
     await user.click(within(rows()[1]).getByRole("button", { name: "Close" }));
     expect(document.querySelectorAll("audio")).toHaveLength(0);
   });
 
-  it("a format the browser cannot play → says so; the download link is there for every recording", async () => {
+  it("a format the browser cannot play → says so, without offering a download", async () => {
     const user = userEvent.setup();
     render(<InterviewRecordingsLibrary />);
     await waitFor(() => expect(rows()).toHaveLength(3));
     await user.click(within(rows()[2]).getByRole("button", { name: "Listen" }));
     fireEvent.error(rows()[2].querySelector("audio")!);
-    expect(within(rows()[2]).getByText(/can't play this format/)).toBeInTheDocument();
-    expect(within(rows()[2]).getByRole("link", { name: /Download/ })).toHaveAttribute(
-      "href",
-      "/api/skillklan/interview-recordings/fileQaTech002?download=1",
-    );
+    expect(within(rows()[2]).getByText(/can't play this format — try another browser/)).toBeInTheDocument();
+  });
+
+  it("no way to download: no link, no download button, nothing with 'download' in the library", async () => {
+    render(<InterviewRecordingsLibrary />);
+    await waitFor(() => expect(rows()).toHaveLength(3));
+    expect(screen.queryAllByRole("link")).toHaveLength(0);
+    expect(screen.queryByRole("button", { name: /download/i })).not.toBeInTheDocument();
+    // No player is open here, so not even the player's "nodownload" is on the page.
+    expect(document.body.innerHTML).not.toMatch(/download/i);
   });
 
   it("search by company, name or specialization", async () => {

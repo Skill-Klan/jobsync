@@ -3,16 +3,13 @@ import { auth } from "@/auth";
 import { fetchRecordingBytes, findRecording } from "@/skillklan/interviewRecordings";
 
 // One recording, streamed from Google Drive — with the browser's Range, so the
-// player seeks without downloading the whole file. `?download=1` saves it.
-// Only files from the library are served (findRecording).
+// player seeks without downloading the whole file. Listening only (owner
+// 2026-10-16: "there must be no way to download"): always `inline`, never an
+// attachment. Only files from the library are served (findRecording).
 export const dynamic = "force-dynamic";
 
 const PASS_HEADERS = ["content-length", "content-range", "accept-ranges"];
 
-function attachmentName(title: string, mimeType: string): string {
-  const ext = mimeType.split("/")[1]?.replace(/[^a-z0-9]/gi, "") || "audio";
-  return encodeURIComponent(`${title}.${ext === "mpeg" ? "mp3" : ext}`);
-}
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -36,12 +33,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       if (value) headers.set(name, value);
     }
     if (!headers.has("accept-ranges")) headers.set("accept-ranges", "bytes");
-    if (req.nextUrl.searchParams.get("download") === "1") {
-      headers.set(
-        "content-disposition",
-        `attachment; filename*=UTF-8''${attachmentName(recording.title, recording.mimeType)}`,
-      );
-    }
+    // Played on the page, not saved: whatever the query string says.
+    headers.set("content-disposition", "inline");
     return new Response(upstream.body, { status: upstream.status, headers });
   } catch (error) {
     if (req.signal.aborted) return new Response(null, { status: 499 });

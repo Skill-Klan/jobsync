@@ -78,11 +78,10 @@
     "searchPlaceholder": "Search recordings…",
     "listen": "Listen",
     "close": "Close",
-    "download": "Download",
     "noDate": "No date",
     "empty": "No recordings yet.",
     "emptyFiltered": "No recordings match these filters.",
     "failed": "Couldn't load the recordings. Try again later.",
-    "unplayable": "Your browser can't play this format — download the file with the button next to it."
+    "unplayable": "Your browser can't play this format — try another browser."
   }
 }

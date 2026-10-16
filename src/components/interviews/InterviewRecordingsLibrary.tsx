@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { Download, Play, X } from "lucide-react";
+import { Play, X } from "lucide-react";
 import { Card, CardContent, CardDescription, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
@@ -19,7 +19,9 @@ import { useTranslations } from "@/i18n/client";
 import { RECORDING_KIND_KEYS, type RecordingKind } from "@/skillklan/recordingKinds";
 
 // The interview recordings library (owner 2026-10-16): every recording the
-// students uploaded through the Telegram bot, for everyone to listen to. The
+// students uploaded through the Telegram bot, for everyone to listen to — and
+// only to listen: no download button, no "Download" in the player's own menu,
+// no "Save audio as" on right click. The
 // files stay in Google Drive; the player streams them through this server
 // (api/skillklan/interview-recordings), so seeking works and nothing of
 // Google's reaches the browser.
@@ -175,17 +177,14 @@ export default function InterviewRecordingsLibrary() {
                         )}
                         {playing ? t("recordings.close") : t("recordings.listen")}
                       </Button>
-                      <Button asChild size="sm" variant="ghost" title={t("recordings.download")}>
-                        <a href={`${src}?download=1`} aria-label={`${t("recordings.download")}: ${r.title}`}>
-                          <Download className="h-3.5 w-3.5" />
-                        </a>
-                      </Button>
                     </div>
                   </div>
                   {playing && (
                     <div className="mt-2 space-y-1">
                       <Player
                         controls
+                        controlsList="nodownload"
+                        onContextMenu={(e) => e.preventDefault()}
                         autoPlay
                         preload="none"
                         src={src}
