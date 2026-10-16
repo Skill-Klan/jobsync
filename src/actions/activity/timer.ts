@@ -10,6 +10,7 @@ import {
   requireUser,
 } from "./shared";
 import { getTranslations } from "@/i18n/server";
+import { isFeatureOff } from "@/skillklan/featureFlags";
 
 export const startActivityById = async (
   activityId: string
@@ -17,6 +18,11 @@ export const startActivityById = async (
   const t = await getTranslations("activities");
   try {
     const user = await requireUser();
+    // Activities switched off (Settings → «Функції»): a page opened before
+    // the switch went off still has its buttons — refuse here too.
+    if (await isFeatureOff("activities")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
 
     // Check for existing active activity to prevent concurrent activities
     const existingActive = await prisma.activity.findFirst({
@@ -70,6 +76,11 @@ export const stopActivityById = async (
   const t = await getTranslations("activities");
   try {
     const user = await requireUser();
+    // Activities switched off (Settings → «Функції»): a page opened before
+    // the switch went off still has its buttons — refuse here too.
+    if (await isFeatureOff("activities")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
 
     // endTime: null — this must never reach an already-saved row, because the
     // discard branch below deletes.

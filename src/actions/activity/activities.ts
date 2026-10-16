@@ -6,6 +6,7 @@ import { Activity } from "@/models/activity.model";
 import { revalidatePath } from "next/cache";
 import { requireUser } from "./shared";
 import { getTranslations } from "@/i18n/server";
+import { isFeatureOff } from "@/skillklan/featureFlags";
 
 // Completed activities carry duration but no break state
 const ACTIVITY_LIST_SELECT = {
@@ -77,6 +78,11 @@ export const createActivity = async (
   const t = await getTranslations("activities");
   try {
     const user = await requireUser();
+    // Activities switched off (Settings → «Функції»): a page opened before
+    // the switch went off still has its buttons — refuse here too.
+    if (await isFeatureOff("activities")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
 
     const {
       activityName,
@@ -112,6 +118,11 @@ export const deleteActivityById = async (
   const t = await getTranslations("activities");
   try {
     const user = await requireUser();
+    // Activities switched off (Settings → «Функції»): a page opened before
+    // the switch went off still has its buttons — refuse here too.
+    if (await isFeatureOff("activities")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
 
     const res = await prisma.activity.delete({
       where: {

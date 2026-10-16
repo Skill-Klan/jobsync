@@ -8,6 +8,7 @@ import {
   requireUser,
 } from "./shared";
 import { getTranslations } from "@/i18n/server";
+import { isFeatureOff } from "@/skillklan/featureFlags";
 
 export const startBreak = async (
   activityId: string,
@@ -16,6 +17,11 @@ export const startBreak = async (
   const t = await getTranslations("activities");
   try {
     const user = await requireUser();
+    // Activities switched off (Settings → «Функції»): a page opened before
+    // the switch went off still has its buttons — refuse here too.
+    if (await isFeatureOff("activities")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
 
     const activity = await prisma.activity.findFirst({
       where: { id: activityId, userId: user.id, endTime: null },
@@ -51,6 +57,11 @@ export const endBreak = async (
   const t = await getTranslations("activities");
   try {
     const user = await requireUser();
+    // Activities switched off (Settings → «Функції»): a page opened before
+    // the switch went off still has its buttons — refuse here too.
+    if (await isFeatureOff("activities")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
 
     const activity = await prisma.activity.findFirst({
       where: { id: activityId, userId: user.id, endTime: null },
@@ -91,6 +102,11 @@ export const updateBreakLength = async (
   const t = await getTranslations("activities");
   try {
     const user = await requireUser();
+    // Activities switched off (Settings → «Функції»): a page opened before
+    // the switch went off still has its buttons — refuse here too.
+    if (await isFeatureOff("activities")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
 
     const activity = await prisma.activity.findFirst({
       where: { id: activityId, userId: user.id, endTime: null },
