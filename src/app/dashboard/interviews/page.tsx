@@ -1,11 +1,8 @@
 import { Metadata } from "next";
 
-import InterviewsContainer from "@/components/interviews/InterviewsContainer";
-import InterviewsTabs from "@/components/interviews/InterviewsTabs";
+import InterviewRecordingsLibrary from "@/components/interviews/InterviewRecordingsLibrary";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { isRecordingsConfigured } from "@/skillklan/interviewRecordings";
-import { getInterviewFilterOptions } from "@/actions/interview.actions";
-import { getAllJobStageTypes } from "@/actions/jobStageType.actions";
-import { getStatusList } from "@/actions/job.actions";
 import { getTranslations } from "@/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -13,26 +10,29 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("page.title") };
 }
 
+// «Співбесіди» is the interview recordings library and nothing else (owner
+// 2026-10-16: no «Мої співбесіди» tab). The person's own interview stages stay
+// on each job's «Етапи» tab; the old list (InterviewsContainer) is kept in the
+// code, not shown. Until Google Drive is connected the page says so.
 async function Interviews() {
-  const [filters, stageTypes, statuses] = await Promise.all([
-    getInterviewFilterOptions(),
-    getAllJobStageTypes(),
-    getStatusList(),
-  ]);
-
-  const mine = (
-    <InterviewsContainer
-      rounds={filters?.rounds ?? []}
-      companies={filters?.companies ?? []}
-      stageTypes={stageTypes ?? []}
-      jobStatuses={statuses ?? []}
-    />
-  );
-  // The recordings library — a second tab, only once Google Drive is connected
-  // (src/skillklan/interviewRecordings.ts); until then the page is as before.
+  if (isRecordingsConfigured()) {
+    return (
+      <div className="col-span-3">
+        <InterviewRecordingsLibrary />
+      </div>
+    );
+  }
+  const t = await getTranslations("interviews");
   return (
     <div className="col-span-3">
-      {isRecordingsConfigured() ? <InterviewsTabs mine={mine} /> : mine}
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("recordings.title")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="py-6 text-center text-sm text-muted-foreground">{t("recordings.notConnected")}</p>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -57,10 +57,6 @@
     "listFailed": "Failed to fetch interviews. ",
     "filtersFailed": "Failed to fetch interview filters. "
   },
-  "tabs": {
-    "mine": "My interviews",
-    "recordings": "Interview recordings"
-  },
   "recordings": {
     "title": "Interview recordings",
     "description": "Interviews students uploaded through the Telegram bot. Listen to prepare.",
@@ -82,6 +78,7 @@
     "empty": "No recordings yet.",
     "emptyFiltered": "No recordings match these filters.",
     "failed": "Couldn't load the recordings. Try again later.",
-    "unplayable": "Your browser can't play this format — try another browser."
+    "unplayable": "Your browser can't play this format — try another browser.",
+    "notConnected": "Interview recordings are not connected yet."
   }
 }

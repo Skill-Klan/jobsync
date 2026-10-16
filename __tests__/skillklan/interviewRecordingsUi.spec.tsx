@@ -1,10 +1,10 @@
-// Requirement — the owner, 2026-10-16: a «Записи співбесід» tab in «Співбесіди»
-// (not a new menu item) where everyone can listen to every recording the bot
+// Requirement — the owner, 2026-10-16: «Співбесіди» is the recordings library
+// and nothing else (no «Мої співбесіди» tab), where everyone can listen to every recording the bot
 // collected — shown as a library, not tied to people, each with the name of
 // whoever uploaded it. Listening plays it from Google Drive through this
 // server — and only plays it: "there must be no way to download" (no button,
 // no "Download" in the player's menu, no "Save audio as"). Until Drive is
-// connected the page is exactly as before.
+// connected the page says so.
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import InterviewRecordingsLibrary from "@/components/interviews/InterviewRecordingsLibrary";
@@ -128,32 +128,21 @@ describe("the library", () => {
   });
 });
 
-describe("the «Співбесіди» page", () => {
-  it("Drive not connected → the page as before: no tabs, the library is not even asked", async () => {
-    render(await InterviewsPage());
-    expect(screen.getByTestId("my-interviews")).toBeInTheDocument();
-    expect(screen.queryByRole("tab")).not.toBeInTheDocument();
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it("connected → two tabs, «My interviews» first; the library loads only when its tab is open", async () => {
+describe("the «Співбесіди» page — the library and nothing else", () => {
+  it("connected → the library right away: no tabs, no «My interviews», the recordings load", async () => {
     configured.value = true;
-    const { unmount } = render(await InterviewsPage());
-    expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual(["My interviews", "Interview recordings"]);
-    expect(screen.getByTestId("my-interviews")).toBeInTheDocument();
-    expect(fetchMock).not.toHaveBeenCalled();
-    unmount();
-
-    nav.query = new URLSearchParams("tab=recordings");
     render(await InterviewsPage());
+    expect(screen.queryByRole("tab")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("my-interviews")).not.toBeInTheDocument();
+    expect(screen.getByText("Interview recordings")).toBeInTheDocument();
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/skillklan/interview-recordings", expect.anything()));
   });
 
-  it("switching tabs keeps it in the address (a link opens the same tab)", async () => {
-    configured.value = true;
-    const user = userEvent.setup();
+  it("not connected yet → says so: no old list, no tabs, the library is not asked", async () => {
     render(await InterviewsPage());
-    await user.click(screen.getByRole("tab", { name: "Interview recordings" }));
-    expect(nav.push).toHaveBeenCalledWith("/dashboard/interviews?tab=recordings");
+    expect(screen.getByText("Interview recordings are not connected yet.")).toBeInTheDocument();
+    expect(screen.queryByTestId("my-interviews")).not.toBeInTheDocument();
+    expect(screen.queryByRole("tab")).not.toBeInTheDocument();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
