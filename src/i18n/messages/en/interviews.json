@@ -56,5 +56,29 @@
   "errors": {
     "listFailed": "Failed to fetch interviews. ",
     "filtersFailed": "Failed to fetch interview filters. "
+  },
+  "recordings": {
+    "title": "Interview recordings",
+    "description": "Interviews students uploaded through the Telegram bot. Listen to prepare.",
+    "recordsLabel": "recordings",
+    "kindFilter": "Interview type",
+    "allKinds": "All types",
+    "kinds": {
+      "qaRecruiter": "QA · Recruiter",
+      "qaTech": "QA · Technical",
+      "qaManager": "QA · Manager",
+      "baRecruiter": "BA · Recruiter",
+      "baTech": "BA · Technical",
+      "baManager": "BA · Manager"
+    },
+    "searchPlaceholder": "Search recordings…",
+    "listen": "Listen",
+    "close": "Close",
+    "noDate": "No date",
+    "empty": "No recordings yet.",
+    "emptyFiltered": "No recordings match these filters.",
+    "failed": "Couldn't load the recordings. Try again later.",
+    "unplayable": "Your browser can't play this format — try another browser.",
+    "notConnected": "Interview recordings are not connected yet."
   }
 }
