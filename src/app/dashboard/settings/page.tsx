@@ -1,38 +1,10 @@
-"use client";
+import SettingsView from "@/components/settings/SettingsView";
+import { isAdminSession } from "@/skillklan/cabinetAdmin";
+import { getFeatureFlags } from "@/skillklan/featureFlags";
 
-import { useState } from "react";
-import AiSettings from "@/components/settings/AiSettings";
-import AiUsageSettings from "@/components/settings/AiUsageSettings";
-import ApiKeySettings from "@/components/settings/ApiKeySettings";
-import DataSettings from "@/components/settings/DataSettings";
-import DisplaySettings from "@/components/settings/DisplaySettings";
-import SettingsSidebar, { type SettingsSection } from "@/components/settings/SettingsSidebar";
-import { useTranslations } from "@/i18n/client";
-
-function Settings() {
-  const t = useTranslations("settings");
-  const [activeSection, setActiveSection] = useState<SettingsSection>("ai-provider");
-
-  return (
-    <div className="flex flex-col col-span-3">
-      <h3 className="text-2xl font-semibold leading-none tracking-tight mb-4">
-        {t("page.title")}
-      </h3>
-      <div className="flex gap-3 sm:gap-6">
-        <SettingsSidebar
-          activeSection={activeSection}
-          onSectionChange={setActiveSection}
-        />
-        <div className="flex-1 min-w-0">
-          {activeSection === "ai-provider" && <AiSettings />}
-          {activeSection === "ai-usage" && <AiUsageSettings />}
-          {activeSection === "api-keys" && <ApiKeySettings />}
-          {activeSection === "appearance" && <DisplaySettings />}
-          {activeSection === "data" && <DataSettings />}
-        </div>
-      </div>
-    </div>
-  );
+// «Функції» (the SkillKlan feature switches) is for admins only: everyone else
+// gets no section and no switch values at all — not a hidden one.
+export default async function SettingsPage() {
+  const features = (await isAdminSession()) ? await getFeatureFlags() : null;
+  return <SettingsView features={features} />;
 }
-
-export default Settings;

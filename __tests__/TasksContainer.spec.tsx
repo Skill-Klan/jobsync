@@ -12,6 +12,7 @@ import {
 import { Task } from "@/models/task.model";
 import { useRouter } from "next/navigation";
 import { useActivity } from "@/context/ActivityContext";
+import { FeaturesProvider } from "@/context/FeaturesContext";
 
 vi.mock("next-auth", () => {
   const mockAuth = vi.fn();
@@ -563,6 +564,43 @@ describe("TasksContainer Component", () => {
         expect(mockStopActivity).toHaveBeenCalledTimes(1);
         expect(startActivityFromTask).toHaveBeenCalledWith("task-1");
       });
+    });
+  });
+
+  // Requirement (owner 2026-10-16): Activities switched off in Settings →
+  // «Функції» — Tasks stay, but nothing in them starts an activity: no
+  // "Start Activity" in the row or its menu, no "Save & Start" in the form.
+  describe("Activities switched off", () => {
+    beforeEach(() => {
+      (getTasksList as any).mockResolvedValue({ success: true, data: mockTasks, total: 2 });
+    });
+
+    const renderWith = (activities: boolean) =>
+      render(
+        <FeaturesProvider value={{ activities }}>
+          <TasksContainer activityTypes={mockActivityTypes} />
+        </FeaturesProvider>,
+      );
+
+    it("no way to start an activity — the row button, the menu item and Save & Start are gone", async () => {
+      renderWith(false);
+      await waitFor(() => expect(screen.getByText("Task 1")).toBeInTheDocument());
+      expect(screen.queryAllByTestId(/start-activity-/)).toHaveLength(0);
+      expect(screen.queryAllByTitle("Start Activity")).toHaveLength(0);
+
+      await user.click(screen.getByTestId("add-task-btn"));
+      await screen.findByTestId("task-form-dialog-title");
+      expect(screen.queryByRole("button", { name: "Save & Start" })).not.toBeInTheDocument();
+    });
+
+    it("pair: switched on — the row button and Save & Start are there", async () => {
+      renderWith(true);
+      await waitFor(() => expect(screen.getByText("Task 1")).toBeInTheDocument());
+      expect(screen.getAllByTestId(/start-activity-/).length).toBeGreaterThan(0);
+
+      await user.click(screen.getByTestId("add-task-btn"));
+      await screen.findByTestId("task-form-dialog-title");
+      expect(screen.getByRole("button", { name: "Save & Start" })).toBeInTheDocument();
     });
   });
 

@@ -6,7 +6,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { setTestLocale } from "../helpers/i18n";
 
-import Settings from "@/app/dashboard/settings/page";
+import Settings from "@/components/settings/SettingsView";
 import ApiKeySettings from "@/components/settings/ApiKeySettings";
 import AiUsageSettings from "@/components/settings/AiUsageSettings";
 import { NotificationsContainer } from "@/components/notifications/NotificationsContainer";
@@ -93,7 +93,7 @@ beforeEach(() => {
 
 describe("Settings in Ukrainian", () => {
   it("the page, its sections and the AI provider form", async () => {
-    const { container } = render(<Settings />);
+    const { container } = render(<Settings features={null} />);
     expect(await screen.findByRole("button", { name: "Зберегти" })).toBeInTheDocument();
 
     expect(screen.getByRole("heading", { name: "Налаштування" })).toBeInTheDocument();
@@ -102,6 +102,15 @@ describe("Settings in Ukrainian", () => {
     }
     expect(screen.getByRole("heading", { name: "AI-провайдер" })).toBeInTheDocument();
     expect(screen.getByText("Модель")).toBeInTheDocument();
+    expect(container.textContent).not.toMatch(ENGLISH);
+  });
+
+  it("«Функції» (admins only): the section and the Activities switch in Ukrainian", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<Settings features={{ activities: false }} />);
+    await user.click(screen.getByRole("button", { name: "Функції" }));
+    expect(screen.getByRole("heading", { name: "Функції" })).toBeInTheDocument();
+    expect(screen.getByRole("switch", { name: "Активності" })).toBeInTheDocument();
     expect(container.textContent).not.toMatch(ENGLISH);
   });
 
@@ -255,7 +264,7 @@ describe("the English switch still reads as before", () => {
   it("settings page title and a notification row", async () => {
     setTestLocale("en");
     (useNotifications as any).mockReturnValue({ summary: { unread: 1, unreadErrors: 0 }, refresh: vi.fn() });
-    render(<Settings />);
+    render(<Settings features={null} />);
     expect(screen.getByRole("heading", { name: "Settings" })).toBeInTheDocument();
     await waitFor(() => expect(screen.getByRole("button", { name: "Save" })).toBeInTheDocument());
   });

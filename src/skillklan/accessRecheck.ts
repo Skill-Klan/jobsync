@@ -1,4 +1,4 @@
-import { checkCabinetAccess } from "./cabinetApi";
+import { type CabinetAccess, type CabinetRole, getCabinetAccess } from "./cabinetApi";
 
 // One backend answer per person per moment. Once a session's 5-minute window
 // has passed, every auth() call while rendering one page — middleware,
@@ -16,7 +16,7 @@ import { checkCabinetAccess } from "./cabinetApi";
 
 export const ACCESS_SHARE_MS = 30 * 1000;
 
-type SharedCheck = { startedAt: number; allowed: Promise<boolean> };
+type SharedCheck = { startedAt: number; access: Promise<CabinetAccess> };
 
 declare const globalThis: {
   skillklanSharedAccessChecks?: Map<number, SharedCheck>;
@@ -26,7 +26,7 @@ const checks = (globalThis.skillklanSharedAccessChecks ??= new Map());
 
 export async function recheckCabinetAccess(
   cabinetUserId: number,
-): Promise<{ allowed: boolean; checkedAt: number }> {
+): Promise<{ allowed: boolean; role: CabinetRole | null; checkedAt: number }> {
   const now = Date.now();
   for (const [id, check] of checks) {
     if (now - check.startedAt >= ACCESS_SHARE_MS) checks.delete(id);
@@ -36,9 +36,10 @@ export async function recheckCabinetAccess(
   if (!shared) {
     shared = {
       startedAt: now,
-      allowed: checkCabinetAccess(cabinetUserId).catch(() => false),
+      access: getCabinetAccess(cabinetUserId).catch(() => ({ allowed: false, role: null })),
     };
     checks.set(cabinetUserId, shared);
   }
-  return { allowed: await shared.allowed, checkedAt: shared.startedAt };
+  const { allowed, role } = await shared.access;
+  return { allowed, role, checkedAt: shared.startedAt };
 }

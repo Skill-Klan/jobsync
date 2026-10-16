@@ -3,8 +3,9 @@
 //
 //   exchangeLoginCode — trade the one-time code the cabinet posted for the
 //                       person behind it;
-//   checkCabinetAccess — is that person still allowed in (re-checked at least
-//                       every 5 minutes, see auth.config).
+//   getCabinetAccess — is that person still allowed in, and with which role
+//                       (re-checked at least every 5 minutes, see auth.config);
+//   checkCabinetAccess — the same, yes or no.
 //
 // Fail closed, always: missing configuration, a timeout, a non-200 answer or
 // an answer of the wrong shape all mean "no". No retries — the exchange is not
@@ -16,11 +17,19 @@
 
 export const CABINET_API_TIMEOUT_MS = 5000;
 
+export type CabinetRole = "student" | "admin";
+
 export type CabinetIdentity = {
   userId: number;
-  role: "student" | "admin";
+  role: CabinetRole;
   name: string;
 };
+
+// The role is the backend's (SkillKlan rules §1): SkillKlan Job keeps no copy
+// of it, only the answer of the last check in the session token.
+export type CabinetAccess = { allowed: boolean; role: CabinetRole | null };
+
+const NO_ACCESS: CabinetAccess = { allowed: false, role: null };
 
 function backend(): { base: string; secret: string } | null {
   const base = process.env.SKILLKLAN_API_URL;
@@ -74,10 +83,17 @@ export async function exchangeLoginCode(code: string): Promise<CabinetIdentity |
   };
 }
 
-export async function checkCabinetAccess(userId: number): Promise<boolean> {
-  if (!Number.isSafeInteger(userId) || userId <= 0) return false;
+export async function getCabinetAccess(userId: number): Promise<CabinetAccess> {
+  if (!Number.isSafeInteger(userId) || userId <= 0) return NO_ACCESS;
   const data = (await call(`/api/jobsync/users/${userId}/access`, { method: "GET" })) as
-    | { allowed?: unknown }
+    | { allowed?: unknown; role?: unknown }
     | null;
-  return Boolean(data && data.allowed === true);
+  if (!data || data.allowed !== true) return NO_ACCESS;
+  // A role we do not know is no role — never read as admin.
+  const role = data.role === "admin" || data.role === "student" ? data.role : null;
+  return { allowed: true, role };
+}
+
+export async function checkCabinetAccess(userId: number): Promise<boolean> {
+  return (await getCabinetAccess(userId)).allowed;
 }

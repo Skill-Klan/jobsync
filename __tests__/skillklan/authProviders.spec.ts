@@ -52,8 +52,10 @@ describe("cabinet provider", () => {
     return cabinet.authorize(credentialsIn);
   }
 
-  it("a code the backend accepted — the person's account, with the cabinet id", async () => {
-    (exchangeLoginCode as ReturnType<typeof vi.fn>).mockResolvedValue({ userId: 42, role: "student", name: "Марія" });
+  // The role goes into the session too: only an admin manages the feature
+  // switches (owner 2026-10-16), and the role is the backend's.
+  it.each(["student", "admin"] as const)("a code the backend accepted — the person's account, with the cabinet id and role (%s)", async (role) => {
+    (exchangeLoginCode as ReturnType<typeof vi.fn>).mockResolvedValue({ userId: 42, role, name: "Марія" });
     (findOrCreateCabinetUser as ReturnType<typeof vi.fn>).mockResolvedValue({
       id: "u-42",
       name: "Марія",
@@ -65,6 +67,7 @@ describe("cabinet provider", () => {
       name: "Марія",
       email: "cabinet-42@users.jobs.skillklan.invalid",
       cabinetUserId: 42,
+      cabinetRole: role,
     });
     expect(exchangeLoginCode).toHaveBeenCalledWith("C".repeat(43));
   });

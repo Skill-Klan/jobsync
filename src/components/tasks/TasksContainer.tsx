@@ -14,6 +14,7 @@ import TasksTable from "./TasksTable";
 import { TaskForm } from "./TaskForm";
 import { ActivityType } from "@/models/activity.model";
 import { useActivity } from "@/context/ActivityContext";
+import { useFeatures } from "@/context/FeaturesContext";
 import { useActivitySwitchConfirm } from "@/hooks/useActivitySwitchConfirm";
 import { useTasksList } from "./tasks-container/useTasksList";
 import { useAutoOpenAddTaskDialog } from "./tasks-container/useAutoOpenAddTaskDialog";
@@ -32,6 +33,7 @@ function TasksContainer({
   onTasksChanged,
 }: TasksContainerProps) {
   const t = useTranslations("tasks");
+  const { activities } = useFeatures();
   const { refreshCurrentActivity } = useActivity();
   const { requestStart, confirmDialog } = useActivitySwitchConfirm();
   const [editTask, setEditTask] = useState<Task | null>(null);
@@ -117,7 +119,7 @@ function TasksContainer({
                 deleteTask={onDeleteTask}
                 editTask={onEditTask}
                 onChangeTaskStatus={onChangeTaskStatus}
-                onStartActivity={onStartActivity}
+                onStartActivity={activities ? onStartActivity : undefined}
                 groupBy={groupBy}
               />
             </>
@@ -144,7 +146,7 @@ function TasksContainer({
         onTaskSaved={reloadTasks}
         dialogOpen={dialogOpen}
         setDialogOpen={setDialogOpen}
-        onSaveAndStart={onStartActivity}
+        onSaveAndStart={activities ? onStartActivity : undefined}
       />
       {confirmDialog}
     </>

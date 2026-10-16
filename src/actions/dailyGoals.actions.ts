@@ -7,6 +7,7 @@ import { requireUser } from "@/actions/shared";
 import {
   buildGoalValues,
   findStreaks,
+  goalIdsFor,
   goalMonthRange,
   isValidMonth,
   monthBounds,
@@ -21,6 +22,7 @@ import {
 } from "@/models/dailyGoals.model";
 import { defaultUserSettings } from "@/models/userSettings.model";
 import { getTranslations } from "@/i18n/server";
+import { getFeatureFlags } from "@/skillklan/featureFlags";
 
 type Failure = { success: false; message: string };
 
@@ -77,8 +79,11 @@ async function computeStreaks(
   const { minMonth } = goalMonthRange(today);
   const end = new Date(now);
   end.setHours(23, 59, 59, 999);
-  const values = await loadGoalValues(userId, monthBounds(minMonth).start, end);
-  return findStreaks(values, targets, `${minMonth}-01`, today);
+  const [values, features] = await Promise.all([
+    loadGoalValues(userId, monthBounds(minMonth).start, end),
+    getFeatureFlags(),
+  ]);
+  return findStreaks(values, targets, `${minMonth}-01`, today, goalIdsFor(features));
 }
 
 export async function getGoalStreaks(): Promise<

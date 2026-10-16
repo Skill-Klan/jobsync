@@ -17,6 +17,8 @@ import {
 import { useRouter } from "next/navigation";
 import AddContactShortcut from "./AddContactShortcut";
 import { useTranslations } from "@/i18n/client";
+import { useFeatures } from "@/context/FeaturesContext";
+import { cn } from "@/lib/utils";
 import {
   QUICK_ACTION_BUTTON,
   QUICK_ACTION_LABEL,
@@ -26,12 +28,21 @@ import {
 export default function JobsAppliedCard() {
   const router = useRouter();
   const t = useTranslations("dashboard");
+  const { activities } = useFeatures();
   return (
-    <Card className="@container @lg:col-span-2 min-w-0 flex flex-col">
+    // Activities off: the hours card beside it is gone — take the whole row.
+    <Card
+      className={cn(
+        "@container min-w-0 flex flex-col",
+        activities ? "@lg:col-span-2" : "@lg:col-span-4",
+      )}
+    >
       <CardHeader className="pb-3">
         <CardTitle className="text-lg text-green-600">{t("title")}</CardTitle>
         <CardDescription className="max-w-lg text-balance leading-relaxed">
-          {t("quickActions.description")}
+          {activities
+            ? t("quickActions.description")
+            : t("quickActions.descriptionWithoutActivities")}
         </CardDescription>
       </CardHeader>
       <CardFooter className={QUICK_ACTIONS_GRID}>
@@ -71,16 +82,18 @@ export default function JobsAppliedCard() {
           <BookOpen className="h-3.5 w-3.5 shrink-0" />
           <span className={QUICK_ACTION_LABEL}>{t("quickActions.addQuestion")}</span>
         </Button>
-        <Button
-          variant="outline"
-          className={QUICK_ACTION_BUTTON}
-          onClick={() =>
-            router.push("/dashboard/activities?add-activity=true")
-          }
-        >
-          <CalendarClock className="h-3.5 w-3.5 shrink-0" />
-          <span className={QUICK_ACTION_LABEL}>{t("quickActions.addActivity")}</span>
-        </Button>
+        {activities && (
+          <Button
+            variant="outline"
+            className={QUICK_ACTION_BUTTON}
+            onClick={() =>
+              router.push("/dashboard/activities?add-activity=true")
+            }
+          >
+            <CalendarClock className="h-3.5 w-3.5 shrink-0" />
+            <span className={QUICK_ACTION_LABEL}>{t("quickActions.addActivity")}</span>
+          </Button>
+        )}
         <AddContactShortcut />
       </CardFooter>
     </Card>

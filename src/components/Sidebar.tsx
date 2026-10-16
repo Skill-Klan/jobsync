@@ -3,7 +3,8 @@ import Link from "next/link";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Briefcase } from "lucide-react";
-import { APP_CONSTANTS, SIDEBAR_LINKS } from "@/lib/constants";
+import { APP_CONSTANTS, visibleSidebarLinks } from "@/lib/constants";
+import { useFeatures } from "@/context/FeaturesContext";
 import NavLink from "./NavLink";
 import { ProfileDropdown } from "./ProfileDropdown";
 import { usePathname } from "next/navigation";
@@ -21,6 +22,7 @@ function Sidebar({ user, signOutAction }: SidebarProps) {
   const path = usePathname();
   const { expanded } = useSidebar();
   const t = useTranslations("nav");
+  const features = useFeatures();
   const isOnDashboard = path === "/dashboard";
 
   return (
@@ -59,11 +61,7 @@ function Sidebar({ user, signOutAction }: SidebarProps) {
         </div>
 
         <nav className="flex flex-1 flex-col gap-1 overflow-y-auto py-2">
-          {SIDEBAR_LINKS.map((item) => {
-            // Only show dev-only items in development mode
-            if (item.devOnly && process.env.NODE_ENV !== "development") {
-              return null;
-            }
+          {visibleSidebarLinks(features).map((item) => {
             return (
               <NavLink
                 key={item.route}

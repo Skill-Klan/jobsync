@@ -43,6 +43,7 @@ describe("English defaults match the English dictionary", () => {
     expect(MONTH_SUMMARY_TEXT_EN.currentStreak).toBe(goals.currentStreak);
     expect(MONTH_SUMMARY_TEXT_EN.bestStreak).toBe(goals.bestStreak);
     expect(MONTH_SUMMARY_TEXT_EN.bothMet).toBe(goals.bothMet);
+    expect(MONTH_SUMMARY_TEXT_EN.goalMet).toBe(goals.goalHit);
     expect(MONTH_SUMMARY_TEXT_EN.nothingLogged).toBe(goals.nothingLogged);
     expect([MONTH_SUMMARY_TEXT_EN.days(1), MONTH_SUMMARY_TEXT_EN.days(3)]).toEqual(["1 day", "3 days"]);
   });

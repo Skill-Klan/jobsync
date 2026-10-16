@@ -124,27 +124,29 @@ export default function WeeklyBarChartToggle({
               </span>
             )}
           </div>
-          <div
-            className="flex shrink-0 rounded-md border text-xs"
-            data-testid="weekly-chart-toggle-group"
-          >
-            {charts.map((chart, index) => (
-              <button
-                key={chart.id ?? chart.label}
-                onClick={() => selectTab(index)}
-                className={cn(
-                  "px-2 py-1 transition-colors",
-                  index === 0 && "rounded-l-md",
-                  index === charts.length - 1 && "rounded-r-md",
-                  activeIndex === index
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-muted",
-                )}
-              >
-                {chart.label}
-              </button>
-            ))}
-          </div>
+          {charts.length > 1 && (
+            <div
+              className="flex shrink-0 rounded-md border text-xs"
+              data-testid="weekly-chart-toggle-group"
+            >
+              {charts.map((chart, index) => (
+                <button
+                  key={chart.id ?? chart.label}
+                  onClick={() => selectTab(index)}
+                  className={cn(
+                    "px-2 py-1 transition-colors",
+                    index === 0 && "rounded-l-md",
+                    index === charts.length - 1 && "rounded-r-md",
+                    activeIndex === index
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-muted",
+                  )}
+                >
+                  {chart.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </CardHeader>
 

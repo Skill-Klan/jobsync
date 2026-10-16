@@ -21,6 +21,12 @@ vi.mock("@/utils/user.utils", () => ({
   getCurrentUser: vi.fn(),
 }));
 
+// SkillKlan feature switches: Activities on unless a test switches them off.
+const features = vi.hoisted(() => ({ value: { activities: true } }));
+vi.mock("@/skillklan/featureFlags", () => ({
+  getFeatureFlags: vi.fn(async () => features.value),
+}));
+
 describe("getDailyGoalValues", () => {
   const mockUser = { id: "user-id" };
 
@@ -320,6 +326,46 @@ describe("getGoalStreaks", () => {
     expect(await getGoalStreaks()).toEqual({
       success: true,
       data: { current: 2, best: 2 },
+    });
+  });
+
+  // Requirement (owner 2026-10-16): Activities switched off — the dashboard is
+  // about applications alone, so a day with the applications goal met counts
+  // for the streak even with no hours logged.
+  it("Activities switched off — the streak follows applications alone", async () => {
+    features.value = { activities: false };
+    try {
+      (prisma.userSettings.findUnique as any).mockResolvedValue({
+        settings: JSON.stringify({ goals: { targets: { "2026-10": { jobs: 1, hours: 1 } } } }),
+      });
+      (prisma.job.groupBy as any).mockResolvedValue([
+        { appliedDate: new Date(2026, 9, 3, 9), _count: { _all: 1 } },
+        { appliedDate: new Date(2026, 9, 4, 9), _count: { _all: 1 } },
+        { appliedDate: new Date(2026, 9, 5, 9), _count: { _all: 1 } },
+      ]);
+      (prisma.activity.findMany as any).mockResolvedValue([]);
+      expect(await getGoalStreaks()).toEqual({
+        success: true,
+        data: { current: 3, best: 3 },
+      });
+    } finally {
+      features.value = { activities: true };
+    }
+  });
+
+  it("Activities on — the same days without hours break the streak (pair)", async () => {
+    (prisma.userSettings.findUnique as any).mockResolvedValue({
+      settings: JSON.stringify({ goals: { targets: { "2026-10": { jobs: 1, hours: 1 } } } }),
+    });
+    (prisma.job.groupBy as any).mockResolvedValue([
+      { appliedDate: new Date(2026, 9, 3, 9), _count: { _all: 1 } },
+      { appliedDate: new Date(2026, 9, 4, 9), _count: { _all: 1 } },
+      { appliedDate: new Date(2026, 9, 5, 9), _count: { _all: 1 } },
+    ]);
+    (prisma.activity.findMany as any).mockResolvedValue([]);
+    expect(await getGoalStreaks()).toEqual({
+      success: true,
+      data: { current: 0, best: 0 },
     });
   });
 

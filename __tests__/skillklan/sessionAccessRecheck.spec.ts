@@ -2,20 +2,36 @@
 // Requirement — SkillKlan rules §3.4 and §4.2: an excluded student loses
 // access within 5 minutes, and the session itself is short. The session asks
 // the backend at least every 5 minutes; "no", an error and a timeout all end
-// it (fail closed — checkCabinetAccess already maps errors to false). A
+// it (fail closed — getCabinetAccess already maps errors to "no"). A
 // session with no cabinet person behind it exists only with the dev flag.
+//
+// The role rides along (feature switches, owner 2026-10-16: only an admin
+// manages them): the token keeps the role of the sign-in and takes the
+// backend's role at every re-check, so a demoted admin is a student within
+// the same 5 minutes. The session says only "admin or not".
 //
 // One page load calls auth() many times (middleware, layout, page, server
 // components), and each reads the same stale cookie. Those calls must share
 // one backend answer — measured on the dev server before the fix: 12 calls
 // for one page — and the 5-minute bound counts from that real answer.
-vi.mock("@/skillklan/cabinetApi", () => ({ checkCabinetAccess: vi.fn() }));
+// `check` is the backend's yes/no; `backend.role` is the role it reports for
+// a person it lets in.
+const backend = vi.hoisted(() => ({
+  check: vi.fn(),
+  role: { value: "student" as "student" | "admin" | null },
+}));
+vi.mock("@/skillklan/cabinetApi", () => ({
+  getCabinetAccess: async (id: number) => {
+    const allowed = await backend.check(id);
+    return { allowed, role: allowed ? backend.role.value : null };
+  },
+}));
 
 import { authConfig, ACCESS_RECHECK_MS } from "@/auth.config";
-import { checkCabinetAccess } from "@/skillklan/cabinetApi";
 
 const jwt = authConfig.callbacks.jwt as (args: any) => Promise<any>;
-const check = checkCabinetAccess as unknown as ReturnType<typeof vi.fn>;
+const sessionOf = authConfig.callbacks.session as (args: any) => Promise<any>;
+const check = backend.check;
 const T0 = new Date("2030-01-01T10:00:00Z").getTime();
 const MINUTE = 60 * 1000;
 // A fresh cabinet person per test: shared answers live for the process.
@@ -25,6 +41,7 @@ beforeEach(() => {
   vi.useFakeTimers();
   vi.setSystemTime(T0);
   check.mockReset();
+  backend.role.value = "student";
   personId += 1;
   delete process.env.JOBSYNC_DEV_PASSWORD_LOGIN;
 });
@@ -157,6 +174,42 @@ describe("a session with no cabinet person", () => {
   it("lives on with the dev flag (local development, Playwright)", async () => {
     process.env.JOBSYNC_DEV_PASSWORD_LOGIN = "1";
     await expect(jwt({ token: { id: "u-dev" } })).resolves.toMatchObject({ id: "u-dev" });
+  });
+});
+
+describe("the role (admin-only feature switches)", () => {
+  it("sign-in keeps the role the cabinet sent", async () => {
+    const token = await jwt({ token: {}, user: { id: "u-1", cabinetUserId: 42, cabinetRole: "admin" } });
+    expect(token).toMatchObject({ cabinetRole: "admin" });
+  });
+
+  it("a re-check takes the backend's role — a demoted admin is a student now", async () => {
+    vi.setSystemTime(T0 + 5 * MINUTE);
+    check.mockResolvedValue(true);
+    backend.role.value = "student";
+    const token = await jwt({
+      token: { id: "u-1", cabinetUserId: personId, cabinetRole: "admin", accessCheckedAt: T0 },
+    });
+    expect(token).toMatchObject({ cabinetRole: "student" });
+  });
+
+  it("within 5 minutes the role of the last answer stands (no call)", async () => {
+    vi.setSystemTime(T0 + 4 * MINUTE);
+    const token = await jwt({
+      token: { id: "u-1", cabinetUserId: personId, cabinetRole: "admin", accessCheckedAt: T0 },
+    });
+    expect(token).toMatchObject({ cabinetRole: "admin" });
+    expect(check).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["admin", true],
+    ["student", false],
+    [null, false],
+    [undefined, false],
+  ])("role %s → isAdmin %s in the session", async (cabinetRole, isAdmin) => {
+    const session = await sessionOf({ session: { user: {} }, token: { id: "u-1", cabinetRole } });
+    expect(session.user.isAdmin).toBe(isAdmin);
   });
 });
 

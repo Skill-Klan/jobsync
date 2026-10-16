@@ -9,6 +9,7 @@ import {
   CABINET_API_TIMEOUT_MS,
   checkCabinetAccess,
   exchangeLoginCode,
+  getCabinetAccess,
 } from "@/skillklan/cabinetApi";
 
 const BASE = "https://api.example.invalid";
@@ -145,5 +146,29 @@ describe("checkCabinetAccess", () => {
   it.each([0, -1, 1.5, NaN])("id %s → no, without a call", async (id) => {
     await expect(checkCabinetAccess(id)).resolves.toBe(false);
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+// The role rides along (feature switches, owner 2026-10-16: admins only). It
+// is the backend's word; anything but a known role is no role — never admin.
+describe("getCabinetAccess — the role", () => {
+  it.each([
+    ["admin", { allowed: true, role: "admin" }],
+    ["student", { allowed: true, role: "student" }],
+    ["superadmin", { allowed: true, role: null }],
+    [undefined, { allowed: true, role: null }],
+  ])("allowed, role %s → %o", async (role, expected) => {
+    fetchMock.mockReturnValue(answer(200, { success: true, data: { allowed: true, role }, error: null }));
+    await expect(getCabinetAccess(42)).resolves.toEqual(expected);
+  });
+
+  it("not allowed → no role, even if one is sent", async () => {
+    fetchMock.mockReturnValue(answer(200, { success: true, data: { allowed: false, role: "admin" }, error: null }));
+    await expect(getCabinetAccess(42)).resolves.toEqual({ allowed: false, role: null });
+  });
+
+  it("a failed call → not allowed, no role", async () => {
+    fetchMock.mockImplementation(() => Promise.reject(new TypeError("fetch failed")));
+    await expect(getCabinetAccess(42)).resolves.toEqual({ allowed: false, role: null });
   });
 });

@@ -9,7 +9,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { SIDEBAR_LINKS } from "@/lib/constants";
+import { visibleSidebarLinks } from "@/lib/constants";
+import { getFeatureFlags } from "@/skillklan/featureFlags";
 import SidebarToggle from "./SidebarToggle";
 import { AgentChatTrigger } from "./AgentChatTrigger";
 import { NotificationBell } from "./notifications/NotificationBell";
@@ -18,6 +19,7 @@ import { getTranslations } from "@/i18n/server";
 async function Header() {
   const t = await getTranslations("nav");
   const tc = await getTranslations("common");
+  const features = await getFeatureFlags();
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
       <Sheet>
@@ -39,11 +41,7 @@ async function Header() {
                 <span className="sr-only">SkillKlan Job</span>
               </Link>
             </SheetClose>
-            {SIDEBAR_LINKS.map((item) => {
-              // Only show dev-only items in development mode
-              if (item.devOnly && process.env.NODE_ENV !== "development") {
-                return null;
-              }
+            {visibleSidebarLinks(features).map((item) => {
               return (
                 <SheetClose asChild key={item.route}>
                   <Link

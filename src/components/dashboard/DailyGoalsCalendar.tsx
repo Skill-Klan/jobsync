@@ -12,6 +12,7 @@ import SetGoalsDialog from "@/components/dashboard/SetGoalsDialog";
 import {
   GOAL_IDS,
   buildMonthSummary,
+  goalIdsFor,
   goalMonthRange,
   resolveTargets,
   type GoalMonthData,
@@ -21,6 +22,7 @@ import {
 import { toastError } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { useLocale, useTranslations } from "@/i18n/client";
+import { useFeatures } from "@/context/FeaturesContext";
 import type {
   GoalStreaks,
   GoalTargets,
@@ -44,14 +46,19 @@ export default function DailyGoalsCalendar({
 }: DailyGoalsCalendarProps) {
   const t = useTranslations("dashboard");
   const locale = useLocale();
+  // Activities switched off: no hours goal — no orange ring, no legend entry,
+  // and "goal met" and the streaks count applications alone.
+  const goalIds = goalIdsFor(useFeatures());
+  const withHours = goalIds.includes(GOAL_IDS.HOURS);
   // The summary's rings need labels only; targets vary by month
-  const RINGS = [
-    { id: GOAL_IDS.JOBS, label: t("goals.jobsRing") },
-    { id: GOAL_IDS.HOURS, label: t("goals.activityRing") },
-  ];
+  const JOBS_RING = { id: GOAL_IDS.JOBS, label: t("goals.jobsRing") };
+  const HOURS_RING = { id: GOAL_IDS.HOURS, label: t("goals.activityRing") };
+  const RINGS = withHours ? [JOBS_RING, HOURS_RING] : [JOBS_RING];
   const goalsFor = (targets: GoalTargets): GcGoal[] => [
-    { ...RINGS[0], target: targets.jobs },
-    { ...RINGS[1], target: targets.hours, unit: t("goals.hoursUnit") },
+    { ...JOBS_RING, target: targets.jobs },
+    ...(withHours
+      ? [{ ...HOURS_RING, target: targets.hours, unit: t("goals.hoursUnit") }]
+      : []),
   ];
   const navLabels = {
     previousMonth: t("goals.previousMonth"),
@@ -61,6 +68,7 @@ export default function DailyGoalsCalendar({
     currentStreak: t("goals.currentStreak"),
     bestStreak: t("goals.bestStreak"),
     bothMet: t("goals.bothMet"),
+    goalMet: t("goals.goalHit"),
     nothingLogged: t("goals.nothingLogged"),
     days: (count: number) => t("goals.days", { count }),
   };
@@ -94,12 +102,13 @@ export default function DailyGoalsCalendar({
         resolveTargets(key, storedTargets ?? {}),
         streaks,
         summaryText,
+        goalIds,
       );
     }
     return data;
     // summaryText follows the locale, which re-renders the page when it changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [valuesByMonth, storedTargets, streaks, today, locale]);
+  }, [valuesByMonth, storedTargets, streaks, today, locale, goalIds]);
 
   const handleMonthChange = async (next: string) => {
     setMonth(next);
@@ -159,6 +168,7 @@ export default function DailyGoalsCalendar({
         onOpenChange={setDialogOpen}
         month={maxMonth}
         targets={currentTargets}
+        withHours={withHours}
         onSaved={(data) => {
           setStoredTargets(data.targets);
           setStreaks(data.streaks);

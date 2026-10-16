@@ -31,6 +31,9 @@ interface SetGoalsDialogProps {
   onOpenChange: (open: boolean) => void;
   month: string;
   targets: GoalTargets;
+  // Activities switched off: only the applications goal is shown; the hours
+  // target is kept as it is and saved back unchanged.
+  withHours?: boolean;
   onSaved: (data: {
     targets: GoalTargetsByMonth;
     streaks: GoalStreaks | null;
@@ -66,10 +69,12 @@ export default function SetGoalsDialog({
   onOpenChange,
   month,
   targets,
+  withHours = true,
   onSaved,
 }: SetGoalsDialogProps) {
   const t = useTranslations("dashboard");
   const formatDate = useFormatDate();
+  const fields = withHours ? FIELDS : FIELDS.filter((f) => f.name !== "hours");
   const [isPending, startTransition] = useTransition();
   const form = useForm<GoalTargets>({
     resolver: zodResolver(GoalTargetsSchema),
@@ -118,7 +123,7 @@ export default function SetGoalsDialog({
             onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-3"
           >
-            {FIELDS.map(({ labelKey, decreaseKey, increaseKey, ...f }) => (
+            {fields.map(({ labelKey, decreaseKey, increaseKey, ...f }) => (
               <GoalRow
                 key={f.name}
                 control={form.control}

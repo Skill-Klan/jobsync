@@ -7,7 +7,8 @@
     "aiUsage": "AI Usage",
     "apiKeys": "API Keys",
     "appearance": "Appearance",
-    "data": "Data"
+    "data": "Data",
+    "features": "Features"
   },
   "loadingSettings": "Loading settings...",
   "save": "Save",
@@ -265,5 +266,19 @@
     "fetchKeysFailed": "Failed to fetch API keys",
     "invalidRange": "Invalid range",
     "usageFailed": "Failed to load AI usage."
+  },
+  "features": {
+    "title": "Features",
+    "description": "Turn parts of SkillKlan Job on or off for everyone. What is on, everyone sees; what is off, no one sees — you included. Only an administrator sees this section.",
+    "items": {
+      "activities": {
+        "label": "Activities",
+        "description": "Time tracking: the Activities tab, the timer, “Start activity” in Tasks, and hours and the activity goal on the dashboard. When off, records are kept — they are just not shown."
+      }
+    },
+    "saved": "Saved",
+    "saveFailed": "Couldn't save. Try again.",
+    "adminOnly": "Only an administrator can change features.",
+    "invalid": "There is no such feature."
   }
 }
