@@ -1,5 +1,65 @@
 # Changelog
 
+## SkillKlan releases
+
+SkillKlan Job is developed independently since 2026-10-14 (see the README). Its releases are the `sk-*` tags:
+each publishes `ghcr.io/skill-klan/jobsync`, deployed **by digest** after the owner's confirmation in Telegram.
+The upstream JobSync history below ends at 1.1.22.
+
+### sk-0.5.0 (2026-10-16) — `43097d4`, `sha256:46b397db…bd3c8`
+
+* «Співбесіди» is the **interview recordings library**: every recording students upload through the SkillKlan
+  Telegram bot, played straight from Google Drive through this server (seeking works) — for everyone SkillKlan Job
+  lets in. Read-only access with a service account (`drive.readonly`); the six bot folders; newest first; filter by
+  kind and search; date, kind, specializations, company and the uploader's name from the file name.
+* **Listening only**: no download button, `Content-Disposition: inline`, no download in the player's menu or
+  context menu.
+* The page shows the library and nothing else (no «Мої співбесіди» tab); until Google Drive is connected it says
+  «Записи співбесід ще не підключено.» The person's interview stages stay on each job's «Етапи» tab.
+* README: feature switches, the recordings library and how to turn it on, the deploy pipeline; the SkillKlan admin
+  API.
+
+### sk-0.4.1 (2026-10-16) — `cb12545`, `sha256:06b87c3d…5214d`
+
+* Activities switched off: the server refuses every change to them — add, delete, start, stop, breaks, start
+  from a task — even from a page opened before the switch went off («Активності зараз вимкнено. Оновіть сторінку.»).
+
+### sk-0.4.0 (2026-10-16) — `b0b0419`, `sha256:6395ffd5…ca8a0`
+
+* **Feature switches** in Settings → «Функції», for admins only (the role is the SkillKlan backend's, checked
+  again at the moment of a change). A switch hides a part of the app for everyone, the admin included; data is
+  kept. New table `FeatureToggle`.
+* **Activities off** by default: no Activities tab or page, no running-activity banner, no "Start activity" in
+  Tasks; the dashboard is about applications only (no hours, activity chart or calendar, activity goal ring);
+  goal days and streaks count applications alone.
+* **SkillKlan admin API** (`/skillklan/admin/stats`): per-person numbers for the cabinet's «Статистика Job»
+  pages, behind its own secret; `User.lastLoginAt`.
+
+### sk-0.3.2 (2026-10-15) — `15f480f`, `sha256:f8b2342c…47f43`
+
+* Dashboard quick action labels wrap instead of being cut.
+
+### sk-0.3.1 (2026-10-15) — `897fc50`, `sha256:426a1b67…12217`
+
+* Validation messages in Ukrainian, 24-hour time, fonts with Cyrillic in the interface and the PDF export,
+  «AI» and «навички» terms, the last English texts translated.
+
+### sk-0.3.0 (2026-10-15) — `b505505`, `sha256:85893a78…b87b6`
+
+* Ukrainian interface with an English switch; the owner's glossary.
+
+### sk-0.2.0 (2026-10-14) — `f155f32`, `sha256:bcab6ef6…803ad` — first in production
+
+* Sign in from the SkillKlan cabinet with a one-time code (own sign-up and password sign-in off); access
+  re-checked at least every 5 minutes, fail closed; the session slides, 8 hours from the last request.
+* Deploy tooling: the Telegram gate, a copy of `/data` before each update, roll back on a failed health check.
+
+### sk-0.1.0 (2026-10-14) — `8c151b7` — first published image, not launched
+
+* Own image (non-root, refuses placeholder secrets), MCP removed, SkillKlan Job branding, Dependabot alerts 60 → 0.
+
+## Upstream JobSync
+
 ## [1.1.22](https://github.com/Gsync/jobsync/compare/v1.1.21...v1.1.22) (2026-10-11)
 
 
