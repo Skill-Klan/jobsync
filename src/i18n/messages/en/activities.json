@@ -92,7 +92,8 @@
     "breakStartFailed": "Failed to start break. ",
     "breakEndFailed": "Failed to end break. ",
     "noBreak": "No break is in progress.",
-    "breakLengthFailed": "Failed to update break length. "
+    "breakLengthFailed": "Failed to update break length. ",
+    "switchedOff": "Activities are switched off. Reload the page."
   },
   "goals": {
     "streaksFailed": "Failed to load goal streaks.",

@@ -3,6 +3,7 @@ import prisma from "@/lib/db";
 import { handleError } from "@/lib/utils";
 import { requireUser } from "../shared";
 import { getTranslations } from "@/i18n/server";
+import { isFeatureOff } from "@/skillklan/featureFlags";
 
 export const startActivityFromTask = async (
   taskId: string
@@ -10,6 +11,13 @@ export const startActivityFromTask = async (
   const t = await getTranslations("tasks");
   try {
     const user = await requireUser();
+
+    // Activities switched off (Settings → «Функції»): no activity starts from
+    // a task — even from a Tasks page opened before the switch went off.
+    if (await isFeatureOff("activities")) {
+      const ta = await getTranslations("activities");
+      return { success: false, message: ta("errors.switchedOff") };
+    }
 
     const task = await prisma.task.findFirst({
       where: {

@@ -24,6 +24,9 @@ vi.mock("@/actions/task.actions", () => ({
   createTask: vi.fn(),
   updateTask: vi.fn(),
 }));
+// SkillKlan feature switches: Activities on — these tests are about the
+// actions themselves; switched off is __tests__/skillklan/activitiesSwitchActions.spec.ts.
+vi.mock("@/skillklan/featureFlags", () => ({ isFeatureOff: vi.fn(async () => false) }));
 vi.mock("@/utils/user.utils", () => ({ getCurrentUser: vi.fn() }));
 vi.mock("@prisma/client", () => {
   const client = {

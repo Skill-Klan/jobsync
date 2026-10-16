@@ -35,7 +35,7 @@ vi.mock("@/skillklan/cabinetApi", () => ({ getCabinetAccess: ctx.access }));
 vi.mock("next/cache", () => ({ revalidatePath: ctx.revalidate }));
 
 import { setFeatureEnabled } from "@/actions/featureToggles.actions";
-import { readFeatureFlags } from "@/skillklan/featureFlags";
+import { isFeatureOff, readFeatureFlags } from "@/skillklan/featureFlags";
 
 const prisma = new PrismaClient({ datasources: { db: { url: ctx.url } } });
 
@@ -70,6 +70,8 @@ const rows = () => prisma.featureToggle.findMany();
 describe("launch state", () => {
   it("no row → Activities off for everyone", async () => {
     await expect(readFeatureFlags()).resolves.toEqual({ activities: false });
+    // What the activity actions ask before every change (they refuse when off).
+    await expect(isFeatureOff("activities")).resolves.toBe(true);
   });
 });
 
@@ -86,6 +88,7 @@ describe("an admin, confirmed by the backend now", () => {
       { key: "activities", enabled: true, updatedByCabinetUserId: ADMIN_CABINET_ID },
     ]);
     await expect(readFeatureFlags()).resolves.toEqual({ activities: true });
+    await expect(isFeatureOff("activities")).resolves.toBe(false);
     expect(ctx.revalidate).toHaveBeenCalledWith("/dashboard", "layout");
   });
 
