@@ -1,4 +1,5 @@
 import type { Messages } from "@/i18n/messages";
+import type { FeatureFlags, FeatureKey } from "@/skillklan/features";
 import {
   LayoutDashboard,
   SquareCheckBig,
@@ -370,11 +371,14 @@ export const DISCOVERY_STATUSES = [
 ] as const;
 
 // Labels are message keys (`nav.*`, src/i18n/messages) — the menu speaks the user's language.
+// `feature` — shown only while that SkillKlan feature switch is on
+// (src/skillklan/features.ts); the menus filter through visibleSidebarLinks.
 export const SIDEBAR_LINKS: {
   icon: typeof LayoutDashboard;
   route: string;
   labelKey: keyof Messages["nav"];
   devOnly?: boolean;
+  feature?: FeatureKey;
 }[] = [
   {
     icon: LayoutDashboard,
@@ -405,6 +409,7 @@ export const SIDEBAR_LINKS: {
     icon: CalendarClock,
     route: "/dashboard/activities",
     labelKey: "activities",
+    feature: "activities",
   },
   {
     icon: BookOpen,
@@ -454,3 +459,17 @@ export const DAILY_GOALS = {
   // Months browsable before the current one
   MONTHS_BACK: 11,
 } as const;
+
+// The menu items this person sees: no dev-only items outside development, no
+// item whose SkillKlan feature switch is off. The same for everyone — the
+// admin included (owner 2026-10-16): there is no role here on purpose.
+export function visibleSidebarLinks(
+  features: FeatureFlags,
+  nodeEnv: string | undefined = process.env.NODE_ENV,
+): typeof SIDEBAR_LINKS {
+  return SIDEBAR_LINKS.filter(
+    (item) =>
+      (!item.devOnly || nodeEnv === "development") &&
+      (!item.feature || features[item.feature]),
+  );
+}

@@ -14,6 +14,7 @@ import { JobResponse } from "@/models/job.model";
 import { CirclePlay } from "lucide-react";
 import Link from "next/link";
 import { useFormatDate, useLabel, useTranslations } from "@/i18n/client";
+import { useFeatures } from "@/context/FeaturesContext";
 import type { DatePattern } from "@/i18n/dates";
 
 type RecentActivity = {
@@ -67,12 +68,16 @@ function groupActivitiesByDate(activities: RecentActivity[], text: Text) {
 }
 
 // Stable tab ids — what the chosen tab is remembered by; labels are translated.
-const tabs = ["Jobs", "Activities"] as const;
+// Activities switched off: one tab; a remembered "Activities" finds no tab
+// and the card opens on jobs.
+const ALL_TABS = ["Jobs", "Activities"] as const;
+const JOBS_TAB = ["Jobs"] as const;
 
 export default function RecentCardToggle({
   jobs,
   activities,
 }: RecentCardToggleProps) {
+  const tabs = useFeatures().activities ? ALL_TABS : JOBS_TAB;
   const [activeIndex, selectTab] = usePersistedTabIndex(
     APP_CONSTANTS.DASHBOARD_RECENT_CARD_STORAGE_KEY,
     tabs,
@@ -103,27 +108,29 @@ export default function RecentCardToggle({
           <CardTitle className="text-lg text-green-600 min-w-0 truncate">
             {activeIndex === 0 ? t("recent.jobsTitle") : t("recent.activitiesTitle")}
           </CardTitle>
-          <div
-            className="flex shrink-0 rounded-md border text-xs"
-            data-testid="recent-card-toggle-group"
-          >
-            {tabs.map((tab, index) => (
-              <button
-                key={tab}
-                onClick={() => selectTab(index)}
-                className={cn(
-                  "px-2 py-1 transition-colors",
-                  index === 0 && "rounded-l-md",
-                  index === tabs.length - 1 && "rounded-r-md",
-                  activeIndex === index
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-muted",
-                )}
-              >
-                {tabLabel[tab]}
-              </button>
-            ))}
-          </div>
+          {tabs.length > 1 && (
+            <div
+              className="flex shrink-0 rounded-md border text-xs"
+              data-testid="recent-card-toggle-group"
+            >
+              {tabs.map((tab, index) => (
+                <button
+                  key={tab}
+                  onClick={() => selectTab(index)}
+                  className={cn(
+                    "px-2 py-1 transition-colors",
+                    index === 0 && "rounded-l-md",
+                    index === tabs.length - 1 && "rounded-r-md",
+                    activeIndex === index
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-muted",
+                  )}
+                >
+                  {tabLabel[tab]}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </CardHeader>
       <CardContent className="grid auto-rows-max gap-6 px-4">

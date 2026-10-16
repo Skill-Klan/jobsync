@@ -14,6 +14,19 @@ export type GoalValues = Record<string, Record<string, number>>;
 
 export const GOAL_IDS = { JOBS: "jobs", HOURS: "hours" } as const;
 
+export type GoalId = (typeof GOAL_IDS)[keyof typeof GOAL_IDS];
+
+export const ALL_GOAL_IDS: readonly GoalId[] = Object.values(GOAL_IDS);
+// Stable identities: the calendar memoises on the list.
+const JOBS_ONLY: readonly GoalId[] = [GOAL_IDS.JOBS];
+
+// The goals that count: with Activities switched off (SkillKlan feature
+// switches, owner 2026-10-16) the hours goal is gone — the rings, the "goal
+// met" days, "nothing logged" and the streaks all follow applications alone.
+export function goalIdsFor(features: { activities: boolean }): readonly GoalId[] {
+  return features.activities ? ALL_GOAL_IDS : JOBS_ONLY;
+}
+
 export type GoalMonthData = { values: GoalValues; targets: GoalTargetsByMonth };
 
 export const DEFAULT_GOAL_TARGETS: GoalTargets = {
@@ -114,6 +127,8 @@ export type MonthSummaryText = {
   currentStreak: string;
   bestStreak: string;
   bothMet: string;
+  // The same count when only one goal is tracked.
+  goalMet: string;
   nothingLogged: string;
   days: (count: number) => string;
 };
@@ -122,11 +137,10 @@ export const MONTH_SUMMARY_TEXT_EN: MonthSummaryText = {
   currentStreak: "Current streak",
   bestStreak: "Best streak (12 mo)",
   bothMet: "Both goals met",
+  goalMet: "Goal hit",
   nothingLogged: "Nothing logged",
   days: formatDays,
 };
-
-const IDS = Object.values(GOAL_IDS);
 
 export function buildMonthSummary(
   month: string,
@@ -135,6 +149,7 @@ export function buildMonthSummary(
   targets: GoalTargets,
   streaks: GoalStreaks | null,
   text: MonthSummaryText = MONTH_SUMMARY_TEXT_EN,
+  ids: readonly GoalId[] = ALL_GOAL_IDS,
 ): MonthSummary {
   const hit: Record<string, number> = {};
   const counted: Record<string, number> = {};
@@ -146,19 +161,19 @@ export function buildMonthSummary(
     const key = `${month}-${String(d).padStart(2, "0")}`;
     if (key > today) break;
     const day = values[key] ?? {};
-    const isMet = (id: (typeof IDS)[number]) => (day[id] ?? 0) >= targets[id];
+    const isMet = (id: GoalId) => (day[id] ?? 0) >= targets[id];
     // Today counts only once met, so an unfinished day never drags it down
-    for (const id of IDS) {
+    for (const id of ids) {
       if (key === today && !isMet(id)) continue;
       counted[id] = (counted[id] ?? 0) + 1;
       if (isMet(id)) hit[id] = (hit[id] ?? 0) + 1;
     }
-    if (IDS.every(isMet)) bothMet++;
-    if (key < today && IDS.every((id) => !day[id])) nothingLogged++;
+    if (ids.every(isMet)) bothMet++;
+    if (key < today && ids.every((id) => !day[id])) nothingLogged++;
   }
 
   const rings: Record<string, number> = {};
-  for (const id of IDS) {
+  for (const id of ids) {
     if (counted[id]) rings[id] = (hit[id] ?? 0) / counted[id];
   }
 
@@ -175,7 +190,11 @@ export function buildMonthSummary(
         value: streaks ? text.days(streaks.best) : "—",
         tone: "warning",
       },
-      { label: text.bothMet, value: text.days(bothMet), tone: "success" },
+      {
+        label: ids.length > 1 ? text.bothMet : text.goalMet,
+        value: text.days(bothMet),
+        tone: "success",
+      },
       {
         label: text.nothingLogged,
         value: text.days(nothingLogged),
@@ -190,6 +209,7 @@ export function findStreaks(
   stored: GoalTargetsByMonth,
   from: string,
   today: string,
+  ids: readonly GoalId[] = ALL_GOAL_IDS,
 ): GoalStreaks {
   const byMonth: Record<string, GoalTargets> = {};
   let run = 0;
@@ -201,7 +221,7 @@ export function findStreaks(
     const month = key.slice(0, 7);
     const targets = (byMonth[month] ??= resolveTargets(month, stored));
     const v = values[key] ?? {};
-    if (IDS.every((id) => (v[id] ?? 0) >= targets[id])) {
+    if (ids.every((id) => (v[id] ?? 0) >= targets[id])) {
       run++;
       best = Math.max(best, run);
     } else if (key !== today) {

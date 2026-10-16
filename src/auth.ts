@@ -39,6 +39,7 @@ const cabinetProvider = Credentials({
       name: user.name,
       email: user.email,
       cabinetUserId: identity.userId,
+      cabinetRole: identity.role,
     };
   },
 });

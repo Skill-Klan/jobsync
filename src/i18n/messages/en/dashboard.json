@@ -2,6 +2,7 @@
   "title": "Dashboard",
   "quickActions": {
     "description": "Create new jobs, automations, tasks, activities, questions, and contacts.",
+    "descriptionWithoutActivities": "Create new jobs, automations, tasks, questions, and contacts.",
     "addJob": "Add Job",
     "addAutomation": "Add Automation",
     "addTask": "Add Task",

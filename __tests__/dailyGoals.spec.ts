@@ -5,6 +5,7 @@ import {
   buildMonthSummary,
   findStreaks,
   formatDays,
+  goalIdsFor,
   goalMonthRange,
   isValidMonth,
   monthBounds,
@@ -111,6 +112,29 @@ describe("dailyGoals helpers", () => {
       expect(summary.rings).toEqual({ jobs: 2 / 30, hours: 2 / 30 });
       expect(stat(summary, "Both goals met")).toBe("1 day");
       expect(stat(summary, "Nothing logged")).toBe("27 days");
+    });
+
+    // Requirement (owner 2026-10-16): Activities switched off — the summary is
+    // about applications alone: one ring, "Goal hit" days, and a day with
+    // hours but no applications counts as nothing logged.
+    it("applications only: one ring, 'Goal hit', hours do not count as logged", () => {
+      const summary = buildMonthSummary(
+        "2026-09",
+        {
+          "2026-09-01": met,
+          "2026-09-02": { jobs: 5, hours: 1 },
+          "2026-09-03": { jobs: 0, hours: 4 },
+        },
+        "2026-10-05",
+        T,
+        null,
+        undefined,
+        goalIdsFor({ activities: false }),
+      );
+      expect(summary.rings).toEqual({ jobs: 2 / 30 });
+      expect(stat(summary, "Goal hit")).toBe("2 days");
+      expect(stat(summary, "Both goals met")).toBeUndefined();
+      expect(stat(summary, "Nothing logged")).toBe("28 days");
     });
 
     it("counts a goal exceeded as met and below target as not", () => {
@@ -296,6 +320,19 @@ describe("dailyGoals helpers", () => {
       }
       return out;
     };
+
+    it("applications only: a day without hours keeps the run going", () => {
+      const jobsOnly = days("2026-10-01", "2026-10-05", { jobs: 5, hours: 0 });
+      expect(findStreaks(jobsOnly, {}, "2025-11-01", "2026-10-05", goalIdsFor({ activities: false }))).toEqual({
+        current: 5,
+        best: 5,
+      });
+      // Pair: both goals tracked, the same days break it every day.
+      expect(findStreaks(jobsOnly, {}, "2025-11-01", "2026-10-05", goalIdsFor({ activities: true }))).toEqual({
+        current: 0,
+        best: 0,
+      });
+    });
 
     it("counts both ends of a run across a month boundary", () => {
       expect(

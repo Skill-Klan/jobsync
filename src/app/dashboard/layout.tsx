@@ -14,6 +14,8 @@ import { APP_CONSTANTS } from "@/lib/constants";
 import { getCurrentUser } from "@/utils/user.utils";
 import StaleSessionSignOut from "@/components/StaleSessionSignOut";
 import { signOut } from "@/auth";
+import { FeaturesProvider } from "@/context/FeaturesContext";
+import { getFeatureFlags } from "@/skillklan/featureFlags";
 
 export default async function RootLayout({
   children,
@@ -28,6 +30,8 @@ export default async function RootLayout({
   // is merged against an empty transcript and then persisted.
   const conversation = await getChatConversation();
   const user = await getCurrentUser();
+  // SkillKlan feature switches, read once here and handed to the browser.
+  const features = await getFeatureFlags();
 
   const signOutAction = async () => {
     "use server";
@@ -42,32 +46,34 @@ export default async function RootLayout({
   }
 
   return (
-    <ActivityProvider>
-      <SidebarProvider initialExpanded={initialExpanded}>
-        <RightRailProvider>
-          <NotificationProvider>
-            <AgentChatProvider initialMessages={conversation.data ?? []}>
-              <div className="flex min-h-screen w-full flex-col bg-muted/40">
-                <Sidebar user={user} signOutAction={signOutAction} />
-                <SidebarInset>
-                  <Header />
-                  <GlobalActivityBanner />
-                  {/* Container, not viewport, queries: the docked chat panel
+    <FeaturesProvider value={features}>
+      <ActivityProvider>
+        <SidebarProvider initialExpanded={initialExpanded}>
+          <RightRailProvider>
+            <NotificationProvider>
+              <AgentChatProvider initialMessages={conversation.data ?? []}>
+                <div className="flex min-h-screen w-full flex-col bg-muted/40">
+                  <Sidebar user={user} signOutAction={signOutAction} />
+                  <SidebarInset>
+                    <Header />
+                    {features.activities && <GlobalActivityBanner />}
+                    {/* Container, not viewport, queries: the docked chat panel
                       shrinks this box without changing the viewport width. */}
-                  <main className="@container/main flex-1 p-4 sm:px-4 sm:py-0">
-                    <div className="items-start gap-4 md:gap-4 @3xl/main:grid @3xl/main:grid-cols-3">
-                      {children}
-                    </div>
-                  </main>
-                </SidebarInset>
-                {/* Portaled, so it sits outside the 3-column grid and needs no
+                    <main className="@container/main flex-1 p-4 sm:px-4 sm:py-0">
+                      <div className="items-start gap-4 md:gap-4 @3xl/main:grid @3xl/main:grid-cols-3">
+                        {children}
+                      </div>
+                    </main>
+                  </SidebarInset>
+                  {/* Portaled, so it sits outside the 3-column grid and needs no
                     col-span-3 wrapper. */}
-                <AgentChatPanel />
-              </div>
-            </AgentChatProvider>
-          </NotificationProvider>
-        </RightRailProvider>
-      </SidebarProvider>
-    </ActivityProvider>
+                  <AgentChatPanel />
+                </div>
+              </AgentChatProvider>
+            </NotificationProvider>
+          </RightRailProvider>
+        </SidebarProvider>
+      </ActivityProvider>
+    </FeaturesProvider>
   );
 }

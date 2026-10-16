@@ -20,6 +20,7 @@ import WeeklyBarChartToggle from "@/components/dashboard/WeeklyBarChartToggle";
 
 import { Metadata } from "next";
 import { getTranslations } from "@/i18n/server";
+import { getFeatureFlags } from "@/skillklan/featureFlags";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("dashboard");
@@ -30,6 +31,10 @@ export default async function Dashboard() {
   const t = await getTranslations("dashboard");
   // Server-computed so server and browser agree on "today"
   const today = format(new Date(), "yyyy-MM-dd");
+  // Activities switched off (Settings → «Функції»): the dashboard is about
+  // applications only — no hours, no activity chart or calendar, no activity
+  // goal, no recent activities — and their data is not even read.
+  const { activities } = await getFeatureFlags();
   const [
     summary7Days,
     summary30Days,
@@ -41,29 +46,30 @@ export default async function Dashboard() {
     dailyGoals,
     goalStreaks,
   ] = await Promise.all([
-    getJobsActivitySummary(7),
-    getJobsActivitySummary(30),
+    activities ? getJobsActivitySummary(7) : null,
+    activities ? getJobsActivitySummary(30) : null,
     getRecentJobs(),
-    getRecentActivities(),
+    activities ? getRecentActivities() : [],
     getJobsActivityForPeriod(),
-    getActivityDataForPeriod(),
-    getActivityCalendarData(),
+    activities ? getActivityDataForPeriod() : null,
+    activities ? getActivityCalendarData() : null,
     getDailyGoalValues(today.slice(0, 7)),
     getGoalStreaks(),
   ]);
-  const activityCalendarDataKeys = Object.keys(activityCalendarData);
   return (
     <>
       <div className="grid gap-4 @3xl/main:col-span-2">
         <div className="@container grid grid-cols-1 auto-rows-max items-start gap-2 md:gap-2">
           <div className="grid gap-2 @lg:grid-cols-4">
             <JobsApplied />
-            <JobsActivityCard
-              data={[
-                { id: "7d", label: t("jobsActivity.range7d"), summary: summary7Days },
-                { id: "30d", label: t("jobsActivity.range30d"), summary: summary30Days },
-              ]}
-            />
+            {summary7Days && summary30Days && (
+              <JobsActivityCard
+                data={[
+                  { id: "7d", label: t("jobsActivity.range7d"), summary: summary7Days },
+                  { id: "30d", label: t("jobsActivity.range30d"), summary: summary30Days },
+                ]}
+              />
+            )}
           </div>
           <WeeklyBarChartToggle
             charts={[
@@ -76,24 +82,30 @@ export default async function Dashboard() {
                 axisLeftLegend: t("weekly.jobsAxis"),
                 valueLabel: t("weekly.jobsValue"),
               },
-              {
-                id: "Activities",
-                label: t("weekly.activitiesTab"),
-                title: t("weekly.activitiesTitle"),
-                data: activitiesData.data,
-                keys: activitiesData.keys,
-                groupMode: "stacked",
-                axisLeftLegend: t("weekly.activitiesAxis"),
-              },
+              ...(activitiesData
+                ? [
+                    {
+                      id: "Activities",
+                      label: t("weekly.activitiesTab"),
+                      title: t("weekly.activitiesTitle"),
+                      data: activitiesData.data,
+                      keys: activitiesData.keys,
+                      groupMode: "stacked" as const,
+                      axisLeftLegend: t("weekly.activitiesAxis"),
+                    },
+                  ]
+                : []),
             ]}
           />
         </div>
-        <div className="w-full">
-          <ActivityCalendar
-            years={activityCalendarDataKeys}
-            dataByYear={activityCalendarData}
-          />
-        </div>
+        {activityCalendarData && (
+          <div className="w-full">
+            <ActivityCalendar
+              years={Object.keys(activityCalendarData)}
+              dataByYear={activityCalendarData}
+            />
+          </div>
+        )}
       </div>
       <div className="flex flex-col gap-2">
         <DailyGoalsCalendar

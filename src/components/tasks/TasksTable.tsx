@@ -68,7 +68,9 @@ type TasksTableProps = {
   deleteTask: (id: string) => void;
   editTask: (id: string) => void;
   onChangeTaskStatus: (id: string, status: TaskStatus) => void;
-  onStartActivity: (id: string) => void;
+  // Absent while Activities are switched off (Settings → «Функції»): no
+  // "start activity" in the menu or the row.
+  onStartActivity?: (id: string) => void;
   groupBy?: TaskGroupBy;
 };
 
@@ -354,14 +356,18 @@ function TasksTable({
                   </DropdownMenuSubContent>
                 </DropdownMenuPortal>
               </DropdownMenuSub>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="cursor-pointer text-green-600"
-                onClick={() => onStartActivity(task.id)}
-              >
-                <CirclePlay className="mr-2 h-4 w-4" />
-                {t("table.startActivity")}
-              </DropdownMenuItem>
+              {onStartActivity && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="cursor-pointer text-green-600"
+                    onClick={() => onStartActivity(task.id)}
+                  >
+                    <CirclePlay className="mr-2 h-4 w-4" />
+                    {t("table.startActivity")}
+                  </DropdownMenuItem>
+                </>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-red-600 cursor-pointer"
@@ -374,21 +380,23 @@ function TasksTable({
           </DropdownMenuContent>
         </DropdownMenu>
       </TableCell>
-      <TableCell className="hidden sm:table-cell py-1 px-1">
-        <Button
-          title={t("table.startActivity")}
-          aria-haspopup="true"
-          size="icon"
-          variant="ghost"
-          onClick={() => onStartActivity(task.id)}
-          data-testid="task-start-activity-btn"
-          className="opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-300"
-        >
-          <span>
-            <CirclePlay className="text-green-600" />
-          </span>
-        </Button>
-      </TableCell>
+      {onStartActivity && (
+        <TableCell className="hidden sm:table-cell py-1 px-1">
+          <Button
+            title={t("table.startActivity")}
+            aria-haspopup="true"
+            size="icon"
+            variant="ghost"
+            onClick={() => onStartActivity(task.id)}
+            data-testid="task-start-activity-btn"
+            className="opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-300"
+          >
+            <span>
+              <CirclePlay className="text-green-600" />
+            </span>
+          </Button>
+        </TableCell>
+      )}
     </TableRow>
   );
 
@@ -410,9 +418,11 @@ function TasksTable({
         <TableHead className="h-9 px-1">
           <span className="sr-only">{t("table.actions")}</span>
         </TableHead>
-        <TableHead className="hidden sm:table-cell h-9 px-1">
-          <span className="sr-only">{t("table.startActivity")}</span>
-        </TableHead>
+        {onStartActivity && (
+          <TableHead className="hidden sm:table-cell h-9 px-1">
+            <span className="sr-only">{t("table.startActivity")}</span>
+          </TableHead>
+        )}
       </TableRow>
     </TableHeader>
   );

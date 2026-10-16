@@ -1,6 +1,7 @@
 import type { NextAuthConfig } from "next-auth";
 import { recheckCabinetAccess } from "@/skillklan/accessRecheck";
 import { isDevPasswordLoginEnabled } from "@/skillklan/devPasswordLogin";
+import type { CabinetRole } from "@/skillklan/cabinetApi";
 
 declare module "next-auth" {
   interface Session {
@@ -8,10 +9,14 @@ declare module "next-auth" {
       id: string;
       name?: string | null;
       email?: string | null;
+      // A SkillKlan admin, by the backend's last answer (≤ 5 minutes old).
+      // Enough to show admin-only settings; a change asks the backend again.
+      isAdmin?: boolean;
     };
   }
   interface User {
     cabinetUserId?: number | null;
+    cabinetRole?: CabinetRole | null;
   }
 }
 
@@ -50,6 +55,7 @@ export const authConfig = {
       if (user?.id) {
         token.id = user.id;
         token.cabinetUserId = user.cabinetUserId ?? null;
+        token.cabinetRole = user.cabinetRole ?? null;
         token.accessCheckedAt = Date.now();
         return token;
       }
@@ -60,6 +66,9 @@ export const authConfig = {
         if (Date.now() - checkedAt < ACCESS_RECHECK_MS) return token;
         const recheck = await recheckCabinetAccess(cabinetUserId);
         if (!recheck.allowed) return null;
+        // The role follows the backend: a demoted admin is a student here
+        // within the same 5 minutes.
+        token.cabinetRole = recheck.role;
         token.accessCheckedAt = recheck.checkedAt;
         return token;
       }
@@ -73,6 +82,7 @@ export const authConfig = {
       if (userId) {
         session.user.id = userId;
       }
+      session.user.isAdmin = token.cabinetRole === "admin";
       return session;
     },
   },
