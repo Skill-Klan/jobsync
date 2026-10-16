@@ -12,6 +12,10 @@
 # міграції Prisma нової версії вже змінили схему, і старий код зі зміненою базою
 # не працює.
 #
+# app.env (секрети, ключ Google, теки) контейнер читає лише при створенні. Змінили
+# app.env → «deploy» того самого digest не пропускається, а розгортає його наново
+# тим самим шляхом (копія /data, здоровʼя); інакше нові значення не дійшли б.
+#
 # Вивід іде в лог GitHub Actions, а репозиторій публічний: логів застосунку тут
 # не друкуємо — там можуть бути дані студентів. Дивитись їх — на сервері.
 set -euo pipefail
@@ -57,6 +61,10 @@ compose() { docker compose --project-directory "$APP_DIR" -f "$APP_DIR/compose.y
 current_digest() { [ -f .env ] || return 0; sed -n 's/^JOBSYNC_DIGEST=//p' .env | head -n 1; }
 set_digest() { printf 'JOBSYNC_DIGEST=%s\n' "$1" > .env.tmp && mv -f .env.tmp .env; }
 healthy() { curl -fsS --max-time 5 "$HEALTH_URL" 2>/dev/null | grep -q '"id":"cabinet"'; }
+# Відбиток app.env, з яким створено контейнер. Значень не друкуємо — лише sha256.
+env_fingerprint() { [ -f app.env ] || return 0; sha256sum app.env | cut -d' ' -f1; }
+deployed_env() { [ -f .app.env.sha256 ] || return 0; cat .app.env.sha256; }
+remember_env() { env_fingerprint > .app.env.sha256.tmp && mv -f .app.env.sha256.tmp .app.env.sha256; }
 # Лишаємо KEEP_BACKUPS найновіших копій; ім'я починається з UTC-часу, тож порядок — за іменем.
 prune_backups() {
   [ -d backups ] || return 0
@@ -81,8 +89,11 @@ fi
 
 old="$(current_digest)"
 if [ "$old" = "$digest" ] && healthy; then
-  say "already running $digest and healthy — nothing to do"
-  exit 0
+  if [ "$(env_fingerprint)" = "$(deployed_env)" ]; then
+    say "already running $digest and healthy — nothing to do"
+    exit 0
+  fi
+  say "app.env changed since the last deploy — redeploying $digest"
 fi
 
 say "pulling $REPO@$digest"
@@ -110,6 +121,7 @@ fi
 set_digest "$digest"
 say "starting $digest"
 compose up -d app > /dev/null
+remember_env
 
 if wait_healthy; then
   say "OK: $digest is healthy"
@@ -128,6 +140,7 @@ docker run --rm --user 0 --network none \
   || die "ROLLBACK: restoring /data failed — manual action needed"
 set_digest "$old"
 compose up -d app > /dev/null
+remember_env
 if wait_healthy; then
   die "rolled back to $old (healthy); $digest was NOT deployed"
 fi
