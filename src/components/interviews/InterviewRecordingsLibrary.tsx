@@ -30,6 +30,7 @@ import {
   filterRecordings,
   filtersToParams,
   groupByCompany,
+  hasCyrillic,
   hasFilters,
   parseFilters,
   stageCounts,
@@ -225,6 +226,16 @@ export default function InterviewRecordingsLibrary() {
                 </div>
               </div>
             </div>
+            {/* Typed in Ukrainian: the company or the name may be in Latin letters — even when
+                something was found (a person), the company they look for may not be. */}
+            {/* The live region is always there (text only when needed): one mounted together
+                with its text is not announced by screen readers. */}
+            <p
+              role="status"
+              className={cn("text-xs text-muted-foreground", !hasCyrillic(filters.query) && "sr-only")}
+            >
+              {hasCyrillic(filters.query) ? t("recordings.searchInEnglish") : ""}
+            </p>
           </div>
         )}
         {failed ? (
@@ -333,12 +344,22 @@ function CompanyPicker({
 }) {
   const t = useTranslations("interviews");
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  // Closing by a pick does not go through onOpenChange — clear the search here too,
+  // or the list opens next time filtered by the old query, «All companies» hidden.
   const pick = (key: string | null) => {
     onChange(key);
     setOpen(false);
+    setSearch("");
   };
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) setSearch("");
+      }}
+    >
       <PopoverTrigger asChild>
         <Button
           type="button"
@@ -357,9 +378,11 @@ function CompanyPicker({
       </PopoverTrigger>
       <PopoverContent className="w-[260px] p-0" align="start">
         <Command>
-          <CommandInput placeholder={t("recordings.companySearch")} />
+          <CommandInput placeholder={t("recordings.companySearch")} value={search} onValueChange={setSearch} />
           <CommandList>
-            <CommandEmpty>{t("recordings.companyNotFound")}</CommandEmpty>
+            <CommandEmpty>
+              {hasCyrillic(search) ? t("recordings.companyInEnglish") : t("recordings.companyNotFound")}
+            </CommandEmpty>
             <CommandGroup>
               <CommandItem value={`__all ${t("recordings.allCompanies")}`} onSelect={() => pick(null)}>
                 <Check className={cn("mr-2 h-4 w-4", value ? "opacity-0" : "opacity-100")} aria-hidden />

@@ -97,7 +97,9 @@ Uploads stay with the bot; this app only reads Google Drive. Code:
   sub-folder nested. «All recordings» is the plain list. Filters: direction (QA / BA), stage (several at once),
   company (a searchable list), search (name, person, company, sub-folder); each option shows how many it gives.
   The filters live in the page address (`?dir=qa&stage=tech&company=privatbank&open=…&view=all&sort=name`), so a
-  link opens the same selection; unknown values in a link are dropped.
+  link opens the same selection; unknown values in a link are dropped. Searched in Ukrainian (Cyrillic in the query) →
+  a hint to try English: most names are in Latin letters (127 of 135 company folders) — also when the company list
+  finds nothing in Ukrainian.
 - **Not configured → the page says «Записи співбесід ще не підключено.»** The person's own interview stages are
   on each job's «Етапи» tab; the old interviews list (`InterviewsContainer`) is in the code, not shown.
 
