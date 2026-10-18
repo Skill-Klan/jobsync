@@ -19,6 +19,11 @@ vi.mock("@/components/admin/CompanyDetails", () => ({
   default: () => <div data-testid="company-details" />,
 }));
 
+// The Library switch is tested in __tests__/skillklan/automationsLibrarySwitchPages; here it is on.
+vi.mock("@/skillklan/featureFlags", () => ({
+  getFeatureFlags: vi.fn(async () => ({ automations: true, activities: true, library: true })),
+}));
+
 describe("CompanyDetailsPage", () => {
   beforeEach(() => {
     notFound.mockClear();

@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useState } from "rea
 import { usePathname } from "next/navigation";
 import { getNotificationSummary } from "@/actions/notification.actions";
 import type { NotificationSummary } from "@/models/notification.model";
+import { useFeatures } from "@/context/FeaturesContext";
 
 interface NotificationContextValue {
   summary: NotificationSummary;
@@ -21,11 +22,18 @@ const NotificationContext = createContext<NotificationContextValue>({
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [summary, setSummary] = useState<NotificationSummary>(EMPTY);
   const pathname = usePathname();
+  const { automations } = useFeatures();
 
   const refresh = useCallback(async () => {
+    // Notifications go with the Automations switch (D75): off — no request,
+    // nothing unread, so no dot or count anywhere.
+    if (!automations) {
+      setSummary(EMPTY);
+      return;
+    }
     const res = await getNotificationSummary();
     if (res.success && "data" in res) setSummary(res.data);
-  }, []);
+  }, [automations]);
 
   useEffect(() => {
     refresh();

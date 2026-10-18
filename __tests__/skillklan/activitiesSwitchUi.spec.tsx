@@ -44,8 +44,11 @@ beforeEach(() => {
   (useActivity as any).mockReturnValue({ currentActivity: undefined, startActivity: vi.fn() });
 });
 
+// Only the Activities switch moves here; the others stay on.
 const withFeatures = (activities: boolean, ui: React.ReactNode) =>
-  render(<FeaturesProvider value={{ activities }}>{ui}</FeaturesProvider>);
+  render(
+    <FeaturesProvider value={{ automations: true, activities, library: true }}>{ui}</FeaturesProvider>,
+  );
 
 describe.each([
   [false, "off"],

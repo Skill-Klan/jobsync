@@ -6,6 +6,7 @@ import type { JobBoard, LeverHost } from "@/models/automation.model";
 import type { Company } from "@/models/job.model";
 import { requireUser } from "../shared";
 import { getTranslations } from "@/i18n/server";
+import { isFeatureOff } from "@/skillklan/featureFlags";
 
 export type WatchBoardResult =
   | { success: true; data: { companyId: string; merged: boolean } }
@@ -42,6 +43,11 @@ export const watchBoardCompany = async (
   const t = await getTranslations("library");
   try {
     const user = await requireUser();
+    // Watching happens only in the Library. Switched off (Settings →
+    // «Функції»): a page opened before still has its buttons — refuse here too.
+    if (await isFeatureOff("library")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
 
     const value = canonicalizeEntityValue(board.name.trim(), {
       stripLegalSuffix: true,
@@ -165,6 +171,10 @@ export const setCompanyWatched = async (
   const t = await getTranslations("library");
   try {
     const user = await requireUser();
+    // Library only; switched off — refuse (see watchBoardCompany).
+    if (await isFeatureOff("library")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
 
     const res = await prisma.company.update({
       where: { id: companyId, createdBy: user.id },

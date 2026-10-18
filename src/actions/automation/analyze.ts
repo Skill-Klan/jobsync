@@ -26,6 +26,7 @@ import {
 } from "@/lib/telemetry";
 import { formatError } from "./shared";
 import { getTranslations } from "@/i18n/server";
+import { isFeatureOff } from "@/skillklan/featureFlags";
 
 // Runs an on-demand LLM match for an un-analyzed discovered job using the
 // resume tied to its automation and the user's AI settings (no model picker —
@@ -38,6 +39,11 @@ export async function analyzeDiscoveredJob(jobId: string): Promise<{
   const t = await getTranslations("automations");
   try {
     const user = await requireUser();
+    // Automations switched off (Settings → «Функції»): a page opened before
+    // the switch went off still has its buttons — refuse here too.
+    if (await isFeatureOff("automations")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
 
     const job = await db.job.findFirst({
       where: { id: jobId, userId: user.id, automationId: { not: null } },

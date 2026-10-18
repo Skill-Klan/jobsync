@@ -9,6 +9,8 @@ import { getCurrentUser } from "@/utils/user.utils";
 import prisma from "@/lib/db";
 import { resolveJobStageType } from "@/lib/jobs/resolve";
 
+// The SkillKlan feature switches are tested in __tests__/skillklan/*Switch*; here they are all on.
+vi.mock("@/skillklan/featureFlags", () => ({ isFeatureOff: vi.fn(async () => false) }));
 vi.mock("@/lib/db", () => ({
   default: {
     jobStageType: {

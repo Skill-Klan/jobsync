@@ -577,7 +577,7 @@ describe("TasksContainer Component", () => {
 
     const renderWith = (activities: boolean) =>
       render(
-        <FeaturesProvider value={{ activities }}>
+        <FeaturesProvider value={{ automations: true, activities, library: true }}>
           <TasksContainer activityTypes={mockActivityTypes} />
         </FeaturesProvider>,
       );

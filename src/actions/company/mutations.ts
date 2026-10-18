@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "../shared";
 import { getTranslations } from "@/i18n/server";
+import { isFeatureOff } from "@/skillklan/featureFlags";
 
 // What a person reads is in their language; the translator is passed to
 // the sync helpers below, which cannot await it themselves.
@@ -130,6 +131,11 @@ export const updateCompany = async (
   const t = await getTranslations("library");
   try {
     const user = await requireUser();
+    // Editing a company happens only in the Library. Switched off (Settings →
+    // «Функції»): a page opened before still has its buttons — refuse here too.
+    if (await isFeatureOff("library")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
 
     const {
       id,
@@ -225,6 +231,10 @@ export const deleteCompanyById = async (
   const t = await getTranslations("library");
   try {
     const user = await requireUser();
+    // Library only; switched off — refuse (see updateCompany).
+    if (await isFeatureOff("library")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
 
     // WorkExperience has no userId, so ownership runs through the resume
     // chain. The null-section arm keeps unsectioned rows blocking deletion

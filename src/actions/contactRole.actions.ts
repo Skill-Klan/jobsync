@@ -5,6 +5,7 @@ import { requireUser } from "./shared";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { resolveContactRole } from "@/lib/jobs/resolve";
 import { getTranslations } from "@/i18n/server";
+import { isFeatureOff } from "@/skillklan/featureFlags";
 
 export const getAllContactRoles = async (): Promise<any | undefined> => {
   try {
@@ -68,6 +69,11 @@ export const deleteContactRoleById = async (
   const t = await getTranslations("library");
   try {
     const user = await requireUser();
+    // Deleting happens only in the Library. Switched off (Settings →
+    // «Функції»): a page opened before still has its buttons — refuse here too.
+    if (await isFeatureOff("library")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
 
     // JobContact.roleId is required, so the database already refuses via the
     // default Restrict; this turns that into a counted, readable message.

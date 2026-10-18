@@ -289,6 +289,7 @@
     "statusPick": "Pick the status this stage means."
   },
   "errors": {
+    "switchedOff": "The Library is switched off. Reload the page.",
     "company": {
       "linkedinUrl": "LinkedIn page must be a full http or https URL.",
       "invalidSize": "Invalid company size.",

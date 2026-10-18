@@ -4,6 +4,7 @@ import { handleError } from "@/lib/utils";
 import { requireUser } from "../shared";
 import type { ContactFormValues } from "@/models/addContactForm.schema";
 import { getTranslations } from "@/i18n/server";
+import { isFeatureOff } from "@/skillklan/featureFlags";
 
 // What a person reads is in their language; the translator is passed to
 // the sync helpers below, which cannot await it themselves.
@@ -119,6 +120,11 @@ export const deleteContactById = async (
   const t = await getTranslations("library");
   try {
     const user = await requireUser();
+    // Deleting a contact happens only in the Library. Switched off (Settings →
+    // «Функції»): a page opened before still has its buttons — refuse here too.
+    if (await isFeatureOff("library")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
 
     // JobContact cascades from Contact, so the links go with the person.
     const res = await prisma.contact.deleteMany({

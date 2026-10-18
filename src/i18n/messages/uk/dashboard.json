@@ -3,6 +3,8 @@
   "quickActions": {
     "description": "Додавайте вакансії, автопошук, завдання, активності, питання й контакти.",
     "descriptionWithoutActivities": "Додавайте вакансії, автопошук, завдання, питання й контакти.",
+    "descriptionWithoutAutomations": "Додавайте вакансії, завдання, активності, питання й контакти.",
+    "descriptionWithoutAutomationsAndActivities": "Додавайте вакансії, завдання, питання й контакти.",
     "addJob": "Додати вакансію",
     "addAutomation": "Додати автопошук",
     "addTask": "Додати завдання",

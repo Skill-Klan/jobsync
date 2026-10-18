@@ -20,6 +20,8 @@ import { PrismaClient } from "@prisma/client";
 import type { AutomationRun, AutomationWithResume, DiscoveredJob } from "@/models/automation.model";
 import { setTestLocale } from "../helpers/i18n";
 
+// The SkillKlan feature switches are tested in __tests__/skillklan/*Switch*; here they are all on.
+vi.mock("@/skillklan/featureFlags", () => ({ isFeatureOff: vi.fn(async () => false) }));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
   useSearchParams: () => new URLSearchParams(""),

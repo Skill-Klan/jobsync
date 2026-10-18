@@ -4,6 +4,7 @@ import { handleError } from "@/lib/utils";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { requireUser } from "./shared";
 import { getTranslations } from "@/i18n/server";
+import { isFeatureOff } from "@/skillklan/featureFlags";
 
 export const getAllActivityTypes = async (): Promise<any | undefined> => {
   const t = await getTranslations("activities");
@@ -99,6 +100,12 @@ export const deleteActivityTypeById = async (
   const t = await getTranslations("activities");
   try {
     const user = await requireUser();
+    // Deleting a type happens only in the Library («Типи активностей»).
+    // Switched off (Settings → «Функції»): refuse here too.
+    if (await isFeatureOff("library")) {
+      const tl = await getTranslations("library");
+      return { success: false, message: tl("errors.switchedOff") };
+    }
 
     const [activities, tasks] = await Promise.all([
       prisma.activity.count({ where: { activityTypeId, userId: user.id } }),

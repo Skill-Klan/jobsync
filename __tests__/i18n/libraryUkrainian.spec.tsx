@@ -14,6 +14,10 @@ import { setTestLocale } from "../helpers/i18n";
 let searchParams = new URLSearchParams();
 const router = { push: vi.fn(), replace: vi.fn(), refresh: vi.fn(), back: vi.fn() };
 
+// The Library switch is tested in __tests__/skillklan/automationsLibrarySwitchPages; here it is on.
+vi.mock("@/skillklan/featureFlags", () => ({
+  getFeatureFlags: vi.fn(async () => ({ automations: true, activities: true, library: true })),
+}));
 vi.mock("next/navigation", () => ({
   useRouter: () => router,
   usePathname: () => "/dashboard/admin",

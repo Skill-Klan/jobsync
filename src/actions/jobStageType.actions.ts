@@ -7,6 +7,7 @@ import { resolveJobStageType } from "@/lib/jobs/resolve";
 import { canonicalizeEntityValue } from "@/lib/jobs/canonicalize";
 import { jobFieldsForStage } from "./jobStage/shared";
 import { getLabel, getTranslations } from "@/i18n/server";
+import { isFeatureOff } from "@/skillklan/featureFlags";
 
 // What a person reads is in their language; the translator is passed to
 // the helpers below, which cannot await it themselves.
@@ -81,6 +82,12 @@ export const createJobStageType = async (
   const t = await getTranslations("library");
   try {
     const user = await requireUser();
+    // This action backs the Library's «Етапи вакансій» only — a job's stage
+    // form resolves new types itself. Switched off (Settings → «Функції»):
+    // a page opened before still has its buttons — refuse here too.
+    if (await isFeatureOff("library")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
     await assertStatusExists(t, statusId);
 
     // resolveJobStageType returns an existing type by name and ignores the
@@ -124,6 +131,10 @@ export const updateJobStageType = async (
   const t = await getTranslations("library");
   try {
     const user = await requireUser();
+    // Library only; switched off — refuse (see createJobStageType).
+    if (await isFeatureOff("library")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
     const status = await assertStatusExists(t, statusId);
 
     const existing = await prisma.jobStageType.findFirst({
@@ -186,6 +197,10 @@ export const deleteJobStageTypeById = async (
   const t = await getTranslations("library");
   try {
     const user = await requireUser();
+    // Library only; switched off — refuse (see createJobStageType).
+    if (await isFeatureOff("library")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
 
     // JobStage.stageTypeId is required, so the database already refuses via
     // the default Restrict; this turns that into a readable message.

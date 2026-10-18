@@ -21,7 +21,7 @@ MIT License (see [`LICENSE`](./LICENSE), which must stay in this repository and 
 - **Ukrainian interface** with an English switch; the MCP server is removed.
 - **SkillKlan admin API** — numbers for the admin pages of the SkillKlan cabinet (see below).
 - **Feature switches** — an admin turns parts of the app on or off for everyone in Settings → «Функції»
-  (see below). Activities are off.
+  (see below). Automations (with notifications), Activities and the Library are off.
 - **Interview recordings library** — «Співбесіди» plays the recordings students upload through the SkillKlan
   Telegram bot, straight from Google Drive (see below).
 - **Removed:** upstream deploy scripts (`curl | bash`), compose files with placeholder secrets, release and
@@ -68,7 +68,9 @@ students see — in Settings → «Функції». Code: [`src/skillklan/featu
 
 | Switch | Default | Off means |
 |---|---|---|
+| `automations` | off | no Automations tab/pages, no "Add Automation" on the dashboard, no "accepted (discovered)" / "include dismissed" job filters; the scheduler runs nothing; notifications (all of them are about automation runs) go too — no bell, no Notifications item or page, no unread summary request; the 10 automation-changing actions, `run` / `cancel` / `logs/clear` (403) and the 6 notification-changing actions refuse |
 | `activities` | off | no Activities tab/page, no running-activity banner, no "Start activity" / "Save & Start" in Tasks; the dashboard shows applications only (no hours card, activity chart or calendar, recent activities, "Add Activity", hours goal ring); goal days and streaks count applications alone; the 8 activity-changing actions refuse |
+| `library` | off | no Library tab/page, company pages answer 404 and company names in job lists and a job's header are plain text; the 14 actions only the Library uses (edit/delete/watch) refuse. Creating on the fly from forms — a company, title, skill, role, activity type — stays open, so the lists keep filling up |
 
 ## Interview recordings library
 

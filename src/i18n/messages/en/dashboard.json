@@ -3,6 +3,8 @@
   "quickActions": {
     "description": "Create new jobs, automations, tasks, activities, questions, and contacts.",
     "descriptionWithoutActivities": "Create new jobs, automations, tasks, questions, and contacts.",
+    "descriptionWithoutAutomations": "Create new jobs, tasks, activities, questions, and contacts.",
+    "descriptionWithoutAutomationsAndActivities": "Create new jobs, tasks, questions, and contacts.",
     "addJob": "Add Job",
     "addAutomation": "Add Automation",
     "addTask": "Add Task",
