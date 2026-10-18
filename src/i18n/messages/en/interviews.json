@@ -77,6 +77,7 @@
     "allCompanies": "All companies",
     "companySearch": "Find a company…",
     "companyNotFound": "No such company.",
+    "companyInEnglish": "Nothing in Ukrainian. Try English, like «PrivatBank».",
     "noCompany": "No company",
     "companiesCount": "{count, plural, one {# company} other {# companies}}",
     "view": "View",
@@ -99,6 +100,7 @@
       "baManager": "BA · Manager"
     },
     "searchPlaceholder": "Search…",
+    "searchInEnglish": "Nothing in Ukrainian? Try English: most names are written in Latin letters, like «PrivatBank».",
     "listen": "Listen",
     "close": "Close",
     "noDate": "No date",

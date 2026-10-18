@@ -47,6 +47,13 @@ export function companyKey(name: string | null): string {
   return (name ?? "").toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
 }
 
+// Searched in Ukrainian? Most names in the library are in Latin letters (127
+// of 135 company folders, 2026-10-18: «PrivatBank», not «ПриватБанк») — the
+// owner: the search must suggest trying English too.
+export function hasCyrillic(text: string): boolean {
+  return /\p{Script=Cyrillic}/u.test(text);
+}
+
 export type Filters = {
   direction: Direction | null;
   stages: Stage[];

@@ -77,6 +77,7 @@
     "allCompanies": "Усі компанії",
     "companySearch": "Знайти компанію…",
     "companyNotFound": "Такої компанії немає.",
+    "companyInEnglish": "Українською не знайшлося. Спробуйте англійською, як-от «PrivatBank».",
     "noCompany": "Без компанії",
     "companiesCount": "{count, plural, one {# компанія} few {# компанії} many {# компаній} other {# компанії}}",
     "view": "Вигляд",
@@ -99,6 +100,7 @@
       "baManager": "BA · Менеджерська"
     },
     "searchPlaceholder": "Пошук…",
+    "searchInEnglish": "Не знайшли українською? Спробуйте англійською: більшість назв записано латиницею, як-от «PrivatBank».",
     "listen": "Слухати",
     "close": "Закрити",
     "noDate": "Без дати",

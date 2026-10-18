@@ -30,6 +30,7 @@ import {
   filterRecordings,
   filtersToParams,
   groupByCompany,
+  hasCyrillic,
   hasFilters,
   parseFilters,
   stageCounts,
@@ -225,6 +226,13 @@ export default function InterviewRecordingsLibrary() {
                 </div>
               </div>
             </div>
+            {/* Typed in Ukrainian: the company or the name may be in Latin letters — even when
+                something was found (a person), the company they look for may not be. */}
+            {hasCyrillic(filters.query) && (
+              <p role="status" className="text-xs text-muted-foreground">
+                {t("recordings.searchInEnglish")}
+              </p>
+            )}
           </div>
         )}
         {failed ? (
@@ -333,12 +341,19 @@ function CompanyPicker({
 }) {
   const t = useTranslations("interviews");
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const pick = (key: string | null) => {
     onChange(key);
     setOpen(false);
   };
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) setSearch("");
+      }}
+    >
       <PopoverTrigger asChild>
         <Button
           type="button"
@@ -357,9 +372,11 @@ function CompanyPicker({
       </PopoverTrigger>
       <PopoverContent className="w-[260px] p-0" align="start">
         <Command>
-          <CommandInput placeholder={t("recordings.companySearch")} />
+          <CommandInput placeholder={t("recordings.companySearch")} value={search} onValueChange={setSearch} />
           <CommandList>
-            <CommandEmpty>{t("recordings.companyNotFound")}</CommandEmpty>
+            <CommandEmpty>
+              {hasCyrillic(search) ? t("recordings.companyInEnglish") : t("recordings.companyNotFound")}
+            </CommandEmpty>
             <CommandGroup>
               <CommandItem value={`__all ${t("recordings.allCompanies")}`} onSelect={() => pick(null)}>
                 <Check className={cn("mr-2 h-4 w-4", value ? "opacity-0" : "opacity-100")} aria-hidden />

@@ -19,6 +19,7 @@ import {
   filterRecordings,
   filtersToParams,
   groupByCompany,
+  hasCyrillic,
   parseFilters,
   stageCounts,
   type Filters,
@@ -128,6 +129,22 @@ describe("filters", () => {
       { key: "ajax", name: "Ajax", count: 1 },
       { key: "privatbank", name: "PrivatBank", count: 1 },
     ]);
+  });
+});
+
+describe("searched in Ukrainian (the hint to try English)", () => {
+  it.each([
+    ["приватбанк", true],
+    ["Київстар", true],
+    ["ПриватBank", true],
+    ["їжак", true],
+    // Only the letters Ukrainian has and Russian has not: [а-я] would miss them.
+    ["ЇЄІҐ", true],
+    ["privatbank", false],
+    ["QA 2025", false],
+    ["", false],
+  ])("%j → %s", (query, expected) => {
+    expect(hasCyrillic(query)).toBe(expected);
   });
 });
 

@@ -295,6 +295,42 @@ describe("filters (D69) and the address (D70)", () => {
     expect(params().get("q")).toBe("руденко");
   });
 
+  // Owner 2026-10-18: «if you don't find the name in Ukrainian, search in English too» — most
+  // company names (127 of 135) and many file names are in Latin letters.
+  it("searched in Ukrainian → a hint to try English, even when something was found; in English → no hint", async () => {
+    const user = userEvent.setup();
+    render(<InterviewRecordingsLibrary />);
+    await waitFor(() => expect(screen.getAllByRole("region")).toHaveLength(3));
+    const hint = /Nothing in Ukrainian\? Try English/;
+    expect(screen.queryByText(hint)).not.toBeInTheDocument();
+    await user.type(screen.getByPlaceholderText("Search…"), "приватбанк");
+    expect(screen.getByText(hint)).toBeInTheDocument();
+    expect(screen.getByText("No recordings match these filters.")).toBeInTheDocument();
+    // Something found in Ukrainian (a person) — the hint stays: the company may be in Latin letters.
+    await user.clear(screen.getByPlaceholderText("Search…"));
+    await user.type(screen.getByPlaceholderText("Search…"), "руденко");
+    expect(screen.getAllByRole("region")).toHaveLength(1);
+    expect(screen.getByText(hint)).toBeInTheDocument();
+    await user.clear(screen.getByPlaceholderText("Search…"));
+    await user.type(screen.getByPlaceholderText("Search…"), "privat");
+    expect(screen.getAllByRole("region")).toHaveLength(1);
+    expect(screen.queryByText(hint)).not.toBeInTheDocument();
+  });
+
+  it("company list: nothing in Ukrainian → try English; nothing in English → no such company", async () => {
+    const user = userEvent.setup({ skipHover: true });
+    render(<InterviewRecordingsLibrary />);
+    await waitFor(() => expect(screen.getAllByRole("region")).toHaveLength(3));
+    await user.click(screen.getByRole("combobox", { name: "Company" }));
+    await user.type(screen.getByPlaceholderText("Find a company…"), "приват");
+    expect(screen.getByText("Nothing in Ukrainian. Try English, like «PrivatBank».")).toBeInTheDocument();
+    expect(screen.queryByText("No such company.")).not.toBeInTheDocument();
+    await user.clear(screen.getByPlaceholderText("Find a company…"));
+    await user.type(screen.getByPlaceholderText("Find a company…"), "zzz");
+    expect(screen.getByText("No such company.")).toBeInTheDocument();
+    expect(screen.queryByText(/Nothing in Ukrainian/)).not.toBeInTheDocument();
+  });
+
   it("nothing matches → says so, with the filters still there to change", async () => {
     nav.query = new URLSearchParams("dir=ba&stage=manager");
     render(<InterviewRecordingsLibrary />);
