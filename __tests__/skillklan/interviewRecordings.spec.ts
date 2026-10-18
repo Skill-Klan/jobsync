@@ -72,6 +72,7 @@ beforeEach(() => {
     folder("pendingOld001", "old", "folderQaTech0000001"),
     folder("coEpam0000001", "EPAM", "kindQaTech001"),
     folder("coEpam2025001", "2025", "coEpam0000001"),
+    folder("coEpamQ4000001", " Q4 ", "coEpam2025001"),
     folder("coMonobank001", "Monobank", "kindQaTech001"),
     folder("kindQaRec0001", "HR_Interviews", "rootQa0000001"),
     folder("folderQaRecruiter01", "pending for review", "kindQaRec0001"),
@@ -91,6 +92,7 @@ beforeEach(() => {
     file("fileEpamOld01", "Іван_Петренко_QA_24.09.25.m4a", "coEpam0000001", "2026-03-27T10:00:00Z", "audio/mp4"),
     file("fileEpamDeep1", "voice message.ogg", "coEpam2025001", "2026-03-27T10:05:00Z", "audio/ogg"),
     file("fileEpamDeep2", "запис 2.ogg", "coEpam2025001", "2026-03-27T10:01:00Z", "audio/ogg"),
+    file("fileEpamQ4001", "q4.ogg", "coEpamQ4000001", "2026-03-27T09:00:00Z", "audio/ogg"),
     file("fileNotAudio1", "Як завантажувати.gdoc", "coMonobank001", "2026-09-01T10:00:00Z", "application/vnd.google-apps.document"),
     // waiting for review — not in the library
     file("filePending01", "16.10.2026 - Нова Людина - EPAM.mp3", "folderQaTech0000001", "2026-10-16T09:00:00Z"),
@@ -207,7 +209,7 @@ describe("the library", () => {
   it("every reviewed recording under the kind folders — company folders and their sub-folders, every page", async () => {
     const recordings = await listRecordings();
     expect(recordings.map((r) => r.id).sort()).toEqual([
-      "fileBaMgr0001", "fileEpamBot01", "fileEpamDeep1", "fileEpamDeep2", "fileEpamOld01", "fileQaRec0001", "fileQaTech001",
+      "fileBaMgr0001", "fileEpamBot01", "fileEpamDeep1", "fileEpamDeep2", "fileEpamOld01", "fileEpamQ4001", "fileQaRec0001", "fileQaTech001",
     ]);
     // Both lists came in more than one page.
     const pagesAsked = callsTo("https://www.googleapis.com/drive/v3/files?")
@@ -244,6 +246,11 @@ describe("the library", () => {
     expect(byId.get("fileEpamBot01")).toMatchObject({ company: "EPAM", person: "Петро Сидоренко" });
     expect(byId.get("fileEpamDeep1")).toMatchObject({ kind: "qaTech", company: "EPAM", person: null, title: "voice message" });
     expect(byId.get("fileEpamOld01")).toMatchObject({ company: "EPAM", person: null, title: "Іван_Петренко_QA_24.09.25" });
+    // Owner 2026-10-18 (D67): what is below the company — a candidate's folder — is kept, levels joined by « / ».
+    expect(byId.get("fileEpamDeep1")?.folder).toBe("2025");
+    expect(byId.get("fileEpamQ4001")).toMatchObject({ company: "EPAM", folder: "2025 / Q4" });
+    expect(byId.get("fileEpamOld01")?.folder).toBeNull();
+    expect(byId.get("fileQaTech001")?.folder).toBeNull();
   });
 
   it("newest interview first by the date in the name; without one — after them, by upload time", async () => {
@@ -256,6 +263,7 @@ describe("the library", () => {
       ["fileEpamOld01", "2025-09-24"], // `…_24.09.25` — the archive's name, uploaded on 2026-03-27
       ["fileEpamDeep1", null],
       ["fileEpamDeep2", null],
+      ["fileEpamQ4001", null],
     ]);
   });
 

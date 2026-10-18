@@ -61,8 +61,35 @@
     "title": "Записи співбесід",
     "description": "Співбесіди, які студенти завантажили через Telegram-бот. Слухайте, щоб підготуватися.",
     "recordsLabel": "записів",
-    "kindFilter": "Тип співбесіди",
-    "allKinds": "Усі типи",
+    "direction": "Напрям",
+    "directions": {
+      "all": "Усі",
+      "qa": "QA",
+      "ba": "BA"
+    },
+    "stageFilter": "Етап співбесіди",
+    "stages": {
+      "recruiter": "Рекрутерська",
+      "tech": "Технічна",
+      "manager": "Менеджерська"
+    },
+    "company": "Компанія",
+    "allCompanies": "Усі компанії",
+    "companySearch": "Знайти компанію…",
+    "companyNotFound": "Такої компанії немає.",
+    "noCompany": "Без компанії",
+    "companiesCount": "{count, plural, one {# компанія} few {# компанії} many {# компаній} other {# компанії}}",
+    "view": "Вигляд",
+    "views": {
+      "companies": "За компаніями",
+      "all": "Усі записи"
+    },
+    "sort": "Сортування",
+    "sorts": {
+      "count": "Більше записів",
+      "name": "А–Я"
+    },
+    "reset": "Скинути фільтри",
     "kinds": {
       "qaRecruiter": "QA · Рекрутерська",
       "qaTech": "QA · Технічна",
@@ -71,7 +98,7 @@
       "baTech": "BA · Технічна",
       "baManager": "BA · Менеджерська"
     },
-    "searchPlaceholder": "Пошук записів…",
+    "searchPlaceholder": "Пошук…",
     "listen": "Слухати",
     "close": "Закрити",
     "noDate": "Без дати",

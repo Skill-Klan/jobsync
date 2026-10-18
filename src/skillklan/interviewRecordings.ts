@@ -46,6 +46,9 @@ export type Recording = RecordingNameParts & {
   mimeType: string;
   size: number | null;
   uploadedAt: string; // ISO, Drive's createdTime
+  // The folders below the company's, e.g. one candidate's `Імʼя_Прізвище_AQA`
+  // (" / " between levels); null — right in the company's folder.
+  folder: string | null;
 };
 
 type ServiceAccount = { client_email: string; private_key: string };
@@ -207,26 +210,34 @@ function isRecording(file: DriveFile): boolean {
   return file.mimeType.startsWith("audio/") || file.mimeType.startsWith("video/");
 }
 
-type Place = { kind: RecordingKind; company: string | null };
+type Place = { kind: RecordingKind; company: string | null; folder: string | null };
 
-// Where a file sits: under which kind folder and which company folder — or
-// nowhere in the library (outside every kind folder, or still in the bot's
-// upload folder, waiting for review).
+// Where a file sits: under which kind folder, which company folder and which
+// folders below it — or nowhere in the library (outside every kind folder, or
+// still in the bot's upload folder, waiting for review).
 function placeOf(
   parentId: string | undefined,
   folders: Map<string, DriveFolder>,
   kindFolders: Map<string, RecordingKind>,
   uploadFolders: Set<string>,
 ): Place | null {
-  let below: DriveFolder | null = null; // the folder we came up from
+  const walked: DriveFolder[] = []; // from the file's folder up
   let id = parentId;
   for (let depth = 0; id && depth < MAX_DEPTH; depth++) {
     if (uploadFolders.has(id)) return null;
     const kind = kindFolders.get(id);
-    if (kind) return { kind, company: below?.name.trim() || null };
+    if (kind) {
+      const company = walked.at(-1)?.name.trim() || null;
+      const below = walked
+        .slice(0, -1)
+        .reverse()
+        .map((f) => f.name.trim())
+        .filter(Boolean);
+      return { kind, company, folder: below.length > 0 ? below.join(" / ") : null };
+    }
     const folder = folders.get(id);
     if (!folder) return null;
-    below = folder;
+    walked.push(folder);
     id = folder.parents?.[0];
   }
   return null;
@@ -276,6 +287,7 @@ export async function listRecordings(options: { fresh?: boolean } = {}): Promise
         mimeType: file.mimeType,
         size: file.size ? Number(file.size) : null,
         uploadedAt: file.createdTime,
+        folder: place.folder,
       },
     ];
   });

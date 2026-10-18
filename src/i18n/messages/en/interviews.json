@@ -61,8 +61,35 @@
     "title": "Interview recordings",
     "description": "Interviews students uploaded through the Telegram bot. Listen to prepare.",
     "recordsLabel": "recordings",
-    "kindFilter": "Interview type",
-    "allKinds": "All types",
+    "direction": "Direction",
+    "directions": {
+      "all": "All",
+      "qa": "QA",
+      "ba": "BA"
+    },
+    "stageFilter": "Interview stage",
+    "stages": {
+      "recruiter": "Recruiter",
+      "tech": "Technical",
+      "manager": "Manager"
+    },
+    "company": "Company",
+    "allCompanies": "All companies",
+    "companySearch": "Find a company…",
+    "companyNotFound": "No such company.",
+    "noCompany": "No company",
+    "companiesCount": "{count, plural, one {# company} other {# companies}}",
+    "view": "View",
+    "views": {
+      "companies": "By company",
+      "all": "All recordings"
+    },
+    "sort": "Sort",
+    "sorts": {
+      "count": "Most recordings",
+      "name": "A–Z"
+    },
+    "reset": "Clear filters",
     "kinds": {
       "qaRecruiter": "QA · Recruiter",
       "qaTech": "QA · Technical",
@@ -71,7 +98,7 @@
       "baTech": "BA · Technical",
       "baManager": "BA · Manager"
     },
-    "searchPlaceholder": "Search recordings…",
+    "searchPlaceholder": "Search…",
     "listen": "Listen",
     "close": "Close",
     "noDate": "No date",
