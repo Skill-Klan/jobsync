@@ -105,8 +105,12 @@ Uploads stay with the bot; this app only reads Google Drive. Code:
    | `INTERVIEW_RECORDINGS_FOLDER_BA_TECH` | the bot's `GOOGLE_DRIVE_FOLDER_ID_BA_TECH` |
    | `INTERVIEW_RECORDINGS_FOLDER_BA_MANAGER` | the bot's `GOOGLE_DRIVE_FOLDER_ID_BA_MANAGER` |
 
-4. Redeploy (the container reads `app.env` at start). Check: «Співбесіди» lists the recordings, one plays and
-   seeks, there is no download.
+4. Run the deploy with the digest that is already running (see below): the container reads `app.env` only
+   when it is created, and the deploy redeploys the same digest when `app.env` changed. Check: «Співбесіди»
+   lists the recordings, one plays and seeks, there is no download.
+
+Replacing the key later is the same: new key into `app.env`, deploy the running digest, then delete the old
+key in Google Cloud.
 
 ## Development
 
@@ -128,6 +132,8 @@ npm test
   [`.github/workflows/skillklan-deploy.yml`](./.github/workflows/skillklan-deploy.yml) (manual run with the
   digest) asks the owner in Telegram first, then the server copies `/data`, starts the new image and rolls
   back — image and data — if it is not healthy within 3 minutes. A merge into `main` deploys nothing.
+- The same digest again is a no-op — unless `app.env` changed since the last deploy (the wrapper keeps its
+  sha256, never the values): then it is redeployed the same way, so new settings reach the container.
 
 ## License
 

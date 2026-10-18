@@ -12,6 +12,8 @@
 #   W8  той самий digest і здоровий → нічого не робить
 #   W9  копій даних лишається не більше JOBSYNC_KEEP_BACKUPS, найновіші
 #   W10 логи застосунку назовні не йдуть (вивід обгортки потрапляє в публічний лог CI)
+#   W11 app.env змінили (новий ключ, теки) → той самий digest розгортається наново, з
+#       копією /data — контейнер читає app.env лише при створенні; не змінили → як W8
 #
 # Запуск: bash skillklan/tests/deploy-wrapper.test.sh  (Linux: потрібен flock з util-linux)
 set -u
@@ -201,6 +203,24 @@ running_with "$A"; HEALTHY="$A"
 rc=$(run_wrapper "deploy $B")
 if ! grep -q "APP-LOG-LINE" "$T/out" && ! grep -q "compose.* logs" "$S/calls"; then pass "W10 app logs never leave the server"
 else fail "W10 app logs leaked into the output"; fi
+teardown
+
+# --- W11 --------------------------------------------------------------------
+setup
+running_with "$A"; HEALTHY="$A"
+echo "INTERVIEW_RECORDINGS_FOLDER_QA_TECH=one" > "$APP/app.env"
+redeployed() { grep -q "compose.* stop" "$S/calls" && grep -q -- "-cf /backup/" "$S/calls" && grep -q "compose.* up" "$S/calls"; }
+# a) так на сервері після встановлення цієї обгортки: app.env дописано, відбитка ще немає
+rc_a=$(run_wrapper "deploy $A"); redeployed && a=yes || a=no
+# b) одразу ще раз, нічого не міняли
+: > "$S/calls"; rc_b=$(run_wrapper "deploy $A"); calls_b=$(wc -l < "$S/calls" | tr -d ' ')
+# c) замінили ключ / теку
+echo "INTERVIEW_RECORDINGS_FOLDER_QA_TECH=two" > "$APP/app.env"
+: > "$S/calls"; rc_c=$(run_wrapper "deploy $A"); redeployed && c=yes || c=no
+if [ "$rc_a" = 0 ] && [ "$a" = yes ] && [ "$rc_b" = 0 ] && [ "$calls_b" = 0 ] && [ "$rc_c" = 0 ] && [ "$c" = yes ] \
+   && [ "$(digest_in_env)" = "$A" ] && ! grep -q "one\|two" "$T/out"; then
+  pass "W11 app.env changed → same digest redeployed with a copy of /data; unchanged → no-op"
+else fail "W11 app.env reload (a: rc=$rc_a $a; b: rc=$rc_b calls=$calls_b; c: rc=$rc_c $c)"; sed 's/^/     | /' "$T/out"; fi
 teardown
 
 echo "---- $FAILS failed"

@@ -1,5 +1,5 @@
 # skillklan: перевірки скриптів деплою й сервера на кожен PR, що їх зачіпає.
-# Тести перевіряють вимоги (W1–W10 обгортки, C1–C7 синхронізації Cloudflare); nginx —
+# Тести перевіряють вимоги (W1–W11 обгортки, C1–C7 синхронізації Cloudflare); nginx —
 # справжнім `nginx -t` тієї версії, що на Server2 (Ubuntu 24.04 → nginx 1.24).
 name: SkillKlan deploy scripts
 
@@ -27,7 +27,7 @@ jobs:
           shellcheck -S warning skillklan/deploy/*.sh skillklan/server/*.sh \
             skillklan/tests/deploy-wrapper.test.sh skillklan/tests/cloudflare-sync.test.sh
 
-      - name: Deploy wrapper (W1–W10)
+      - name: Deploy wrapper (W1–W11)
         run: bash skillklan/tests/deploy-wrapper.test.sh
 
       - name: Cloudflare sync (C1–C7)
