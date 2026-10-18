@@ -91,6 +91,13 @@ Uploads stay with the bot; this app only reads Google Drive. Code:
   and the uploader's name — from the bot's file name `дата - [спеціалізація - ]хто - компанія.ext`. Older names
   are shown as they are, with the date taken from them when there is one (`…_дд.мм.рр`); no date → «Без дати»,
   after the dated ones (most of the archive was uploaded on one day, long after the interviews).
+- **Finding one** ([`src/skillklan/recordingsLibrary.ts`](./src/skillklan/recordingsLibrary.ts)): first the
+  folders of the companies — one per company however its name is spelled in different Drive folders, the most
+  recorded first (or A–Z); inside, the recordings by stage (recruiter → technical → manager), a candidate's
+  sub-folder nested. «All recordings» is the plain list. Filters: direction (QA / BA), stage (several at once),
+  company (a searchable list), search (name, person, company, sub-folder); each option shows how many it gives.
+  The filters live in the page address (`?dir=qa&stage=tech&company=privatbank&open=…&view=all&sort=name`), so a
+  link opens the same selection; unknown values in a link are dropped.
 - **Not configured → the page says «Записи співбесід ще не підключено.»** The person's own interview stages are
   on each job's «Етапи» tab; the old interviews list (`InterviewsContainer`) is in the code, not shown.
 

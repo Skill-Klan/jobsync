@@ -56,7 +56,11 @@ const uk = leaves(MESSAGES.uk as unknown as Tree);
 const en = leaves(MESSAGES.en as unknown as Tree);
 
 // Strings that are the same in both languages on purpose.
-const SAME_IN_BOTH = new Set<string>([]);
+const SAME_IN_BOTH = new Set<string>([
+  // The professions' names: QA and BA in Ukrainian too.
+  "interviews.recordings.directions.qa",
+  "interviews.recordings.directions.ba",
+]);
 
 // Prompts whose English names the item ("Select stage") while the Ukrainian
 // does not: the caller passes an English noun, and Ukrainian would have to

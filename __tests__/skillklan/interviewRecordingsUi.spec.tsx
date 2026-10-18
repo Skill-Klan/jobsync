@@ -5,6 +5,13 @@
 // server — and only plays it: "there must be no way to download" (no button,
 // no "Download" in the player's menu, no "Save audio as"). Until Drive is
 // connected the page says so.
+//
+// The owner, 2026-10-18 (D67–D70): first the folders of the companies, the
+// recordings inside by stage (recruiter → technical → manager); filters —
+// direction, stage, company, search; the filters are kept in the page address
+// so a link opens the same selection. The rules themselves (merging spellings,
+// counts, the address format) are in recordingsLibrary.spec.ts; here — that
+// the page does them.
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import InterviewRecordingsLibrary from "@/components/interviews/InterviewRecordingsLibrary";
@@ -30,13 +37,26 @@ const RECORDINGS = [
   { id: "fileQaTech002", kind: "qaTech", mimeType: "audio/ogg", date: null, specializations: [], person: null, company: null, title: "voice message" },
 ];
 
+// Shaped like the Drive archive: one company in two spellings, a candidate's
+// sub-folder, a company with QA and BA, newest first as the server sends them.
+const BY_COMPANY = [
+  { id: "raifTech0001", kind: "qaTech", mimeType: "audio/mpeg", date: "2026-10-12", specializations: [], person: "Олена Коваль", company: "RaiffeisenBank", title: "12.10.2026 - Олена Коваль - RaiffeisenBank", folder: null },
+  { id: "privBaRec001", kind: "baRecruiter", mimeType: "audio/mpeg", date: "2026-09-18", specializations: [], person: "Дарина Бойко", company: "PrivatBank", title: "18.09.2026 - Дарина Бойко - PrivatBank", folder: null },
+  { id: "raifRec00001", kind: "qaRecruiter", mimeType: "audio/mpeg", date: "2026-09-01", specializations: [], person: "Юлія Ткач", company: "Raiffeisen Bank", title: "01.09.2026 - Юлія Ткач - Raiffeisen Bank", folder: null },
+  { id: "raifTech0002", kind: "qaTech", mimeType: "audio/mpeg", date: null, specializations: [], person: null, company: "RaiffeisenBank", title: "Олег_Мельник_AQA_ч1", folder: "Олег_Мельник_AQA" },
+  { id: "privTech0001", kind: "qaTech", mimeType: "audio/mpeg", date: null, specializations: [], person: null, company: "PrivatBank", title: "Богдан_Руденко_QA", folder: null },
+  { id: "ajaxTech0001", kind: "qaTech", mimeType: "audio/mpeg", date: null, specializations: [], person: null, company: "Ajax", title: "Ганна_Мазур_QA", folder: null },
+];
+
 let fetchMock: ReturnType<typeof vi.fn>;
 const answer = (status: number, body: unknown) =>
   Promise.resolve(new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } }));
+const serve = (recordings: unknown[]) => fetchMock.mockImplementation(() => answer(200, { recordings }));
 
 beforeEach(() => {
   configured.value = false;
   nav.query = new URLSearchParams();
+  window.history.replaceState(null, "", "/");
   fetchMock = vi.fn(() => answer(200, { recordings: RECORDINGS }));
   vi.stubGlobal("fetch", fetchMock);
   window.HTMLElement.prototype.scrollIntoView = vi.fn();
@@ -44,8 +64,15 @@ beforeEach(() => {
 });
 
 const rows = () => screen.getAllByRole("listitem");
+const folderOf = (name: string) => screen.getByRole("region", { name });
+const folderButton = (name: string) => within(folderOf(name)).getAllByRole("button")[0];
+const params = () => new URLSearchParams(window.location.search);
 
-describe("the library", () => {
+describe("all recordings — the list", () => {
+  beforeEach(() => {
+    nav.query = new URLSearchParams("view=all");
+  });
+
   it("every recording, newest first: date, kind, specialization, company and the uploader's name", async () => {
     render(<InterviewRecordingsLibrary />);
     await waitFor(() => expect(rows()).toHaveLength(3));
@@ -64,9 +91,9 @@ describe("the library", () => {
   // names are not the bot's — the company comes from the folder, and the name
   // (who, what) must still be seen, not just the company.
   it("an archive recording: its company and its own name", async () => {
-    fetchMock.mockImplementation(() => answer(200, { recordings: [
+    serve([
       { id: "fileEpamOld01", kind: "qaTech", mimeType: "audio/mp4", date: "2025-09-24", specializations: [], person: null, company: "EPAM", title: "Іван_Петренко_QA_24.09.25" },
-    ] }));
+    ]);
     render(<InterviewRecordingsLibrary />);
     await waitFor(() => expect(rows()).toHaveLength(1));
     expect(rows()[0]).toHaveTextContent("EPAM · Іван_Петренко_QA_24.09.25");
@@ -111,23 +138,13 @@ describe("the library", () => {
     const user = userEvent.setup();
     render(<InterviewRecordingsLibrary />);
     await waitFor(() => expect(rows()).toHaveLength(3));
-    await user.type(screen.getByPlaceholderText("Search recordings…"), "іваненко");
+    await user.type(screen.getByPlaceholderText("Search…"), "іваненко");
     expect(rows()).toHaveLength(1);
     expect(rows()[0]).toHaveTextContent("Ajax");
-    await user.clear(screen.getByPlaceholderText("Search recordings…"));
-    await user.type(screen.getByPlaceholderText("Search recordings…"), "api");
+    await user.clear(screen.getByPlaceholderText("Search…"));
+    await user.type(screen.getByPlaceholderText("Search…"), "api");
     expect(rows()).toHaveLength(1);
     expect(rows()[0]).toHaveTextContent("Monobank");
-  });
-
-  it("filter by interview type", async () => {
-    const user = userEvent.setup({ skipHover: true });
-    render(<InterviewRecordingsLibrary />);
-    await waitFor(() => expect(rows()).toHaveLength(3));
-    await user.click(screen.getByRole("combobox", { name: "Interview type" }));
-    await user.click(screen.getByRole("option", { name: "BA · Manager" }));
-    expect(rows()).toHaveLength(1);
-    expect(rows()[0]).toHaveTextContent("Ajax");
   });
 
   it("the server could not read Drive → says so; nothing yet → says so", async () => {
@@ -138,6 +155,151 @@ describe("the library", () => {
     fetchMock.mockImplementationOnce(() => answer(200, { recordings: [] }));
     render(<InterviewRecordingsLibrary />);
     expect(await screen.findByText("No recordings yet.")).toBeInTheDocument();
+  });
+});
+
+describe("by company — the first view (D67, D68)", () => {
+  beforeEach(() => serve(BY_COMPANY));
+
+  it("first: the folders of the companies, the most recorded first, closed; one folder for both spellings", async () => {
+    render(<InterviewRecordingsLibrary />);
+    await waitFor(() => expect(screen.getAllByRole("region")).toHaveLength(3));
+    expect(screen.getAllByRole("region").map((r) => r.getAttribute("aria-label"))).toEqual(["RaiffeisenBank", "PrivatBank", "Ajax"]);
+    expect(screen.queryAllByRole("listitem")).toHaveLength(0);
+    expect(folderButton("RaiffeisenBank")).toHaveAttribute("aria-expanded", "false");
+    expect(folderButton("RaiffeisenBank")).toHaveTextContent("Recruiter 1");
+    expect(folderButton("RaiffeisenBank")).toHaveTextContent("Technical 2");
+    expect(screen.getByText(/^· 3 companies$/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "By company", pressed: true })).toBeInTheDocument();
+  });
+
+  it("open a company: recruiter, then technical; a candidate's sub-folder inside its stage; the address remembers it", async () => {
+    const user = userEvent.setup();
+    render(<InterviewRecordingsLibrary />);
+    await waitFor(() => expect(screen.getAllByRole("region")).toHaveLength(3));
+    await user.click(folderButton("RaiffeisenBank"));
+    const raif = folderOf("RaiffeisenBank");
+    expect(folderButton("RaiffeisenBank")).toHaveAttribute("aria-expanded", "true");
+    expect(within(raif).getAllByRole("heading").map((h) => h.textContent)).toEqual(["Recruiter · 1", "Technical · 2"]);
+    expect(within(raif).getByText("Олег_Мельник_AQA")).toBeInTheDocument();
+    expect(within(raif).getAllByRole("listitem").map((li) => li.textContent)).toEqual([
+      expect.stringContaining("Юлія Ткач"),
+      expect.stringContaining("Олена Коваль"),
+      expect.stringContaining("Олег_Мельник_AQA_ч1"),
+    ]);
+    expect(params().get("open")).toBe("raiffeisenbank");
+    await user.click(folderButton("RaiffeisenBank"));
+    expect(within(folderOf("RaiffeisenBank")).queryAllByRole("listitem")).toHaveLength(0);
+    expect(params().get("open")).toBeNull();
+  });
+
+  it("inside a company the stage is the heading: no kind badge; QA / BA only where the company has both", async () => {
+    nav.query = new URLSearchParams("open=raiffeisenbank,privatbank");
+    render(<InterviewRecordingsLibrary />);
+    await waitFor(() => expect(within(folderOf("PrivatBank")).getAllByRole("listitem")).toHaveLength(2));
+    const priv = within(folderOf("PrivatBank")).getAllByRole("listitem");
+    expect(within(priv[0]).getByText("BA")).toBeInTheDocument();
+    expect(within(priv[1]).getByText("QA")).toBeInTheDocument();
+    // Look for the badge itself: the row's text runs together («12.10.2026QA…»), so a
+    // word boundary would not see it.
+    const raif = within(folderOf("RaiffeisenBank")).getAllByRole("listitem");
+    expect(raif).toHaveLength(3);
+    for (const li of raif) {
+      expect(within(li).queryByText(/^(QA|BA)( · .*)?$/)).toBeNull();
+    }
+  });
+
+  it("«All recordings» → the plain list; the address says so", async () => {
+    const user = userEvent.setup();
+    render(<InterviewRecordingsLibrary />);
+    await waitFor(() => expect(screen.getAllByRole("region")).toHaveLength(3));
+    await user.click(screen.getByRole("button", { name: "All recordings" }));
+    expect(screen.queryAllByRole("region")).toHaveLength(0);
+    expect(rows()).toHaveLength(6);
+    expect(params().get("view")).toBe("all");
+  });
+
+  it("A–Z", async () => {
+    const user = userEvent.setup();
+    render(<InterviewRecordingsLibrary />);
+    await waitFor(() => expect(screen.getAllByRole("region")).toHaveLength(3));
+    await user.click(screen.getByRole("button", { name: "A–Z" }));
+    expect(screen.getAllByRole("region").map((r) => r.getAttribute("aria-label"))).toEqual(["Ajax", "PrivatBank", "RaiffeisenBank"]);
+  });
+});
+
+describe("filters (D69) and the address (D70)", () => {
+  beforeEach(() => serve(BY_COMPANY));
+
+  it("a link with filters opens the same selection; a single company left opens by itself", async () => {
+    nav.query = new URLSearchParams("dir=ba&stage=recruiter");
+    render(<InterviewRecordingsLibrary />);
+    await waitFor(() => expect(screen.getAllByRole("region")).toHaveLength(1));
+    expect(screen.getByRole("button", { name: "BA 1", pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Recruiter/, pressed: true })).toBeInTheDocument();
+    expect(folderButton("PrivatBank")).toHaveAttribute("aria-expanded", "true");
+    expect(within(folderOf("PrivatBank")).getAllByRole("listitem")).toHaveLength(1);
+    expect(within(folderOf("PrivatBank")).getByRole("listitem")).toHaveTextContent("Дарина Бойко");
+  });
+
+  it("choosing filters writes them into the address; «Clear filters» empties it", async () => {
+    const user = userEvent.setup();
+    render(<InterviewRecordingsLibrary />);
+    await waitFor(() => expect(screen.getAllByRole("region")).toHaveLength(3));
+    await user.click(screen.getByRole("button", { name: /^QA/ }));
+    await user.click(screen.getByRole("button", { name: /^Technical/ }));
+    expect(params().get("dir")).toBe("qa");
+    expect(params().get("stage")).toBe("tech");
+    // Only what is left: no BA recruiter at PrivatBank.
+    expect(folderButton("PrivatBank")).toHaveTextContent("1");
+    expect(folderButton("PrivatBank")).not.toHaveTextContent("Recruiter");
+    await user.click(screen.getByRole("button", { name: "Clear filters" }));
+    expect(window.location.search).toBe("");
+    expect(screen.getAllByRole("region")).toHaveLength(3);
+  });
+
+  it("stages: several at once; each shows how many it would give", async () => {
+    const user = userEvent.setup();
+    render(<InterviewRecordingsLibrary />);
+    await waitFor(() => expect(screen.getAllByRole("region")).toHaveLength(3));
+    expect(screen.getByRole("button", { name: "Recruiter 2" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Technical 4" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Manager 0" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Recruiter 2" }));
+    await user.click(screen.getByRole("button", { name: "Manager 0" }));
+    expect(params().get("stage")).toBe("recruiter,manager");
+    expect(screen.getAllByRole("region").map((r) => r.getAttribute("aria-label"))).toEqual(["PrivatBank", "RaiffeisenBank"]);
+  });
+
+  it("company: pick it from the list — searched by name — and see only it, open", async () => {
+    const user = userEvent.setup({ skipHover: true });
+    render(<InterviewRecordingsLibrary />);
+    await waitFor(() => expect(screen.getAllByRole("region")).toHaveLength(3));
+    await user.click(screen.getByRole("combobox", { name: "Company" }));
+    await user.type(screen.getByPlaceholderText("Find a company…"), "priv");
+    expect(screen.getAllByRole("option").map((o) => o.textContent)).toEqual(["PrivatBank2"]);
+    await user.click(screen.getByRole("option", { name: /PrivatBank/ }));
+    expect(screen.getAllByRole("region").map((r) => r.getAttribute("aria-label"))).toEqual(["PrivatBank"]);
+    expect(folderButton("PrivatBank")).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("combobox", { name: "Company" })).toHaveTextContent("PrivatBank");
+    expect(params().get("company")).toBe("privatbank");
+  });
+
+  it("search in the folders: only the companies with a match", async () => {
+    const user = userEvent.setup();
+    render(<InterviewRecordingsLibrary />);
+    await waitFor(() => expect(screen.getAllByRole("region")).toHaveLength(3));
+    await user.type(screen.getByPlaceholderText("Search…"), "руденко");
+    expect(screen.getAllByRole("region").map((r) => r.getAttribute("aria-label"))).toEqual(["PrivatBank"]);
+    expect(within(folderOf("PrivatBank")).getByRole("listitem")).toHaveTextContent("Богдан_Руденко_QA");
+    expect(params().get("q")).toBe("руденко");
+  });
+
+  it("nothing matches → says so, with the filters still there to change", async () => {
+    nav.query = new URLSearchParams("dir=ba&stage=manager");
+    render(<InterviewRecordingsLibrary />);
+    expect(await screen.findByText("No recordings match these filters.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Clear filters" })).toBeInTheDocument();
   });
 });
 
