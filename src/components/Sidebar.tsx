@@ -2,7 +2,7 @@
 import Link from "next/link";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Briefcase } from "lucide-react";
+import { Briefcase, CornerUpLeft } from "lucide-react";
 import { APP_CONSTANTS, visibleSidebarLinks } from "@/lib/constants";
 import { useFeatures } from "@/context/FeaturesContext";
 import NavLink from "./NavLink";
@@ -16,9 +16,11 @@ import { useTranslations } from "@/i18n/client";
 interface SidebarProps {
   user: CurrentUser | null;
   signOutAction: () => void;
+  // D72: back to the cabinet — its address from the server (cabinetLink), null → no item.
+  cabinetUrl?: string | null;
 }
 
-function Sidebar({ user, signOutAction }: SidebarProps) {
+function Sidebar({ user, signOutAction, cabinetUrl = null }: SidebarProps) {
   const path = usePathname();
   const { expanded } = useSidebar();
   const t = useTranslations("nav");
@@ -76,6 +78,15 @@ function Sidebar({ user, signOutAction }: SidebarProps) {
         </nav>
 
         <div className="flex flex-col gap-1 border-t py-2">
+          {cabinetUrl && (
+            <NavLink
+              label={t("cabinet")}
+              Icon={CornerUpLeft}
+              route={cabinetUrl}
+              pathname={path}
+              expanded={expanded}
+            />
+          )}
           <ProfileDropdown
             user={user}
             expanded={expanded}

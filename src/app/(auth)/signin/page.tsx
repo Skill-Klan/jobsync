@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import AuthCard from "@/components/auth/AuthCard";
 import CabinetSignin from "@/components/auth/CabinetSignin";
 import { isDevPasswordLoginEnabled } from "@/skillklan/devPasswordLogin";
+import { cabinetLink } from "@/skillklan/cabinetLink";
 import { getTranslations } from "@/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -20,7 +21,7 @@ export default async function Signin({
   const { error } = await searchParams;
   return (
     <CabinetSignin
-      cabinetUrl={process.env.CABINET_URL ?? null}
+      cabinetUrl={cabinetLink()}
       failed={error === "cabinet"}
     />
   );

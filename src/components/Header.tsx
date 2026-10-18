@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PanelLeft, Briefcase } from "lucide-react";
+import { PanelLeft, Briefcase, CornerUpLeft } from "lucide-react";
 
 import { Button } from "./ui/button";
 import {
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/sheet";
 import { visibleSidebarLinks } from "@/lib/constants";
 import { getFeatureFlags } from "@/skillklan/featureFlags";
+import { cabinetLink } from "@/skillklan/cabinetLink";
 import SidebarToggle from "./SidebarToggle";
 import { AgentChatTrigger } from "./AgentChatTrigger";
 import { NotificationBell } from "./notifications/NotificationBell";
@@ -20,6 +21,7 @@ async function Header() {
   const t = await getTranslations("nav");
   const tc = await getTranslations("common");
   const features = await getFeatureFlags();
+  const cabinetUrl = cabinetLink();
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
       <Sheet>
@@ -54,6 +56,18 @@ async function Header() {
                 </SheetClose>
               );
             })}
+            {/* D72: back to the cabinet, in this same tab. */}
+            {cabinetUrl && (
+              <SheetClose asChild>
+                <a
+                  href={cabinetUrl}
+                  className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+                >
+                  <CornerUpLeft className="h-5 w-5" />
+                  {t("cabinet")}
+                </a>
+              </SheetClose>
+            )}
           </nav>
         </SheetContent>
       </Sheet>

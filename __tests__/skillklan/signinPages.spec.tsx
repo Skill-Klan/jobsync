@@ -47,10 +47,21 @@ describe("/signin", () => {
     const { container } = render(await Signin({ searchParams: Promise.resolve({}) }));
 
     expect(screen.getByRole("heading", { name: /sign in from your cabinet/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /open the cabinet/i })).toHaveAttribute("href", "https://app.example.invalid");
+    expect(screen.getByRole("link", { name: /open the cabinet/i })).toHaveAttribute("href", "https://app.example.invalid/");
     expect(screen.queryByRole("alert")).toBeNull();
     expect(container.querySelector('input[type="password"]')).toBeNull();
     expect(screen.queryByTestId("password-auth-card")).toBeNull();
+  });
+
+  // Code review 2026-10-18: one reader of CABINET_URL for every link to the cabinet (cabinetLink) —
+  // not an http(s) address is no link here either, the same as in the menu.
+  it.each([["javascript:alert(1)"], ["app.example.invalid"]])("CABINET_URL %j → no link to it, the rest is there", async (raw) => {
+    delete process.env.JOBSYNC_DEV_PASSWORD_LOGIN;
+    process.env.CABINET_URL = raw;
+    render(await Signin({ searchParams: Promise.resolve({}) }));
+    expect(screen.getByRole("heading", { name: /sign in from your cabinet/i })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /open the cabinet/i })).toBeNull();
+    delete process.env.CABINET_URL;
   });
 
   it("after a failed cabinet sign-in — says so plainly", async () => {
