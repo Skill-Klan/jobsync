@@ -228,11 +228,14 @@ export default function InterviewRecordingsLibrary() {
             </div>
             {/* Typed in Ukrainian: the company or the name may be in Latin letters — even when
                 something was found (a person), the company they look for may not be. */}
-            {hasCyrillic(filters.query) && (
-              <p role="status" className="text-xs text-muted-foreground">
-                {t("recordings.searchInEnglish")}
-              </p>
-            )}
+            {/* The live region is always there (text only when needed): one mounted together
+                with its text is not announced by screen readers. */}
+            <p
+              role="status"
+              className={cn("text-xs text-muted-foreground", !hasCyrillic(filters.query) && "sr-only")}
+            >
+              {hasCyrillic(filters.query) ? t("recordings.searchInEnglish") : ""}
+            </p>
           </div>
         )}
         {failed ? (
@@ -342,9 +345,12 @@ function CompanyPicker({
   const t = useTranslations("interviews");
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  // Closing by a pick does not go through onOpenChange — clear the search here too,
+  // or the list opens next time filtered by the old query, «All companies» hidden.
   const pick = (key: string | null) => {
     onChange(key);
     setOpen(false);
+    setSearch("");
   };
   return (
     <Popover

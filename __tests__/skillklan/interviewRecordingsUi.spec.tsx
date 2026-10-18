@@ -301,10 +301,12 @@ describe("filters (D69) and the address (D70)", () => {
     const user = userEvent.setup();
     render(<InterviewRecordingsLibrary />);
     await waitFor(() => expect(screen.getAllByRole("region")).toHaveLength(3));
-    const hint = /Nothing in Ukrainian\? Try English/;
+    const hint = /Most names are written in Latin letters — try English too/;
     expect(screen.queryByText(hint)).not.toBeInTheDocument();
+    // The live region is there before anything is typed — screen readers announce what appears in it.
+    expect(screen.getByRole("status")).toHaveTextContent("");
     await user.type(screen.getByPlaceholderText("Search…"), "приватбанк");
-    expect(screen.getByText(hint)).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(hint);
     expect(screen.getByText("No recordings match these filters.")).toBeInTheDocument();
     // Something found in Ukrainian (a person) — the hint stays: the company may be in Latin letters.
     await user.clear(screen.getByPlaceholderText("Search…"));
@@ -329,6 +331,21 @@ describe("filters (D69) and the address (D70)", () => {
     await user.type(screen.getByPlaceholderText("Find a company…"), "zzz");
     expect(screen.getByText("No such company.")).toBeInTheDocument();
     expect(screen.queryByText(/Nothing in Ukrainian/)).not.toBeInTheDocument();
+  });
+
+  // Code review 2026-10-18: closing the list by a pick skipped the reset — next time it opened
+  // filtered by the old query, «All companies» hidden.
+  it("company list: after a pick it opens fresh — empty search, «All companies» there to go back", async () => {
+    const user = userEvent.setup({ skipHover: true });
+    render(<InterviewRecordingsLibrary />);
+    await waitFor(() => expect(screen.getAllByRole("region")).toHaveLength(3));
+    await user.click(screen.getByRole("combobox", { name: "Company" }));
+    await user.type(screen.getByPlaceholderText("Find a company…"), "priv");
+    await user.click(screen.getByRole("option", { name: /PrivatBank/ }));
+    await user.click(screen.getByRole("combobox", { name: "Company" }));
+    expect(screen.getByPlaceholderText("Find a company…")).toHaveValue("");
+    await user.click(screen.getByRole("option", { name: /All companies/ }));
+    expect(screen.getAllByRole("region")).toHaveLength(3);
   });
 
   it("nothing matches → says so, with the filters still there to change", async () => {
