@@ -45,7 +45,6 @@ describe("parseRecordingName", () => {
   it.each([
     ["no separators", "voice message.mp3"],
     ["not a date", "31.02.2026 - Іван - Acme.mp3"],
-    ["an empty part", "24.09.2026 -  - Acme.mp3"],
   ])("%s → shown by its raw name", (_label, name) => {
     expect(parseRecordingName(name)).toEqual({
       date: null,
@@ -55,6 +54,16 @@ describe("parseRecordingName", () => {
       title: name.replace(/\.mp3$/, ""),
     });
   });
+  it("an empty part → its raw name, but the date in it still counts", () => {
+    expect(parseRecordingName("24.09.2026 -  - Acme.mp3")).toEqual({
+      date: "2026-09-24",
+      specializations: [],
+      person: null,
+      company: null,
+      title: "24.09.2026 -  - Acme",
+    });
+  });
+
 
   it("a company with ' - ' in it keeps the person whole only up to the last part", () => {
     expect(parseRecordingName("24.09.2026 - Web - Іван Петренко - Ajax - Systems.mp3")).toMatchObject({
@@ -62,5 +71,24 @@ describe("parseRecordingName", () => {
       person: "Іван Петренко - Ajax",
       company: "Systems",
     });
+  });
+
+  // Owner 2026-10-18: the archive in the company folders has its own names,
+  // e.g. `Імʼя_Прізвище_QA_дд.мм.рр`; the date in them is the interview day.
+  it.each([
+    ["at the end, two-digit year", "Іван_Петренко_QA_24.09.25.m4a", "2025-09-24"],
+    ["in the middle, four-digit year", "Петренко_24.09.2025_Middle.ogg", "2025-09-24"],
+    ["right at the start", "05.03.26_Ajax_HR.ogg", "2026-03-05"],
+  ])("a date inside an archive name (%s) → that day", (_label, name, date) => {
+    expect(parseRecordingName(name)).toMatchObject({ date, person: null, company: null });
+  });
+
+  it.each([
+    ["not a day", "Петренко_31.02.25.m4a"],
+    ["a version, not a date", "Звіт v1.2.3.mp3"],
+    ["digits glued on", "Петренко_124.09.25.m4a"],
+    ["no date at all", "Іван_Петренко_EPAM.m4a"],
+  ])("%s → no date", (_label, name) => {
+    expect(parseRecordingName(name).date).toBeNull();
   });
 });
