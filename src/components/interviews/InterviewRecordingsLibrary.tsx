@@ -154,7 +154,13 @@ export default function InterviewRecordingsLibrary() {
                         <>
                           <span className="font-medium">{r.company}</span>
                           {r.company && r.person ? " · " : null}
-                          {r.person}
+                          {/* The archive's names are not the bot's: who and what is in the name itself. */}
+                          {r.person ?? (
+                            <>
+                              {" · "}
+                              {r.title}
+                            </>
+                          )}
                         </>
                       ) : (
                         r.title

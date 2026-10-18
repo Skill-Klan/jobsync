@@ -81,18 +81,24 @@ Uploads stay with the bot; this app only reads Google Drive. Code:
 - **Read-only access:** a Google service account with `drive.readonly` (a JWT signed with node `crypto`, no
   Google library). Nothing of Google's reaches the browser — the server streams each file, passing the
   browser's `Range` to Drive, so seeking works.
-- **The library** is the bot's six folders (QA and BA × recruiter, technical, manager interviews), audio and
-  video files only, every page, newest interview first, cached for 5 minutes. A file outside them is never
-  served (404).
-- **What a row shows** comes from the bot's file name `дата - [спеціалізація - ]хто - компанія.ext`: date,
-  kind (folder), specializations, company and the uploader's name. Other names are shown as they are.
+- **The library is every reviewed recording.** On Drive each kind of interview (QA and BA × recruiter,
+  technical, manager) has a folder with a folder per company inside. The bot uploads into one more folder there
+  («pending for review»), and the team moves a recording into its company's folder once reviewed. So for each
+  of the bot's six upload folders the library takes its parent with everything under it — except the upload
+  folder itself. Audio and video only, newest interview first, cached for 5 minutes. A file outside the library
+  (waiting for review, or anywhere else) is never served (404).
+- **What a row shows:** kind — from the kind folder; company — from the company folder; date, specializations
+  and the uploader's name — from the bot's file name `дата - [спеціалізація - ]хто - компанія.ext`. Older names
+  are shown as they are, with the date taken from them when there is one (`…_дд.мм.рр`); no date → «Без дати»,
+  after the dated ones (most of the archive was uploaded on one day, long after the interviews).
 - **Not configured → the page says «Записи співбесід ще не підключено.»** The person's own interview stages are
   on each job's «Етапи» tab; the old interviews list (`InterviewsContainer`) is in the code, not shown.
 
 ### Turning it on
 
 1. Google Cloud: enable the Drive API, create a service account (no roles), create a JSON key.
-2. Google Drive: share each of the bot's six interview folders with the service account's email as **Viewer**.
+2. Google Drive: share the folders that hold the bot's six upload folders (the QA and the BA interview folders)
+   with the service account's email as **Viewer**.
 3. `app.env` on the server:
 
    | Variable | Value |

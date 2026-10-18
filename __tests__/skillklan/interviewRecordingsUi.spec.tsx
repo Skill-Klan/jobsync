@@ -60,6 +60,19 @@ describe("the library", () => {
     expect(rows()[2]).toHaveTextContent("voice message");
   });
 
+  // Owner 2026-10-18: the company folders' archive is in the library too; its
+  // names are not the bot's — the company comes from the folder, and the name
+  // (who, what) must still be seen, not just the company.
+  it("an archive recording: its company and its own name", async () => {
+    fetchMock.mockImplementation(() => answer(200, { recordings: [
+      { id: "fileEpamOld01", kind: "qaTech", mimeType: "audio/mp4", date: "2025-09-24", specializations: [], person: null, company: "EPAM", title: "Іван_Петренко_QA_24.09.25" },
+    ] }));
+    render(<InterviewRecordingsLibrary />);
+    await waitFor(() => expect(rows()).toHaveLength(1));
+    expect(rows()[0]).toHaveTextContent("EPAM · Іван_Петренко_QA_24.09.25");
+    expect(within(rows()[0]).getByText("24.09.2025")).toBeInTheDocument();
+  });
+
   it("Listen → a player that streams this recording through the server; Close → gone", async () => {
     const user = userEvent.setup();
     render(<InterviewRecordingsLibrary />);

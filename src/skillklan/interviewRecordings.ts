@@ -4,20 +4,32 @@ import { parseRecordingName, type RecordingNameParts } from "./recordingName";
 import type { RecordingKind } from "./recordingKinds";
 
 // The interview recordings library (owner 2026-10-16): every student hears
-// every recording; recordings keep being uploaded by the Telegram bot into
-// six Google Drive folders, and SkillKlan Job only reads them. The files stay
-// in Drive; this server lists them and streams one to the browser on request,
-// so access follows SkillKlan Job's own rules (an excluded student is out
-// within 5 minutes) and no Google key reaches the browser.
+// every recording; recordings keep being uploaded by the Telegram bot to
+// Google Drive, and SkillKlan Job only reads them. The files stay in Drive;
+// this server lists them and streams one to the browser on request, so access
+// follows SkillKlan Job's own rules (an excluded student is out within 5
+// minutes) and no Google key reaches the browser.
+//
+// What is in it (owner 2026-10-18): every REVIEWED recording. On Drive each
+// kind of interview has its folder (QA: Tech_Interviews, HR_Interviews,
+// Manager_Interviews; BA: «Скрінінг з рекрутером», «Технічна», «Менеджерська»)
+// with a folder per company inside. The bot uploads into one more folder there
+// («pending for review» / «Pending_review»), and the team moves a recording
+// into its company's folder once it is reviewed. So for each configured
+// upload folder: its parent is the kind folder; the library is every
+// recording anywhere under the kind folder except under the upload folder;
+// the company is the folder right under the kind folder (file names are not
+// uniform enough to say it).
 //
 // Read-only and least privilege: a service account with drive.readonly that
-// the six folders are shared with — not the bot's key to a personal Drive.
+// the folders are shared with — not the bot's key to a personal Drive.
 //
 // Configuration (app.env on Server2; no configuration → no library):
 //   INTERVIEW_RECORDINGS_SERVICE_ACCOUNT_JSON — the service account key (JSON,
 //     or the same JSON in base64);
-//   INTERVIEW_RECORDINGS_FOLDER_<KIND> — the folder ids, the same as the bot's
-//     GOOGLE_DRIVE_FOLDER_ID_{HR,TECH,MANAGER,BA_RECRUITER,BA_TECH,BA_MANAGER}.
+//   INTERVIEW_RECORDINGS_FOLDER_<KIND> — the bot's upload folders, the same as
+//     its GOOGLE_DRIVE_FOLDER_ID_{HR,TECH,MANAGER,BA_RECRUITER,BA_TECH,BA_MANAGER}.
+//     The account must see their parents too (share the parent folders).
 
 export const RECORDING_FOLDER_ENV: Record<RecordingKind, string> = {
   qaRecruiter: "INTERVIEW_RECORDINGS_FOLDER_QA_RECRUITER",
@@ -43,7 +55,7 @@ const DRIVE = "https://www.googleapis.com/drive/v3";
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
 const SCOPE = "https://www.googleapis.com/auth/drive.readonly";
 export const GOOGLE_TIMEOUT_MS = 10_000;
-// The list is cached: six folder reads per page view would be slow and add
+// The list is cached: reading the folders per page view would be slow and add
 // nothing — the bot adds a few recordings a day.
 export const LIST_TTL_MS = 5 * 60 * 1000;
 // A Drive folder id: letters, digits, "-" and "_". Anything else is not put
@@ -133,42 +145,100 @@ async function accessToken(account: ServiceAccount): Promise<string> {
 
 // --- the library -------------------------------------------------------------
 
-type DriveFile = { id: string; name: string; mimeType: string; size?: string; createdTime: string };
+type DriveFolder = { id: string; name: string; parents?: string[] };
+type DriveFile = {
+  id: string;
+  name: string;
+  mimeType: string;
+  size?: string;
+  createdTime: string;
+  parents?: string[];
+};
 
-async function listFolder(token: string, folderId: string): Promise<DriveFile[]> {
-  const files: DriveFile[] = [];
+const FOLDER_MIME = "application/vnd.google-apps.folder";
+// Drive has no "everything under this folder" query: the whole tree the
+// account sees comes in two lists (folders, recordings) and is put together
+// here — instead of one request per folder (there are hundreds).
+const ALL_FOLDERS = `mimeType = '${FOLDER_MIME}' and trashed = false`;
+const ALL_RECORDINGS = "trashed = false and (mimeType contains 'audio/' or mimeType contains 'video/')";
+// Deeper than this is a loop or not a company archive.
+const MAX_DEPTH = 32;
+
+async function driveGet(token: string, url: string, what: string): Promise<unknown> {
+  const res = await withTimeout(url, { headers: { authorization: `Bearer ${token}` } });
+  if (!res.ok) throw new Error(`drive ${what}: ${res.status}`);
+  return res.json();
+}
+
+async function driveList<T>(token: string, q: string, fields: string): Promise<T[]> {
+  const items: T[] = [];
   let pageToken: string | undefined;
   do {
     const params = new URLSearchParams({
-      q: `'${folderId}' in parents and trashed = false`,
-      fields: "nextPageToken, files(id, name, mimeType, size, createdTime)",
+      q,
+      fields: `nextPageToken, files(${fields})`,
       pageSize: "1000",
       supportsAllDrives: "true",
       includeItemsFromAllDrives: "true",
     });
     if (pageToken) params.set("pageToken", pageToken);
-    const res = await withTimeout(`${DRIVE}/files?${params}`, {
-      headers: { authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) throw new Error(`drive list: ${res.status}`);
-    const body = (await res.json()) as { files?: DriveFile[]; nextPageToken?: string };
-    files.push(...(body.files ?? []));
+    const body = (await driveGet(token, `${DRIVE}/files?${params}`, "list")) as {
+      files?: T[];
+      nextPageToken?: string;
+    };
+    items.push(...(body.files ?? []));
     pageToken = body.nextPageToken;
   } while (pageToken);
-  return files;
+  return items;
 }
 
-// Only recordings: the bot uploads audio; anything else in a folder (a note,
-// a sub-folder) is not part of the library.
+async function parentOf(token: string, folderId: string): Promise<string | null> {
+  const body = (await driveGet(
+    token,
+    `${DRIVE}/files/${folderId}?fields=parents&supportsAllDrives=true`,
+    "folder",
+  )) as { parents?: string[] };
+  return body.parents?.[0] ?? null;
+}
+
+// Only recordings: anything else in a folder (a note, a document) is not part
+// of the library.
 function isRecording(file: DriveFile): boolean {
   return file.mimeType.startsWith("audio/") || file.mimeType.startsWith("video/");
 }
 
-// Newest interview first — by the date in the name, else by upload time.
+type Place = { kind: RecordingKind; company: string | null };
+
+// Where a file sits: under which kind folder and which company folder — or
+// nowhere in the library (outside every kind folder, or still in the bot's
+// upload folder, waiting for review).
+function placeOf(
+  parentId: string | undefined,
+  folders: Map<string, DriveFolder>,
+  kindFolders: Map<string, RecordingKind>,
+  uploadFolders: Set<string>,
+): Place | null {
+  let below: DriveFolder | null = null; // the folder we came up from
+  let id = parentId;
+  for (let depth = 0; id && depth < MAX_DEPTH; depth++) {
+    if (uploadFolders.has(id)) return null;
+    const kind = kindFolders.get(id);
+    if (kind) return { kind, company: below?.name.trim() || null };
+    const folder = folders.get(id);
+    if (!folder) return null;
+    below = folder;
+    id = folder.parents?.[0];
+  }
+  return null;
+}
+
+// Newest interview first — by the date in the name; recordings without one
+// after them, by upload time. Not by upload time among the dated: most of the
+// archive was uploaded in one go (2026-03-27), long after the interviews.
 function byNewest(a: Recording, b: Recording): number {
-  const ka = a.date ?? a.uploadedAt.slice(0, 10);
-  const kb = b.date ?? b.uploadedAt.slice(0, 10);
-  return kb.localeCompare(ka) || b.uploadedAt.localeCompare(a.uploadedAt);
+  if (a.date && b.date) return b.date.localeCompare(a.date) || b.uploadedAt.localeCompare(a.uploadedAt);
+  if (a.date || b.date) return a.date ? -1 : 1;
+  return b.uploadedAt.localeCompare(a.uploadedAt);
 }
 
 export async function listRecordings(options: { fresh?: boolean } = {}): Promise<Recording[]> {
@@ -178,27 +248,44 @@ export async function listRecordings(options: { fresh?: boolean } = {}): Promise
   if (!options.fresh && held && Date.now() - held.at < LIST_TTL_MS) return held.recordings;
 
   const token = await accessToken(config.account);
-  const perFolder = await Promise.all(
-    config.folders.map(async ({ kind, folderId }) =>
-      (await listFolder(token, folderId)).filter(isRecording).map(
-        (file): Recording => ({
-          ...parseRecordingName(file.name),
-          id: file.id,
-          kind,
-          mimeType: file.mimeType,
-          size: file.size ? Number(file.size) : null,
-          uploadedAt: file.createdTime,
-        }),
-      ),
-    ),
-  );
-  const recordings = perFolder.flat().sort(byNewest);
+  // The kind folders first: an upload folder Drive does not know fails here,
+  // before the long lists start (they would page on after the failure).
+  const parents = await Promise.all(config.folders.map(({ folderId }) => parentOf(token, folderId)));
+  const [folders, files] = await Promise.all([
+    driveList<DriveFolder>(token, ALL_FOLDERS, "id, name, parents"),
+    driveList<DriveFile>(token, ALL_RECORDINGS, "id, name, mimeType, size, createdTime, parents"),
+  ]);
+  const kindFolders = new Map<string, RecordingKind>();
+  config.folders.forEach(({ kind }, i) => {
+    const parent = parents[i];
+    if (parent) kindFolders.set(parent, kind);
+  });
+  const uploadFolders = new Set(config.folders.map(({ folderId }) => folderId));
+  const folderById = new Map(folders.map((f) => [f.id, f]));
+
+  const recordings = files.filter(isRecording).flatMap((file): Recording[] => {
+    const place = placeOf(file.parents?.[0], folderById, kindFolders, uploadFolders);
+    if (!place) return [];
+    const named = parseRecordingName(file.name);
+    return [
+      {
+        ...named,
+        company: place.company ?? named.company,
+        id: file.id,
+        kind: place.kind,
+        mimeType: file.mimeType,
+        size: file.size ? Number(file.size) : null,
+        uploadedAt: file.createdTime,
+      },
+    ];
+  });
+  recordings.sort(byNewest);
   cache.list = { at: Date.now(), recordings };
   return recordings;
 }
 
-// A file id is served only if it is in the library: the service account may
-// be able to read more than these six folders one day.
+// A file id is served only if it is in the library: the service account reads
+// more than that (recordings waiting for review, other folders shared with it).
 export async function findRecording(id: string): Promise<Recording | null> {
   if (!FILE_ID.test(id)) return null;
   const inList = (list: Recording[]) => list.find((r) => r.id === id) ?? null;

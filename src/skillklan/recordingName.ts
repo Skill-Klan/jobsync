@@ -2,7 +2,9 @@
 // `дата - [спеціалізація - ]хто - компанія.ext` (buildInterviewUploadFileName
 // in the bot), e.g. `24.09.2026 - Mobile+API - Іван Петренко - Monobank.mp3`;
 // uploads before 2026-09-24 have no specialization, and the old chat upload
-// named files `компанія - ПІБ`. Anything else is shown as its raw name.
+// named files `компанія - ПІБ`. Anything else is shown as its raw name; the
+// archive's own names (`Імʼя_Прізвище_…_дд.мм.рр` and the like) still give a
+// date when one is in them.
 //
 // Pure — used by the server when it lists the library.
 
@@ -17,15 +19,26 @@ export type RecordingNameParts = {
 // The bot's specialization labels (interviewSpecialization.ts), joined by "+".
 const SPECIALIZATIONS = new Set(["Web", "Mobile", "API", "Desktop", "GameDev", "Інше", "Загальна"]);
 const DATE = /^(\d{2})\.(\d{2})\.(\d{4})$/;
+// Anywhere in the name, the year in four digits or two (`…_24.09.25`).
+const DATE_INSIDE = /(?:^|\D)(\d{2})\.(\d{2})\.(\d{4}|\d{2})(?!\d)/;
 
-function isoDate(part: string): string | null {
-  const m = DATE.exec(part);
-  if (!m) return null;
-  const [, dd, mm, yyyy] = m;
+function validIso(dd: string, mm: string, yyyy: string): string | null {
   const d = new Date(Date.UTC(Number(yyyy), Number(mm) - 1, Number(dd)));
   // 31.02 is not a date
   if (d.getUTCMonth() !== Number(mm) - 1 || d.getUTCDate() !== Number(dd)) return null;
   return `${yyyy}-${mm}-${dd}`;
+}
+
+function isoDate(part: string): string | null {
+  const m = DATE.exec(part);
+  return m ? validIso(m[1], m[2], m[3]) : null;
+}
+
+function dateInside(title: string): string | null {
+  const m = DATE_INSIDE.exec(title);
+  if (!m) return null;
+  const [, dd, mm, year] = m;
+  return validIso(dd, mm, year.length === 2 ? `20${year}` : year);
 }
 
 function specializationsOf(part: string): string[] | null {
@@ -36,7 +49,7 @@ function specializationsOf(part: string): string[] | null {
 export function parseRecordingName(fileName: string): RecordingNameParts {
   const title = fileName.replace(/\.[^./\\]{1,5}$/, "").trim();
   const parts = title.split(" - ").map((p) => p.trim());
-  const none: RecordingNameParts = { date: null, specializations: [], person: null, company: null, title };
+  const none: RecordingNameParts = { date: dateInside(title), specializations: [], person: null, company: null, title };
 
   const date = parts.length >= 3 ? isoDate(parts[0]) : null;
   if (date) {
