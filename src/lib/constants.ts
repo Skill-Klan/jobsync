@@ -399,6 +399,7 @@ export const SIDEBAR_LINKS: {
     icon: Zap,
     route: "/dashboard/automations",
     labelKey: "automations",
+    feature: "automations",
   },
   {
     icon: SquareCheckBig,
@@ -425,6 +426,7 @@ export const SIDEBAR_LINKS: {
     icon: Sheet,
     route: "/dashboard/admin",
     labelKey: "library",
+    feature: "library",
   },
   {
     icon: Wrench,

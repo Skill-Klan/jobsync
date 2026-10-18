@@ -6,6 +6,7 @@ import type { AutomationRun } from "@/models/automation.model";
 import { automationLogger } from "@/lib/automation-logger";
 import { formatError } from "./shared";
 import { getTranslations } from "@/i18n/server";
+import { isFeatureOff } from "@/skillklan/featureFlags";
 
 export async function getAutomationRuns(
   automationId: string,
@@ -60,6 +61,11 @@ export async function deleteAutomationRun(
   const t = await getTranslations("automations");
   try {
     const user = await requireUser();
+    // Automations switched off (Settings → «Функції»): a page opened before
+    // the switch went off still has its buttons — refuse here too.
+    if (await isFeatureOff("automations")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
 
     // Ownership check via automation -> userId
     const run = await db.automationRun.findFirst({

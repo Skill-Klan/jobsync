@@ -271,9 +271,17 @@
     "title": "Features",
     "description": "Turn parts of SkillKlan Job on or off for everyone. What is on, everyone sees; what is off, no one sees — you included. Only an administrator sees this section.",
     "items": {
+      "automations": {
+        "label": "Automations",
+        "description": "Scheduled job search: the Automations tab, “Add automation” on the dashboard, and notifications — they are only about automations. When off, automations do not run and what they found is kept — it is just not shown."
+      },
       "activities": {
         "label": "Activities",
         "description": "Time tracking: the Activities tab, the timer, “Start activity” in Tasks, and hours and the activity goal on the dashboard. When off, records are kept — they are just not shown."
+      },
+      "library": {
+        "label": "Library",
+        "description": "Lists of companies, job titles, locations, skills, contacts and more: the Library tab and company pages. When off, the lists still fill up from forms, but there is nowhere to view or clean them up."
       }
     },
     "saved": "Saved",

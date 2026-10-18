@@ -6,6 +6,7 @@ import { APP_CONSTANTS } from "@/lib/constants";
 import { canonicalizeEntityValue } from "@/lib/jobs/canonicalize";
 import { getReferenceEntityList } from "./referenceList";
 import { getTranslations } from "@/i18n/server";
+import { isFeatureOff } from "@/skillklan/featureFlags";
 
 export const getAllJobTitles = async (): Promise<any | undefined> => {
   try {
@@ -75,6 +76,11 @@ export const deleteJobTitleById = async (
   const t = await getTranslations("library");
   try {
     const user = await requireUser();
+    // Deleting happens only in the Library. Switched off (Settings →
+    // «Функції»): a page opened before still has its buttons — refuse here too.
+    if (await isFeatureOff("library")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
 
     const experiences = await prisma.workExperience.count({
       where: {

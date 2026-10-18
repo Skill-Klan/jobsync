@@ -9,6 +9,7 @@ import type {
 import { APP_CONSTANTS } from "@/lib/constants";
 import { formatError } from "./shared";
 import { getTranslations } from "@/i18n/server";
+import { isFeatureOff } from "@/skillklan/featureFlags";
 
 export async function getDiscoveredJobs(options?: {
   automationId?: string;
@@ -160,6 +161,11 @@ async function setDiscoveredJobStatus(
   const t = await getTranslations("automations");
   try {
     const user = await requireUser();
+    // Automations switched off (Settings → «Функції»): a page opened before
+    // the switch went off still has its buttons — refuse here too.
+    if (await isFeatureOff("automations")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
 
     const job = await db.job.findFirst({
       where: {
@@ -218,6 +224,10 @@ export async function clearDiscoveredJobs(options: {
   const t = await getTranslations("automations");
   try {
     const user = await requireUser();
+    // Automations switched off (Settings → «Функції»): refuse (see above).
+    if (await isFeatureOff("automations")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
 
     const { automationId, includeNew = false } = options;
     const statuses: DiscoveryStatus[] = includeNew

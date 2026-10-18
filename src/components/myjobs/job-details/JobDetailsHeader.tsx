@@ -25,6 +25,7 @@ import { JobResponse } from "@/models/job.model";
 import { CompanyLogo } from "../CompanyLogo";
 import { useJobTypeLabels } from "../useJobTypeLabels";
 import { useTranslations } from "@/i18n/client";
+import { useFeatures } from "@/context/FeaturesContext";
 
 type JobDetailsHeaderProps = {
   job: JobResponse;
@@ -53,6 +54,8 @@ export function JobDetailsHeader({
 }: JobDetailsHeaderProps) {
   const t = useTranslations("jobs");
   const types = useJobTypeLabels();
+  // The company page is part of the Library; off — the name is plain text (D76).
+  const { library } = useFeatures();
   const details = [
     job.Location?.label,
     types.jobType(job.jobType),
@@ -79,14 +82,17 @@ export function JobDetailsHeader({
         <div className="flex-1 min-w-0">
           <h1 className="text-2xl font-bold">{job.JobTitle?.label}</h1>
           <p className="text-muted-foreground">
-            {job.Company?.label && (
-              <Link
-                href={`/dashboard/admin/companies/${job.Company.id}`}
-                className="hover:text-foreground hover:underline underline-offset-4"
-              >
-                {job.Company.label}
-              </Link>
-            )}
+            {job.Company?.label &&
+              (library ? (
+                <Link
+                  href={`/dashboard/admin/companies/${job.Company.id}`}
+                  className="hover:text-foreground hover:underline underline-offset-4"
+                >
+                  {job.Company.label}
+                </Link>
+              ) : (
+                job.Company.label
+              ))}
             {job.Company?.label && details && " · "}
             {details}
           </p>

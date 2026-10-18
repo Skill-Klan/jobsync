@@ -78,6 +78,7 @@
     "review": "Review {count, plural, one {# new job} other {# new jobs}}"
   },
   "actions": {
+    "switchedOff": "Notifications are switched off together with automations. Reload the page.",
     "updateOne": "Failed to update notification.",
     "updateAll": "Failed to update notifications.",
     "deleteOne": "Failed to delete notification.",

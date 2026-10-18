@@ -6,6 +6,7 @@ import { ATS_BOARDS, type JobBoard } from "@/models/automation.model";
 import { log } from "@/lib/telemetry";
 import { pruneNotifications } from "@/lib/notifications/prune";
 import { pruneAiCalls } from "@/lib/aiUsage/prune";
+import { readFeatureFlags } from "@/skillklan/featureFlags";
 
 let scheduledTask: ScheduledTask | null = null;
 let pruneTask: ScheduledTask | null = null;
@@ -17,13 +18,23 @@ async function runPrunes() {
   await pruneAiCalls(now);
 }
 
-async function runDueAutomations() {
+// Exported for tests; in the app only the cron task calls it.
+export async function runDueAutomations() {
   const now = new Date();
   log.info("[Scheduler] Checking for due automations", {
     "scheduler.checked_at": now.toISOString(),
   });
 
   try {
+    // Automations switched off (Settings → «Функції»): nothing runs — no AI
+    // spent, no notifications for a hidden tab. Due automations keep their
+    // nextRunAt and run on the first check after the switch is back on.
+    // Uncached read: this runs outside any request.
+    if (!(await readFeatureFlags()).automations) {
+      log.info("[Scheduler] Automations switched off - skipping due automations");
+      return;
+    }
+
     const dueAutomations = await db.automation.findMany({
       where: {
         status: "active",

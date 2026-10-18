@@ -15,6 +15,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import UserAvatar from "./UserAvatar";
 import { SupportDialog } from "./SupportDialog";
 import { useNotifications } from "@/context/NotificationContext";
+import { useFeatures } from "@/context/FeaturesContext";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "@/i18n/client";
 import { LocaleSwitcher } from "./LocaleSwitcher";
@@ -32,6 +33,8 @@ export function ProfileDropdown({
 }: ProfileDropdownProps) {
   const [supportDialogOpen, setSupportDialogOpen] = useState(false);
   const { summary } = useNotifications();
+  // Notifications go with the Automations switch (D75).
+  const { automations } = useFeatures();
   const t = useTranslations("account");
   // Name first: people signed in from the cabinet carry a placeholder email
   // (src/skillklan/cabinetUser.ts) that means nothing to them.
@@ -86,22 +89,24 @@ export function ProfileDropdown({
               {t("settings")}
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/dashboard/notifications" className="cursor-pointer">
-              <Bell className="w-5 mr-2" />
-              <span className="flex-1">{t("notifications")}</span>
-              {summary.unread > 0 && (
-                <span
-                  className={cn(
-                    "ml-2 rounded-full px-1.5 text-[11px] font-semibold text-white",
-                    summary.unreadErrors > 0 ? "bg-destructive" : "bg-primary"
-                  )}
-                >
-                  {summary.unread}
-                </span>
-              )}
-            </Link>
-          </DropdownMenuItem>
+          {automations && (
+            <DropdownMenuItem asChild>
+              <Link href="/dashboard/notifications" className="cursor-pointer">
+                <Bell className="w-5 mr-2" />
+                <span className="flex-1">{t("notifications")}</span>
+                {summary.unread > 0 && (
+                  <span
+                    className={cn(
+                      "ml-2 rounded-full px-1.5 text-[11px] font-semibold text-white",
+                      summary.unreadErrors > 0 ? "bg-destructive" : "bg-primary"
+                    )}
+                  >
+                    {summary.unread}
+                  </span>
+                )}
+              </Link>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem
             onClick={() => setSupportDialogOpen(true)}
             className="cursor-pointer"

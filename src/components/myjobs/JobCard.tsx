@@ -19,6 +19,7 @@ import { JobStatusBadge } from "./JobStatusBadge";
 import { JobActionsMenu } from "./JobActionsMenu";
 import { MatchJobButton } from "./MatchJobButton";
 import { CompanyLogo } from "./CompanyLogo";
+import { useFeatures } from "@/context/FeaturesContext";
 
 type JobCardProps = {
   job: JobResponse;
@@ -41,6 +42,8 @@ export function JobCard({
   const label = useLabel();
   const formatDate = useFormatDate();
   const types = useJobTypeLabels();
+  // The company page is part of the Library; off — the name is plain text (D76).
+  const { library } = useFeatures();
   const notesCount = job._count?.Notes ?? 0;
 
   return (
@@ -68,7 +71,7 @@ export function JobCard({
               </Badge>
             )}
           </div>
-          {job.Company?.id ? (
+          {library && job.Company?.id ? (
             <Link
               href={`/dashboard/admin/companies/${job.Company.id}`}
               className="block truncate text-sm text-teal-600 underline-offset-4 hover:underline"

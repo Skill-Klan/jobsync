@@ -25,10 +25,22 @@ import {
   QUICK_ACTIONS_GRID,
 } from "./quickActionStyles";
 
+// The line above the buttons names only the ones that are shown.
+function descriptionKey(automations: boolean, activities: boolean) {
+  if (automations) {
+    return activities
+      ? "quickActions.description"
+      : "quickActions.descriptionWithoutActivities";
+  }
+  return activities
+    ? "quickActions.descriptionWithoutAutomations"
+    : "quickActions.descriptionWithoutAutomationsAndActivities";
+}
+
 export default function JobsAppliedCard() {
   const router = useRouter();
   const t = useTranslations("dashboard");
-  const { activities } = useFeatures();
+  const { activities, automations } = useFeatures();
   return (
     // Activities off: the hours card beside it is gone — take the whole row.
     <Card
@@ -40,9 +52,7 @@ export default function JobsAppliedCard() {
       <CardHeader className="pb-3">
         <CardTitle className="text-lg text-green-600">{t("title")}</CardTitle>
         <CardDescription className="max-w-lg text-balance leading-relaxed">
-          {activities
-            ? t("quickActions.description")
-            : t("quickActions.descriptionWithoutActivities")}
+          {t(descriptionKey(automations, activities))}
         </CardDescription>
       </CardHeader>
       <CardFooter className={QUICK_ACTIONS_GRID}>
@@ -54,16 +64,18 @@ export default function JobsAppliedCard() {
           <BriefcaseBusiness className="h-3.5 w-3.5 shrink-0" />
           <span className={QUICK_ACTION_LABEL}>{t("quickActions.addJob")}</span>
         </Button>
-        <Button
-          variant="outline"
-          className={QUICK_ACTION_BUTTON}
-          onClick={() =>
-            router.push("/dashboard/automations?add-automation=true")
-          }
-        >
-          <Zap className="h-3.5 w-3.5 shrink-0" />
-          <span className={QUICK_ACTION_LABEL}>{t("quickActions.addAutomation")}</span>
-        </Button>
+        {automations && (
+          <Button
+            variant="outline"
+            className={QUICK_ACTION_BUTTON}
+            onClick={() =>
+              router.push("/dashboard/automations?add-automation=true")
+            }
+          >
+            <Zap className="h-3.5 w-3.5 shrink-0" />
+            <span className={QUICK_ACTION_LABEL}>{t("quickActions.addAutomation")}</span>
+          </Button>
+        )}
         <Button
           variant="outline"
           className={QUICK_ACTION_BUTTON}

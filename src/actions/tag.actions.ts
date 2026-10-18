@@ -5,6 +5,7 @@ import { requireUser } from "./shared";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { resolveTag as resolveTagCore } from "@/lib/jobs/resolve";
 import { getTranslations } from "@/i18n/server";
+import { isFeatureOff } from "@/skillklan/featureFlags";
 
 export const getAllTags = async (): Promise<any | undefined> => {
   try {
@@ -80,6 +81,11 @@ export const deleteTagById = async (
   const t = await getTranslations("library");
   try {
     const user = await requireUser();
+    // Deleting happens only in the Library. Switched off (Settings →
+    // «Функції»): a page opened before still has its buttons — refuse here too.
+    if (await isFeatureOff("library")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
 
     const [jobs, questions, skills] = await Promise.all([
       prisma.job.count({ where: { tags: { some: { id: tagId } } } }),

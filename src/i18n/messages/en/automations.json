@@ -369,6 +369,7 @@
     "locationNotScored": "not scored"
   },
   "errors": {
+    "switchedOff": "Automations are switched off. Reload the page.",
     "listFailed": "Failed to get automations list",
     "notFound": "Automation not found",
     "getFailed": "Failed to get automation",

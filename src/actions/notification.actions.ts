@@ -7,6 +7,7 @@ import { requireUser } from "@/actions/shared";
 import { NOTIFICATION_CONSTANTS } from "@/lib/constants";
 import { notificationCutoff } from "@/lib/notifications/prune";
 import { getTranslations } from "@/i18n/server";
+import { isFeatureOff } from "@/skillklan/featureFlags";
 import type {
   NotificationItem,
   NotificationTab,
@@ -37,6 +38,15 @@ function tabWhere(tab: NotificationTab): Prisma.NotificationWhereInput {
 
 function toItems(rows: Array<{ payload: string } & Record<string, unknown>>) {
   return rows.map((r) => ({ ...r, payload: JSON.parse(r.payload) })) as NotificationItem[];
+}
+
+// Notifications go with the Automations switch (Settings → «Функції», D75): a
+// page opened before the switch went off still has its buttons, so every
+// change refuses here too. Null — switched on, go ahead.
+async function refuseWhileSwitchedOff() {
+  if (!(await isFeatureOff("automations"))) return null;
+  const t = await getTranslations("notifications.actions");
+  return { success: false as const, message: t("switchedOff") };
 }
 
 export async function getNotificationSummary() {
@@ -137,6 +147,8 @@ export async function getNotificationFilterOptions() {
 export async function markNotificationRead(id: string) {
   try {
     const user = await requireUser();
+    const refused = await refuseWhileSwitchedOff();
+    if (refused) return refused;
     await db.notification.updateMany({
       where: { id, userId: user.id, readAt: null },
       data: { readAt: new Date() },
@@ -150,6 +162,8 @@ export async function markNotificationRead(id: string) {
 export async function markAllNotificationsRead() {
   try {
     const user = await requireUser();
+    const refused = await refuseWhileSwitchedOff();
+    if (refused) return refused;
     await db.notification.updateMany({
       where: { userId: user.id, readAt: null },
       data: { readAt: new Date() },
@@ -164,6 +178,8 @@ export async function markAllNotificationsRead() {
 export async function dismissNotification(id: string) {
   try {
     const user = await requireUser();
+    const refused = await refuseWhileSwitchedOff();
+    if (refused) return refused;
     const now = new Date();
     await db.notification.updateMany({
       where: { id, userId: user.id },
@@ -179,6 +195,8 @@ export async function dismissNotification(id: string) {
 export async function dismissAllNotifications() {
   try {
     const user = await requireUser();
+    const refused = await refuseWhileSwitchedOff();
+    if (refused) return refused;
     const now = new Date();
     await db.notification.updateMany({
       where: { userId: user.id, dismissedAt: null },
@@ -193,6 +211,8 @@ export async function dismissAllNotifications() {
 export async function deleteNotification(id: string) {
   try {
     const user = await requireUser();
+    const refused = await refuseWhileSwitchedOff();
+    if (refused) return refused;
     await db.notification.deleteMany({ where: { id, userId: user.id } });
     return { success: true };
   } catch (error) {
@@ -203,6 +223,8 @@ export async function deleteNotification(id: string) {
 export async function clearReadNotifications() {
   try {
     const user = await requireUser();
+    const refused = await refuseWhileSwitchedOff();
+    if (refused) return refused;
     await db.notification.deleteMany({
       where: { userId: user.id, readAt: { not: null } },
     });

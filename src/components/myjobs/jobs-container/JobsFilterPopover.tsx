@@ -14,6 +14,7 @@ import {
 import { JobFacets, JobListScope, JobStatus } from "@/models/job.model";
 import { useJobFilterCounts } from "./useJobFilterCounts";
 import { useLabel, useTranslations } from "@/i18n/client";
+import { useFeatures } from "@/context/FeaturesContext";
 import {
   JOB_TYPE_CODES,
   WORKPLACE_CODES,
@@ -55,12 +56,16 @@ export function JobsFilterPopover({
   });
   const active = countJobFacets(facets);
 
+  // Automations off (Settings → «Функції», D73): the two filters about jobs
+  // found by an automation — "accepted" and "show dismissed" — are gone too.
+  const { automations } = useFeatures();
+
   const orderedStatuses = [...statuses].sort(
     (a, b) => STATUS_ORDER.indexOf(a.value) - STATUS_ORDER.indexOf(b.value),
   );
   const allStatusesPicked =
     orderedStatuses.every((s) => draft.statuses.includes(s.value)) &&
-    draft.acceptedDiscovered;
+    (!automations || draft.acceptedDiscovered);
 
   const onOpenChange = (next: boolean) => {
     // Re-seed on every open so a closed-without-apply draft is discarded.
@@ -80,7 +85,8 @@ export function JobsFilterPopover({
         : {
             ...d,
             statuses: orderedStatuses.map((s) => s.value),
-            acceptedDiscovered: true,
+            // Not a hidden filter switched on behind the person's back.
+            acceptedDiscovered: automations,
           },
     );
 
@@ -191,17 +197,18 @@ export function JobsFilterPopover({
                     })),
                 ),
               )}
-              {statusRow(
-                "accepted",
-                t("filters.accepted"),
-                draft.acceptedDiscovered,
-                counts?.acceptedDiscovered,
-                () =>
-                  setDraft((d) => ({
-                    ...d,
-                    acceptedDiscovered: !d.acceptedDiscovered,
-                  })),
-              )}
+              {automations &&
+                statusRow(
+                  "accepted",
+                  t("filters.accepted"),
+                  draft.acceptedDiscovered,
+                  counts?.acceptedDiscovered,
+                  () =>
+                    setDraft((d) => ({
+                      ...d,
+                      acceptedDiscovered: !d.acceptedDiscovered,
+                    })),
+                )}
             </div>
           </div>
           <div className="flex flex-col gap-2.5 border-b px-4 py-3">
@@ -219,18 +226,20 @@ export function JobsFilterPopover({
               })),
             )}
           </div>
-          <label className="flex cursor-pointer items-center gap-2 border-b px-4 py-3 text-[13px]">
-            <input
-              type="checkbox"
-              className="h-4 w-4 shrink-0"
-              aria-label={t("filters.includeDismissed")}
-              checked={draft.includeDismissed}
-              onChange={() =>
-                setDraft((d) => ({ ...d, includeDismissed: !d.includeDismissed }))
-              }
-            />
-            <span>{t("filters.includeDismissed")}</span>
-          </label>
+          {automations && (
+            <label className="flex cursor-pointer items-center gap-2 border-b px-4 py-3 text-[13px]">
+              <input
+                type="checkbox"
+                className="h-4 w-4 shrink-0"
+                aria-label={t("filters.includeDismissed")}
+                checked={draft.includeDismissed}
+                onChange={() =>
+                  setDraft((d) => ({ ...d, includeDismissed: !d.includeDismissed }))
+                }
+              />
+              <span>{t("filters.includeDismissed")}</span>
+            </label>
+          )}
         </div>
         <div className="flex items-center justify-between px-4 py-3">
           <Button

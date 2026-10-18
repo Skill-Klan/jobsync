@@ -14,6 +14,8 @@ import { AiProvider } from "@/models/ai.model";
 import { isRetiredBoard, type JobBoard } from "@/models/automation.model";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { log } from "@/lib/telemetry";
+import { isFeatureOff } from "@/skillklan/featureFlags";
+import { getTranslations } from "@/i18n/server";
 
 const recentRuns = new Map<string, number[]>();
 
@@ -42,6 +44,13 @@ export async function POST(
 
   if (!session || !userId) {
     return NextResponse.json({ message: "Not Authenticated" }, { status: 401 });
+  }
+
+  // Automations switched off (Settings → «Функції»): a page opened before the
+  // switch went off still has its Run button — refuse here too.
+  if (await isFeatureOff("automations")) {
+    const t = await getTranslations("automations");
+    return NextResponse.json({ message: t("errors.switchedOff") }, { status: 403 });
   }
 
   const { id: automationId } = await params;

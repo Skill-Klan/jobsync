@@ -85,7 +85,8 @@ async function Header() {
         /> */}
       </div>
 
-      <NotificationBell />
+      {/* Every notification is about an automation run (D75). */}
+      {features.automations && <NotificationBell />}
       <AgentChatTrigger />
     </header>
   );

@@ -1,8 +1,9 @@
 // @vitest-environment node
 // Requirement — the owner, 2026-10-16: feature switches in Settings → «Функції»,
 // "and only the admin may manage them; for everyone else such settings are
-// not shown". Activities is the first switch, and it starts off.
-//   · no row in the database → Activities off (the launch state);
+// not shown". Activities is the first switch, and it starts off; 2026-10-18
+// (D73, D74) Automations and the Library join it, off at launch too.
+//   · no row in the database → all three off (the launch state);
 //   · an admin turns a switch on or off for everyone; who did it is kept;
 //   · "admin" is the backend's answer at the moment of the change — not the
 //     session's: a token minted before a demotion still says admin, and a
@@ -67,11 +68,15 @@ afterAll(async () => {
 
 const rows = () => prisma.featureToggle.findMany();
 
+const OFF = { automations: false, activities: false, library: false };
+
 describe("launch state", () => {
-  it("no row → Activities off for everyone", async () => {
-    await expect(readFeatureFlags()).resolves.toEqual({ activities: false });
-    // What the activity actions ask before every change (they refuse when off).
+  it("no row → Automations, Activities and the Library off for everyone", async () => {
+    await expect(readFeatureFlags()).resolves.toEqual(OFF);
+    // What the actions ask before every change (they refuse when off).
+    await expect(isFeatureOff("automations")).resolves.toBe(true);
     await expect(isFeatureOff("activities")).resolves.toBe(true);
+    await expect(isFeatureOff("library")).resolves.toBe(true);
   });
 });
 
@@ -81,13 +86,13 @@ describe("an admin, confirmed by the backend now", () => {
   it("turns Activities on for everyone — stored with who did it; menus re-render", async () => {
     await expect(setFeatureEnabled("activities", true)).resolves.toEqual({
       success: true,
-      data: { activities: true },
+      data: { ...OFF, activities: true },
     });
     expect(ctx.access).toHaveBeenCalledWith(ADMIN_CABINET_ID);
     expect(await rows()).toMatchObject([
       { key: "activities", enabled: true, updatedByCabinetUserId: ADMIN_CABINET_ID },
     ]);
-    await expect(readFeatureFlags()).resolves.toEqual({ activities: true });
+    await expect(readFeatureFlags()).resolves.toEqual({ ...OFF, activities: true });
     await expect(isFeatureOff("activities")).resolves.toBe(false);
     expect(ctx.revalidate).toHaveBeenCalledWith("/dashboard", "layout");
   });
@@ -100,6 +105,20 @@ describe("an admin, confirmed by the backend now", () => {
     });
     expect(await rows()).toMatchObject([{ key: "activities", enabled: false }]);
   });
+
+  it.each(["automations", "library"] as const)(
+    "turns %s on for everyone — that switch only, the others stay off",
+    async (key) => {
+      await expect(setFeatureEnabled(key, true)).resolves.toEqual({
+        success: true,
+        data: { ...OFF, [key]: true },
+      });
+      expect(await rows()).toMatchObject([
+        { key, enabled: true, updatedByCabinetUserId: ADMIN_CABINET_ID },
+      ]);
+      await expect(isFeatureOff(key)).resolves.toBe(false);
+    },
+  );
 });
 
 describe("refused, nothing written", () => {
@@ -135,7 +154,7 @@ describe("refused, nothing written", () => {
   });
 
   it.each([
-    ["a switch that is not in the list", "automations", true],
+    ["a switch that is not in the list", "interviews", true],
     ["a name from the object prototype", "toString", true],
     ["not a boolean", "activities", "false"],
   ])("%s — refused before asking the backend", async (_label, key, enabled) => {

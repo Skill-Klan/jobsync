@@ -24,6 +24,7 @@ import { TooltipProvider } from "../ui/tooltip";
 import { JobActionsMenu } from "./JobActionsMenu";
 import { MatchJobButton } from "./MatchJobButton";
 import { CompanyLogo } from "./CompanyLogo";
+import { useFeatures } from "@/context/FeaturesContext";
 
 type MyJobsTableProps = {
   jobs: JobResponse[];
@@ -50,6 +51,8 @@ function MyJobsTable({
   const label = useLabel();
   const formatDate = useFormatDate();
   const types = useJobTypeLabels();
+  // The company page is part of the Library; off — the name is plain text (D76).
+  const { library } = useFeatures();
   const [alertOpen, setAlertOpen] = useState(false);
   const [jobIdToDelete, setJobIdToDelete] = useState("");
 
@@ -162,7 +165,7 @@ function MyJobsTable({
                   </span>
                 </TableCell>
                 <TableCell className="font-medium max-w-[100px] md:max-w-[160px]">
-                  {job.Company?.id ? (
+                  {library && job.Company?.id ? (
                     <Link
                       href={`/dashboard/admin/companies/${job.Company.id}`}
                       className="block truncate text-teal-600 underline-offset-4 hover:underline"

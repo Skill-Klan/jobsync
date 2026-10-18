@@ -1,7 +1,12 @@
+import { notFound } from "next/navigation";
 import { getNotificationFilterOptions, getNotificationList } from "@/actions/notification.actions";
 import { NotificationsContainer } from "@/components/notifications/NotificationsContainer";
+import { getFeatureFlags } from "@/skillklan/featureFlags";
 
 export default async function NotificationsPage() {
+  // Every notification is about an automation run, so they go with the
+  // Automations switch (owner 2026-10-18, D75).
+  if (!(await getFeatureFlags()).automations) notFound();
   const [list, options] = await Promise.all([
     getNotificationList({ tab: "all" }),
     getNotificationFilterOptions(),

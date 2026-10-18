@@ -11,11 +11,21 @@
 // Pure and shared by server and browser code: the server resolves the flags,
 // the dashboard layout hands them to the browser (src/context/FeaturesContext).
 
+// In menu order: Settings → «Функції» lists the switches in this order.
 export const FEATURES = {
+  // Scheduled job search: the Automations tab and pages, "add automation" on
+  // the dashboard, the scheduler's runs, and notifications — the bell, the
+  // Notifications page and its menu item, since every notification is about
+  // an automation run (owner 2026-10-18, D75). Off at launch (D74).
+  automations: { default: false },
   // Time tracking: the Activities tab and page, the running-activity banner,
   // "start activity" in Tasks, and the dashboard's hours, activity chart,
   // activity calendar, activity goal and recent activities. Off at launch.
   activities: { default: false },
+  // The Library tab (/dashboard/admin) and company pages; company names in
+  // job lists and details stop being links (D76). The lists themselves keep
+  // filling up from forms — creating on the fly stays open. Off at launch (D74).
+  library: { default: false },
 } as const;
 
 export type FeatureKey = keyof typeof FEATURES;

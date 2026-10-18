@@ -15,6 +15,7 @@ import { APP_CONSTANTS } from "@/lib/constants";
 import { syncSchedulerState } from "@/lib/scheduler";
 import { formatError } from "./shared";
 import { getTranslations } from "@/i18n/server";
+import { isFeatureOff } from "@/skillklan/featureFlags";
 
 export async function createAutomation(input: CreateAutomationInput): Promise<{
   success: boolean;
@@ -24,6 +25,11 @@ export async function createAutomation(input: CreateAutomationInput): Promise<{
   const t = await getTranslations("automations");
   try {
     const user = await requireUser();
+    // Automations switched off (Settings → «Функції»): a page opened before
+    // the switch went off still has its buttons — refuse here too.
+    if (await isFeatureOff("automations")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
 
     const validated = CreateAutomationSchema.parse(input);
 
@@ -111,6 +117,11 @@ export async function updateAutomation(
   const t = await getTranslations("automations");
   try {
     const user = await requireUser();
+    // Automations switched off (Settings → «Функції»): a page opened before
+    // the switch went off still has its buttons — refuse here too.
+    if (await isFeatureOff("automations")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
 
     const validated = UpdateAutomationSchema.parse(input);
 
@@ -202,6 +213,11 @@ export async function deleteAutomation(id: string): Promise<{
   const t = await getTranslations("automations");
   try {
     const user = await requireUser();
+    // Automations switched off (Settings → «Функції»): a page opened before
+    // the switch went off still has its buttons — refuse here too.
+    if (await isFeatureOff("automations")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
 
     const automation = await db.automation.findFirst({
       where: { id, userId: user.id },
@@ -229,6 +245,11 @@ export async function pauseAutomation(id: string): Promise<{
   const t = await getTranslations("automations");
   try {
     const user = await requireUser();
+    // Automations switched off (Settings → «Функції»): a page opened before
+    // the switch went off still has its buttons — refuse here too.
+    if (await isFeatureOff("automations")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
 
     const automation = await db.automation.findFirst({
       where: { id, userId: user.id },
@@ -270,6 +291,11 @@ export async function resumeAutomation(id: string): Promise<{
   const t = await getTranslations("automations");
   try {
     const user = await requireUser();
+    // Automations switched off (Settings → «Функції»): a page opened before
+    // the switch went off still has its buttons — refuse here too.
+    if (await isFeatureOff("automations")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
 
     const automation = await db.automation.findFirst({
       where: { id, userId: user.id },

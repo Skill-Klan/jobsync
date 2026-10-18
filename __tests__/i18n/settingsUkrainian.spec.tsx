@@ -105,12 +105,18 @@ describe("Settings in Ukrainian", () => {
     expect(container.textContent).not.toMatch(ENGLISH);
   });
 
-  it("«Функції» (admins only): the section and the Activities switch in Ukrainian", async () => {
+  it("«Функції» (admins only): the section and its three switches in Ukrainian, in menu order", async () => {
     const user = userEvent.setup();
-    const { container } = render(<Settings features={{ activities: false }} />);
+    const { container } = render(
+      <Settings features={{ automations: false, activities: false, library: false }} />,
+    );
     await user.click(screen.getByRole("button", { name: "Функції" }));
     expect(screen.getByRole("heading", { name: "Функції" })).toBeInTheDocument();
-    expect(screen.getByRole("switch", { name: "Активності" })).toBeInTheDocument();
+    // D73: Automations and the Library join Activities.
+    expect(screen.getAllByRole("switch")).toHaveLength(3);
+    for (const name of ["Автопошук", "Активності", "Довідники"]) {
+      expect(screen.getByRole("switch", { name })).toBeInTheDocument();
+    }
     expect(container.textContent).not.toMatch(ENGLISH);
   });
 

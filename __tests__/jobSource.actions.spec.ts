@@ -9,6 +9,8 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+// The SkillKlan feature switches are tested in __tests__/skillklan/*Switch*; here they are all on.
+vi.mock("@/skillklan/featureFlags", () => ({ isFeatureOff: vi.fn(async () => false) }));
 vi.mock("@prisma/client", () => {
   const mPrismaClient = {
     jobSource: {

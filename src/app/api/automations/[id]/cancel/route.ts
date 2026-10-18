@@ -4,6 +4,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import db from "@/lib/db";
 import { automationLogger } from "@/lib/automation-logger";
+import { isFeatureOff } from "@/skillklan/featureFlags";
+import { getTranslations } from "@/i18n/server";
 
 export async function POST(
   req: NextRequest,
@@ -14,6 +16,12 @@ export async function POST(
 
   if (!session || !userId) {
     return NextResponse.json({ message: "Not Authenticated" }, { status: 401 });
+  }
+
+  // Automations switched off (Settings → «Функції»): refuse, as /run does.
+  if (await isFeatureOff("automations")) {
+    const t = await getTranslations("automations");
+    return NextResponse.json({ message: t("errors.switchedOff") }, { status: 403 });
   }
 
   const { id: automationId } = await params;
