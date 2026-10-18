@@ -6,6 +6,32 @@ SkillKlan Job is developed independently since 2026-10-14 (see the README). Its 
 each publishes `ghcr.io/skill-klan/jobsync`, deployed **by digest** after the owner's confirmation in Telegram.
 The upstream JobSync history below ends at 1.1.22.
 
+### sk-0.6.1 (2026-10-18) — `586a434`, `sha256:41bd8c3a…6f7fb`
+
+* Searched in Ukrainian → a hint to try English too: most names are in Latin letters (127 of 135 company folders —
+  «PrivatBank», not «ПриватБанк»). The company list says the same when it finds nothing in Ukrainian, and opens with
+  an empty search after a pick.
+* **«Кабінет» in the menu** (side and phone): back to the SkillKlan cabinet in this same tab. The cabinet now opens
+  SkillKlan Job in its own tab (cabinet `fa091cb`) — `/auth/cabinet` answers 303 → `/dashboard`, so Back returns to the
+  cabinet too. The sign-in page's link to the cabinet is checked the same way (an http(s) `CABINET_URL` only).
+
+### sk-0.6.0 (2026-10-18) — `721de50`, `sha256:4db7288b…addb9`
+
+* «Співбесіди» opens **by company**: one folder per company, however it is spelled in different Drive folders; the
+  most recorded first, or A–Z; inside, the recordings by stage — recruiter → technical → manager — with a candidate's
+  sub-folder nested. «All recordings» is the plain list.
+* **Filters**: direction (QA / BA), stage (several at once), company (a searchable list) and search; each option
+  shows how many recordings it gives. The filters live in the page address, so a link opens the same selection.
+* On a phone a row is the date, kind and ▶ on top, the name in full below.
+
+### sk-0.5.1 (2026-10-18) — `a745ffc`, `sha256:30786596…8e706`
+
+* The recordings library is **every reviewed recording**: the QA and BA company folders, not only the bot's
+  «pending for review» folders (279 recordings instead of 4); recordings waiting for review are not shown or served.
+  Company from its folder; dates also from the archive's own names (`…_дд.мм.рр`); undated ones after the dated.
+* Deploy: deploying the digest that is already running redeploys it when `app.env` changed (the wrapper keeps the
+  file's sha256, never the values) — new settings, like the recordings key, reach the container.
+
 ### sk-0.5.0 (2026-10-16) — `43097d4`, `sha256:46b397db…bd3c8`
 
 * «Співбесіди» is the **interview recordings library**: every recording students upload through the SkillKlan
