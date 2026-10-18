@@ -16,6 +16,7 @@ import StaleSessionSignOut from "@/components/StaleSessionSignOut";
 import { signOut } from "@/auth";
 import { FeaturesProvider } from "@/context/FeaturesContext";
 import { getFeatureFlags } from "@/skillklan/featureFlags";
+import { cabinetLink } from "@/skillklan/cabinetLink";
 
 export default async function RootLayout({
   children,
@@ -53,7 +54,7 @@ export default async function RootLayout({
             <NotificationProvider>
               <AgentChatProvider initialMessages={conversation.data ?? []}>
                 <div className="flex min-h-screen w-full flex-col bg-muted/40">
-                  <Sidebar user={user} signOutAction={signOutAction} />
+                  <Sidebar user={user} signOutAction={signOutAction} cabinetUrl={cabinetLink()} />
                   <SidebarInset>
                     <Header />
                     {features.activities && <GlobalActivityBanner />}

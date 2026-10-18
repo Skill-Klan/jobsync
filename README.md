@@ -15,7 +15,9 @@ MIT License (see [`LICENSE`](./LICENSE), which must stay in this repository and 
   `AUTH_SECRET` and `ENCRYPTION_KEY`.
 - **Sign-in through the SkillKlan cabinet** ([`src/skillklan/`](./src/skillklan/)): the cabinet posts a
   one-time code to `/auth/cabinet`, the server trades it at the SkillKlan backend and re-checks access at
-  least every 5 minutes (fail closed). Own sign-up and password sign-in are off in production builds.
+  least every 5 minutes (fail closed). Own sign-up and password sign-in are off in production builds. The cabinet
+  opens SkillKlan Job in its own tab (`/auth/cabinet` answers 303 → `/dashboard`, so Back returns to the cabinet),
+  and the menu has «Кабінет» back to `CABINET_URL` (an http(s) address only; unset → no item).
 - **Ukrainian interface** with an English switch; the MCP server is removed.
 - **SkillKlan admin API** — numbers for the admin pages of the SkillKlan cabinet (see below).
 - **Feature switches** — an admin turns parts of the app on or off for everyone in Settings → «Функції»
