@@ -27,7 +27,7 @@ SECRET="s3cr3t-$RANDOM-$RANDOM"
 start_stub() {
   rm -f "$work/port" "$work/requests.log"
   STUB_SECRET="$SECRET" STUB_DECISION="$1" STUB_DIR="$work" python3 - <<'PY' &
-import http.server, json, os
+import http.server, json, os, re
 secret, decision, d = os.environ["STUB_SECRET"], os.environ["STUB_DECISION"], os.environ["STUB_DIR"]
 class H(http.server.BaseHTTPRequestHandler):
     def log_message(self, *a): pass
@@ -41,8 +41,10 @@ class H(http.server.BaseHTTPRequestHandler):
             f.write(f"{self.command} {self.path} secret={'ok' if ok else 'wrong'}\n")
         return ok
     def do_POST(self):
-        self.rfile.read(int(self.headers.get("Content-Length", 0)))
+        body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
         if not self.note(): return self.answer(401, {"ok": False})
+        # Як бот (isValidGateId): лише [A-Za-z0-9-]{1,40}, інакше 400.
+        if not re.fullmatch(r"[A-Za-z0-9-]{1,40}", str(body.get("gateId", ""))): return self.answer(400, {"ok": False})
         self.answer(202, {"ok": True})
     def do_GET(self):
         if not self.note(): return self.answer(401, {"ok": False})
@@ -61,12 +63,12 @@ stop_stub() {
   stub_pid=""
 }
 
-# run_gate <файл секрету або ""> — запускає гейт без DEPLOY_GATE_SECRET у env; лог — у $work/out
+# run_gate <файл секрету або ""> [GATE_ID] — запускає гейт без DEPLOY_GATE_SECRET у env; лог — у $work/out
 run_gate() {
   env -i PATH="$PATH" HOME="$work" \
     DEPLOY_GATE_SECRET_FILE="$1" \
     DEPLOY_GATE_URL="http://127.0.0.1:$(cat "$work/port" 2>/dev/null || echo 9)/gate" \
-    GATE_ID="test-1" GATE_REPO="r" GATE_SHA="abc" GATE_ACTOR="someone" GATE_MESSAGE="m" \
+    GATE_ID="${2:-test-1}" GATE_REPO="r" GATE_SHA="abc" GATE_ACTOR="someone" GATE_MESSAGE="m" \
     GATE_TTL_SEC=5 GATE_POLL_SEC=0 \
     bash "$script" > "$work/out" 2>&1
 }
@@ -105,6 +107,11 @@ run_gate "$work/wrong.env"; code=$?
 check "чужий секрет → бот 401 → не 0, без опитування" '[ "$code" -ne 0 ] && grep -q "не прийняв секрет" "$work/out" && ! grep -q "^GET" "$work/requests.log"'
 stop_stub
 
+start_stub approved
+run_gate "$work/bot.env" "web_app-123-1"; code=$?
+check "GATE_ID з підкресленням → не 0, причина названа, до бота не ходили" '[ "$code" -ne 0 ] && grep -q "не підходить" "$work/out" && [ ! -s "$work/requests.log" ]'
+stop_stub
+
 printf 'OTHER=1\n' > "$work/empty.env"
 start_stub approved
 run_gate "$work/empty.env"; code=$?
@@ -116,8 +123,8 @@ check "файла немає → не 0" '[ "$code" -ne 0 ] && grep -q "не з�
 stop_stub
 
 # Якір «обхід дійшов».
-if [ "$ran" -ne 8 ]; then
-  echo "FAIL — виконано ${ran} перевірок замість 8"
+if [ "$ran" -ne 9 ]; then
+  echo "FAIL — виконано ${ran} перевірок замість 9"
   fails=$((fails + 1))
 fi
 

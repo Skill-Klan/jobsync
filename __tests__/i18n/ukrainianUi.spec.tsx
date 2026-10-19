@@ -1,5 +1,5 @@
 // Requirement — D29 (Ukrainian by default, English on a switch) and D30 (the
-// glossary agreed by the owner, _projects-base jobsync-глосарій): the menu, the
+// glossary agreed by the owner, kept in the team notes): the menu, the
 // user menu and the sign-in page speak Ukrainian with exactly these words; the
 // user menu offers both languages and stores the choice.
 import { render, screen, within } from "@testing-library/react";

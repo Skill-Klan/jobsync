@@ -2,9 +2,22 @@
 
 ## SkillKlan releases
 
-SkillKlan Job is developed independently since 2026-10-14 (see the README). Its releases are the `sk-*` tags:
-each publishes `ghcr.io/skill-klan/jobsync`, deployed **by digest** after the owner's confirmation in Telegram.
-The upstream JobSync history below ends at 1.1.22.
+SkillKlan Job is developed independently since 2026-10-14 (see the README). **Since 2026-10-19 every push into
+`main` is a release:** lint, tests and the image smoke test pass, the tested image is published to
+`ghcr.io/skill-klan/jobsync` (tags `sha-<commit>` and `main`) and deployed **by digest** — the owner's pushes right
+away, anyone else's after the owner's confirmation in Telegram. Those entries are by date and commit. Before that,
+releases were the `sk-*` tags (sk-0.1.0 … sk-0.8.1), each confirmed in Telegram. The upstream JobSync history below
+ends at 1.1.22.
+
+### 2026-10-19 — `3058bc4`, `sha256:978de04f…40211`
+
+* **A push into `main` is the release.** Lint and tests, the deploy scripts and the image build with its smoke
+  test run in parallel; the image that passed smoke goes to Server2 by its digest. No tag and no second build of the
+  same image: from push to production ~9 minutes.
+* **The Telegram button only for others:** a push or merge by a login in the repository variable
+  `DEPLOY_TRUSTED_ACTORS` deploys without it, anyone else's waits for the owner's press. A manual run of
+  «SkillKlan deploy» with a digest still redeploys or rolls back; tick «ask» to get the button anyway.
+* The app itself did not change in this release.
 
 ### sk-0.8.1 (2026-10-19) — `7a891cc`, `sha256:2bbbd7a0…08b0d`
 
