@@ -1,21 +1,25 @@
-# skillklan: збірка й публікація образу. Перевірки вимог до образу на кожен PR у main, публікація —
-# лише на тег `sk-*`, і на сервер іде саме той образ, що пройшов smoke-тест. (Апстрімні release.yml
-# і wiki.yml видалено 2026-10-14 — репозиторій більше не підтягує апстрім.)
+# skillklan: збірка, публікація й викладка образу. На PR у main — збірка й перевірки вимог до образу.
+# На push у main (рішення власника 2026-10-19: «пуш → CI → прод», без тегу й другої збірки) — паралельно
+# lint/тести (ci.yml), скрипти деплою (skillklan-deploy-scripts.yml) і збірка зі smoke-тестом; образ, що
+# пройшов smoke, публікується, і саме його digest іде на Server2 (skillklan-deploy.yml). Пушив власник —
+# без кнопки; будь-хто інший — кнопка в Telegram. (Апстрімні release.yml і wiki.yml видалено 2026-10-14.)
 name: SkillKlan image
 
 on:
   pull_request:
     branches: [main]
   push:
-    tags: ["sk-*"]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
+# PR: новий пуш скасовує застарілий прогін. main: НЕ скасовує — прогін міг бути посеред викладки;
+# наступний чекає, а третій пуш заміщає того, хто чекає (найновіший коміт однаково доїде).
 concurrency:
   group: sk-image-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   IMAGE: ghcr.io/skill-klan/jobsync
@@ -47,13 +51,16 @@ jobs:
           fi
           echo "OK: smoke test fails on upstream, as it must"
 
+  # Паралельно з перевірками вище, а не після них: вони гейтять викладку (deploy), а не збірку —
+  # так від пушу до проду на ~3 хв менше.
   image:
     name: Build, smoke, publish
     runs-on: ubuntu-latest
-    needs: [prisma-version, smoke-is-not-vacuous]
     permissions:
       contents: read
       packages: write
+    outputs:
+      digest: ${{ steps.publish.outputs.digest }}
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -70,18 +77,48 @@ jobs:
       - name: Smoke test (requirements R1–R5)
         run: skillklan/tests/image-smoke.sh sk-jobsync:ci
       - name: Log in to ghcr
-        if: startsWith(github.ref, 'refs/tags/sk-')
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      # Теги — `main` і `sha-<коміт>`; на сервер іде digest, не тег.
       - name: Publish the tested image and print its digest
-        if: startsWith(github.ref, 'refs/tags/sk-')
+        id: publish
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: |
-          docker tag sk-jobsync:ci "$IMAGE:$GITHUB_REF_NAME"
-          docker push "$IMAGE:$GITHUB_REF_NAME"
-          ref=$(docker inspect --format '{{index .RepoDigests 0}}' "$IMAGE:$GITHUB_REF_NAME")
+          tag="sha-${GITHUB_SHA:0:12}"
+          docker tag sk-jobsync:ci "$IMAGE:$tag"
+          docker tag sk-jobsync:ci "$IMAGE:main"
+          docker push "$IMAGE:$tag"
+          docker push "$IMAGE:main"
+          ref=$(docker inspect --format '{{index .RepoDigests 0}}' "$IMAGE:$tag")
+          digest="${ref#*@}"
+          [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]] || { echo "::error::no digest after push: $ref"; exit 1; }
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
           echo "### Image" >> "$GITHUB_STEP_SUMMARY"
-          echo "\`$ref\` (tag \`$GITHUB_REF_NAME\`)" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`$ref\` (tags \`$tag\`, \`main\`)" >> "$GITHUB_STEP_SUMMARY"
           echo "$ref"
+
+  # Ті самі lint і тести, що на PR, — перед кожною викладкою (на PR ci.yml біжить сам).
+  tests:
+    name: Lint and tests
+    if: github.event_name != 'pull_request'
+    uses: ./.github/workflows/ci.yml
+
+  # Скрипти деплою й сервера (обгортка, nginx, compose, «хто викладає», кнопка) — теж перед викладкою.
+  scripts:
+    name: Deploy scripts
+    if: github.event_name != 'pull_request'
+    uses: ./.github/workflows/skillklan-deploy-scripts.yml
+
+  # Викладка рівно того образу, що пройшов smoke, — лише коли зелене все вище.
+  deploy:
+    name: Deploy
+    needs: [prisma-version, smoke-is-not-vacuous, image, tests, scripts]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    uses: ./.github/workflows/skillklan-deploy.yml
+    with:
+      digest: ${{ needs.image.outputs.digest }}
+    secrets: inherit

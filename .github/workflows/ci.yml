@@ -3,6 +3,8 @@ name: CI
 on:
   pull_request:
     branches: [dev, main]
+  # skillklan: ті самі lint і тести — перед кожною викладкою з main (skillklan-image.yml).
+  workflow_call:
 
 jobs:
   ci:

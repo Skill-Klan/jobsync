@@ -2,9 +2,8 @@
 #
 # Гейт викладки: питає дозволу в Telegram і чекає натискання.
 #
-# skillklan: копія `.github/scripts/deploy-gate.sh` сайту (Skill-Klan/web-lending-skillKlan) —
-# той самий бот, та сама кнопка й той самий секрет (рішення власника 2026-10-14). Контракт із
-# ботом спільний: міняти обидві копії разом.
+# Однакові копії — у сайті, SkillKlan Job, бекенді, кабінеті й боті: той самий бот, та сама кнопка, той
+# самий контракт. Міняти всі копії разом. Чи питати взагалі, вирішує deploy-who.sh (власник — без кнопки).
 #
 # Навіщо не рідні механізми GitHub: Environments з обовʼязковими рецензентами
 # й required status checks платні для приватного репозиторію. Цей гейт живе
@@ -16,6 +15,8 @@
 #
 # Потрібні змінні:
 #   DEPLOY_GATE_SECRET  — спільний секрет із ботом (секрет репозиторію)
+#     або DEPLOY_GATE_SECRET_FILE — env-файл бота, звідки його взяти: раннери бекенду, кабінету й бота
+#     живуть на тому самому сервері, що й бот, тож секрет не дублюється в GitHub
 #   GATE_ID             — унікальний id запуску
 #   GATE_REPO, GATE_SHA, GATE_ACTOR, GATE_MESSAGE — що показати людині
 # Необовʼязкові:
@@ -34,8 +35,27 @@ fail() {
   exit 1
 }
 
+# Читає значення змінної з env-файла, не виконуючи його (файл із секретами не source-имо). Останнє
+# входження, як у docker; лапки й CRLF зрізаються. Значення нікуди не друкується.
+read_env_var() {
+  local file="$1" key="$2" line value
+  [ -r "$file" ] || return 1
+  line=$(grep -E "^[[:space:]]*${key}=" "$file" | tail -n 1) || return 1
+  [ -n "$line" ] || return 1
+  value="${line#*=}"
+  value="${value%$'\r'}"
+  value="${value#\"}" ; value="${value%\"}"
+  value="${value#\'}" ; value="${value%\'}"
+  [ -n "$value" ] || return 1
+  printf '%s' "$value"
+}
+
+if [ -z "${DEPLOY_GATE_SECRET:-}" ] && [ -n "${DEPLOY_GATE_SECRET_FILE:-}" ]; then
+  DEPLOY_GATE_SECRET="$(read_env_var "$DEPLOY_GATE_SECRET_FILE" DEPLOY_GATE_SECRET)" || DEPLOY_GATE_SECRET=""
+fi
+
 [ -n "${DEPLOY_GATE_SECRET:-}" ] || fail \
-  "DEPLOY_GATE_SECRET не заданий. Додайте секрет репозиторію — той самий, що в env бота. Без нього викладка не дозволяється."
+  "DEPLOY_GATE_SECRET не заданий (ні секретом репозиторію, ні у ${DEPLOY_GATE_SECRET_FILE:-env-файлі бота}) — той самий, що в env бота. Без нього викладка не дозволяється."
 [ -n "${GATE_ID:-}" ] || fail "GATE_ID не заданий"
 
 # ⚠️ Тіло збирається через jq, а не через рядкову підстановку: заголовок

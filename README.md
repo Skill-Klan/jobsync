@@ -160,10 +160,19 @@ npm test
   pull request into `main` and runs [`skillklan/tests/image-smoke.sh`](./skillklan/tests/image-smoke.sh)
   (requirements R1–R5: starts without network, non-root, migrations applied, placeholder or empty secrets
   refused). The same script must fail on the original upstream image — a guard against a vacuous test.
-- Images are published only for `sk-*` tags to `ghcr.io/skill-klan/jobsync` and deployed **by digest**:
-  [`.github/workflows/skillklan-deploy.yml`](./.github/workflows/skillklan-deploy.yml) (manual run with the
-  digest) asks the owner in Telegram first, then the server copies `/data`, starts the new image and rolls
-  back — image and data — if it is not healthy within 3 minutes. A merge into `main` deploys nothing.
+- **A push into `main` is a release** (owner's decision 2026-10-19): in parallel — lint and tests
+  ([`ci.yml`](./.github/workflows/ci.yml)), the deploy and server scripts
+  ([`skillklan-deploy-scripts.yml`](./.github/workflows/skillklan-deploy-scripts.yml)) and the image build with
+  the smoke test. When all are green, the tested image is published to `ghcr.io/skill-klan/jobsync`
+  (tags `sha-<commit>` and `main`) and deployed **by digest**
+  ([`skillklan-deploy.yml`](./.github/workflows/skillklan-deploy.yml)): the server copies `/data`, starts the
+  new image and rolls back — image and data — if it is not healthy within 3 minutes. No tag, no second build.
+- **Who needs the Telegram button:** pushed (or merged) by a login in the repository variable
+  `DEPLOY_TRUSTED_ACTORS` — no button; anyone else — the owner presses the button first, no press, no deploy
+  ([`skillklan/deploy/deploy-who.sh`](./skillklan/deploy/deploy-who.sh); an empty variable means the button for
+  everyone).
+- A manual run of `skillklan-deploy.yml` with a digest redeploys or rolls back to that image; tick `ask` to get
+  the button even as the owner.
 - The same digest again is a no-op — unless `app.env` changed since the last deploy (the wrapper keeps its
   sha256, never the values): then it is redeployed the same way, so new settings reach the container.
 

@@ -10,6 +10,8 @@ on:
       - "skillklan/**"
       - ".github/workflows/skillklan-*.yml"
   workflow_dispatch:
+  # Перед кожною викладкою з main — skillklan-image.yml чекає ці перевірки.
+  workflow_call:
 
 permissions:
   contents: read
@@ -25,7 +27,8 @@ jobs:
         run: |
           shellcheck --version | head -2
           shellcheck -S warning skillklan/deploy/*.sh skillklan/server/*.sh \
-            skillklan/tests/deploy-wrapper.test.sh skillklan/tests/cloudflare-sync.test.sh
+            skillklan/tests/deploy-wrapper.test.sh skillklan/tests/cloudflare-sync.test.sh \
+            skillklan/tests/deploy-who.test.sh skillklan/tests/deploy-gate.test.sh
 
       - name: Deploy wrapper (W1–W11)
         run: bash skillklan/tests/deploy-wrapper.test.sh
@@ -33,6 +36,12 @@ jobs:
       - name: Cloudflare sync (C1–C7)
         if: ${{ !cancelled() }}
         run: bash skillklan/tests/cloudflare-sync.test.sh
+
+      - name: Who deploys without the button; the button's client
+        if: ${{ !cancelled() }}
+        run: |
+          bash skillklan/tests/deploy-who.test.sh
+          bash skillklan/tests/deploy-gate.test.sh
 
       - name: nginx -t on nginx 1.24 (as on Server2)
         if: ${{ !cancelled() }}

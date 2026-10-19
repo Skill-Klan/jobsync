@@ -1,8 +1,9 @@
-# skillklan: деплой SkillKlan Job на Server2. Запускається вручну з digest, який надрукував ран
-# публікації («SkillKlan image» на тегу sk-*) — на сервер іде рівно той образ, що пройшов smoke.
+# skillklan: деплой SkillKlan Job на Server2. Викликається з «SkillKlan image» на кожен push у main
+# (digest образу, що щойно пройшов smoke) або вручну з digest — для відкату чи повтору.
 #
-#   digest існує в ghcr → кнопка в Telegram (та сама, що для сайту; fail closed) →
-#   на Server2 примусова команда jobsync-deploy: копія /data, заміна, перевірка здоровʼя, відкат
+#   digest існує в ghcr → хто викладає: власник — далі, будь-хто інший — кнопка в Telegram (та сама,
+#   що для сайту; fail closed) → на Server2 примусова команда jobsync-deploy: копія /data, заміна,
+#   перевірка здоровʼя, відкат
 #
 # Ключ SERVER2_DEPLOY_KEY уміє на сервері лише `deploy <digest>` і `status` (ForceCommand).
 # Лог цього рану публічний — обгортка логів застосунку сюди не друкує.
@@ -15,13 +16,21 @@ on:
         description: "Image digest from the publish run (sha256:…)"
         required: true
         type: string
+      ask:
+        description: "Ask in Telegram even when the owner runs it"
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      digest:
+        required: true
+        type: string
+      ask:
+        type: boolean
+        default: false
 
 permissions:
   contents: read
-
-concurrency:
-  group: sk-deploy-server2
-  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -29,6 +38,10 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    # На рівні job, а не воркфлоу: так черга діє й тоді, коли деплой викликано з «SkillKlan image».
+    concurrency:
+      group: sk-deploy-server2
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
 
@@ -44,7 +57,19 @@ jobs:
           [ "$code" = 200 ] || { echo "::error::ghcr.io/skill-klan/jobsync@$DIGEST not found (HTTP $code)"; exit 1; }
           echo "OK: ghcr.io/skill-klan/jobsync@$DIGEST"
 
-      - name: Ask the owner in Telegram
+      # Пушив власник (агенти пушать його ж акаунтом) — без кнопки; будь-хто інший — кнопка.
+      # Довірені — змінна репозиторію DEPLOY_TRUSTED_ACTORS; порожня — кнопка для всіх (fail-closed).
+      - name: Who deploys
+        id: who
+        env:
+          DEPLOY_TRUSTED_ACTORS: ${{ vars.DEPLOY_TRUSTED_ACTORS }}
+          ACTOR: ${{ github.actor }}
+          TRIGGERING_ACTOR: ${{ github.triggering_actor }}
+          FORCE_ASK: ${{ inputs.ask }}
+        run: bash skillklan/deploy/deploy-who.sh
+
+      - name: Ask the owner in Telegram (not the owner's push)
+        if: steps.who.outputs.gate != 'skip'
         env:
           DEPLOY_GATE_SECRET: ${{ secrets.DEPLOY_GATE_SECRET }}
           GATE_ID: jobsync-${{ github.run_id }}-${{ github.run_attempt }}
