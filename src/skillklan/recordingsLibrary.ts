@@ -1,4 +1,5 @@
 import type { RecordingKind } from "./recordingKinds";
+import type { Attachment } from "./recordingAttachments";
 
 // How the interview recordings library is filtered and laid out (owner
 // 2026-10-18): filters — direction (QA / BA), interview stage, company and a
@@ -221,4 +222,31 @@ export function groupByCompany(
   return result.sort((a, b) =>
     sort === "name" ? byName(a.name, b.name) : b.total - a.total || byName(a.name, b.name),
   );
+}
+
+// Where the attachments go on the page (owner 2026-10-19, D77): beside their
+// recording when that is certain, otherwise on their folder — a company's
+// stage («Технічна» of Acme: what lies right in its folder) or a folder below
+// it (a candidate's). A folder's attachments follow the direction filter like
+// its recordings do; a recording's go wherever the recording is shown.
+export const folderKey = (company: string, stage: Stage, folder: string | null): string =>
+  `${company}|${stage}|${folder ?? ""}`;
+
+export type AttachmentPlaces = {
+  byRecording: Map<string, Attachment[]>;
+  byFolder: Map<string, Attachment[]>;
+};
+
+export function attachmentPlaces(attachments: readonly Attachment[], f: Filters): AttachmentPlaces {
+  const byRecording = new Map<string, Attachment[]>();
+  const byFolder = new Map<string, Attachment[]>();
+  const add = (map: Map<string, Attachment[]>, key: string, a: Attachment) =>
+    map.set(key, [...(map.get(key) ?? []), a]);
+  for (const a of attachments) {
+    if (a.recordingId) add(byRecording, a.recordingId, a);
+    else if (!f.direction || directionOf(a.kind) === f.direction) {
+      add(byFolder, folderKey(companyKey(a.company), stageOf(a.kind), a.folder), a);
+    }
+  }
+  return { byRecording, byFolder };
 }

@@ -23,7 +23,7 @@ MIT License (see [`LICENSE`](./LICENSE), which must stay in this repository and 
 - **Feature switches** — an admin turns parts of the app on or off for everyone in Settings → «Функції»
   (see below). Automations (with notifications), Activities and the Library are off.
 - **Interview recordings library** — «Співбесіди» plays the recordings students upload through the SkillKlan
-  Telegram bot, straight from Google Drive (see below).
+  Telegram bot, straight from Google Drive, and shows the files lying next to them (see below).
 - **Removed:** upstream deploy scripts (`curl | bash`), compose files with placeholder secrets, release and
   wiki workflows, Jenkinsfile, `evals/`.
 - **Planned:** AI usage billing on the SkillKlan side.
@@ -104,6 +104,17 @@ Uploads stay with the bot; this app only reads Google Drive. Code:
   link opens the same selection; unknown values in a link are dropped. Searched in Ukrainian (Cyrillic in the query) →
   a hint to try English: most names are in Latin letters (127 of 135 company folders) — also when the company list
   finds nothing in Ukrainian.
+- **Attachments** — files lying next to the recordings in the company folders (a picture of a task, a PDF, notes;
+  [`src/skillklan/recordingAttachments.ts`](./src/skillklan/recordingAttachments.ts),
+  [`src/skillklan/attachmentContent.ts`](./src/skillklan/attachmentContent.ts)). Drive ties a file to a folder,
+  not to another file, so one goes **beside a recording only when that is certain** — the folder holds one
+  recording, or the file's name starts with exactly one recording's name — and on its folder (the company's
+  stage, a candidate's sub-folder) otherwise. **Viewed, not downloaded:** the server sends a form to show, made
+  from the file — a picture re-encoded (no EXIF, so no phone GPS), a PDF as is, a Google document exported to
+  PDF, a Word document as a page (no scripts, nothing from elsewhere), text and code as text; the page draws
+  pictures and PDF pages (pdf.js) on a canvas. Spreadsheets, presentations, archives are listed, not shown.
+  `GET /api/skillklan/interview-recordings/attachments/:id` answers only the page (`x-skillklan-viewer: 1`;
+  without it 400), always `inline`, `nosniff`, `CSP: sandbox`. A screenshot is still possible.
 - **Not configured → the page says «Записи співбесід ще не підключено.»** The person's own interview stages are
   on each job's «Етапи» tab; the old interviews list (`InterviewsContainer`) is in the code, not shown.
 

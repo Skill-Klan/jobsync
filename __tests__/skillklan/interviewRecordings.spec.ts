@@ -18,11 +18,15 @@
 // the signature is checked for real.
 import { createVerify, generateKeyPairSync } from "crypto";
 import {
+  AttachmentTooLargeError,
   LIST_TTL_MS,
   __resetRecordingsCacheForTests,
+  fetchAttachmentBytes,
   fetchRecordingBytes,
+  findAttachment,
   findRecording,
   isRecordingsConfigured,
+  listLibrary,
   listRecordings,
   recordingsConfig,
 } from "@/skillklan/interviewRecordings";
@@ -53,6 +57,7 @@ const folder = (id: string, name: string, parent?: string): Item =>
 const file = (id: string, name: string, parent: string, createdTime: string, mimeType = "audio/mpeg", size?: string): Item =>
   ({ id, name, mimeType, parents: [parent], createdTime, ...(size ? { size } : {}) });
 let drive: Item[] = [];
+let otherFilesFail = false;
 let fetchMock: ReturnType<typeof vi.fn>;
 const json = (status: number, body: unknown) =>
   Promise.resolve(new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } }));
@@ -100,20 +105,40 @@ beforeEach(() => {
     // outside every kind folder — not in the library
     file("filePrep00001", "Лекція про співбесіди.mp4", "prepFolder001", "2026-05-01T09:00:00Z", "video/mp4"),
     file("fileElsewhere", "чужий запис.mp3", "notSharedFolder1", "2026-05-01T09:00:00Z"),
+    // Attachments (2026-10-19) — files lying next to the recordings. Monobank's
+    // folder: one recording (and the gdoc above); EPAM's: two recordings; its
+    // «2025» sub-folder: two more.
+    file("attMonoImg001", "screenshot.png", "coMonobank001", "2026-09-24T12:00:00Z", "image/png", "4000"),
+    file("attEpamTask01", "Іван_Петренко_QA_24.09.25_task.jpg", "coEpam0000001", "2026-03-27T10:00:00Z", "image/jpeg"),
+    file("attEpamPdf001", "schema.pdf", "coEpam0000001", "2026-03-27T10:00:00Z", "application/pdf"),
+    file("attEpamDocx01", "notes.docx", "coEpam2025001", "2026-03-27T10:00:00Z",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
+    file("attEpamXlsx01", "results.xlsx", "coEpam2025001", "2026-03-27T10:00:00Z",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+    file("attPending001", "pending.png", "folderQaTech0000001", "2026-10-16T09:00:00Z", "image/png"),
+    file("attKindRoot01", "readme.txt", "kindQaTech001", "2026-01-01T09:00:00Z", "text/plain"),
+    file("attPrepJs0001", "lesson.js", "prepFolder001", "2026-05-01T09:00:00Z", "text/javascript"),
   ];
+  otherFilesFail = false;
   fetchMock = vi.fn(async (input: string | URL, init?: RequestInit) => {
     const url = new URL(String(input));
     if (url.href === "https://oauth2.googleapis.com/token") {
       return json(200, { access_token: "ya29.test-token", expires_in: 3600 });
     }
     if (url.pathname === "/drive/v3/files") {
-      // The two queries the library makes; Drive filters by type itself.
+      // The three queries the library makes; Drive filters by type itself.
       const q = url.searchParams.get("q") ?? "";
       const notTrashed = q.includes("trashed = false");
+      const av = (i: Item) => i.mimeType.startsWith("audio/") || i.mimeType.startsWith("video/");
       let found: Item[] | null = null;
       if (notTrashed && q.includes(`mimeType = '${FOLDER}'`)) found = drive.filter((i) => i.mimeType === FOLDER);
-      if (notTrashed && q.includes("mimeType contains 'audio/'") && q.includes("mimeType contains 'video/'")) {
-        found = drive.filter((i) => i.mimeType.startsWith("audio/") || i.mimeType.startsWith("video/"));
+      if (notTrashed && q.includes(`mimeType != '${FOLDER}'`) && q.includes("not mimeType contains 'audio/'") &&
+          q.includes("not mimeType contains 'video/'")) {
+        // Everything else: the attachments (2026-10-19).
+        if (otherFilesFail) return json(500, { error: { message: "backend error" } });
+        found = drive.filter((i) => i.mimeType !== FOLDER && !av(i));
+      } else if (notTrashed && q.includes("mimeType contains 'audio/'") && q.includes("mimeType contains 'video/'")) {
+        found = drive.filter(av);
       }
       if (!found) return json(400, { error: { message: `unexpected query: ${q}` } });
       const page = Number(url.searchParams.get("pageToken") ?? 0);
@@ -122,6 +147,7 @@ beforeEach(() => {
     }
     if (url.pathname.startsWith("/drive/v3/files/")) {
       const id = url.pathname.slice("/drive/v3/files/".length);
+      if (id.endsWith("/export")) return Promise.resolve(new Response("%PDF-1.4 exported", { status: 200 }));
       if (url.searchParams.get("alt") === "media") {
         return Promise.resolve(new Response("bytes", { status: (init?.headers as Record<string, string>)?.range ? 206 : 200 }));
       }
@@ -326,5 +352,75 @@ describe("the bytes", () => {
     await fetchRecordingBytes("fileQaTech001", "bytes=0-1\r\nx-evil: 1");
     const [, init] = callsTo("https://www.googleapis.com/drive/v3/files/fileQaTech001")[0];
     expect(init.headers).not.toHaveProperty("range");
+  });
+});
+
+// Requirement — the owner, 2026-10-19: the files lying next to the recordings
+// (pictures, PDFs, other files) are shown with them — beside their recording
+// when that is certain (the folder holds one recording, or the file's name
+// starts with exactly one recording's name), otherwise on their folder (D77);
+// for everyone, like the recordings (D79); only from the library's company
+// folders — not waiting for review, not loose in a kind folder, not from
+// anywhere else the account can read.
+describe("attachments", () => {
+  beforeEach(() => configure());
+
+  const placed = async () =>
+    Object.fromEntries(
+      (await listLibrary()).attachments.map((a) => [a.id, { recordingId: a.recordingId, company: a.company, folder: a.folder, kind: a.kind, view: a.view }]),
+    );
+
+  it("beside their recording when certain, otherwise on their folder; only in the library's company folders", async () => {
+    expect(await placed()).toEqual({
+      // Monobank's folder holds one recording → both files are its.
+      attMonoImg001: { recordingId: "fileQaTech001", company: "Monobank", folder: null, kind: "qaTech", view: "image" },
+      fileNotAudio1: { recordingId: "fileQaTech001", company: "Monobank", folder: null, kind: "qaTech", view: "pdf" },
+      // EPAM's folder holds two: the name says whose…
+      attEpamTask01: { recordingId: "fileEpamOld01", company: "EPAM", folder: null, kind: "qaTech", view: "image" },
+      // …or nothing does → the folder.
+      attEpamPdf001: { recordingId: null, company: "EPAM", folder: null, kind: "qaTech", view: "pdf" },
+      attEpamDocx01: { recordingId: null, company: "EPAM", folder: "2025", kind: "qaTech", view: "page" },
+      attEpamXlsx01: { recordingId: null, company: "EPAM", folder: "2025", kind: "qaTech", view: "none" },
+    });
+  });
+
+  it("the attachments' list failing costs the attachments only — the recordings still come", async () => {
+    const recordings = await listRecordings({ fresh: true });
+    otherFilesFail = true;
+    const library = await listLibrary({ fresh: true });
+    expect(library.recordings).toEqual(recordings);
+    expect(library.attachments).toEqual([]);
+  });
+
+  it("findAttachment: a library file → it; waiting for review, loose, elsewhere, a recording or not an id → null", async () => {
+    await expect(findAttachment("attEpamPdf001")).resolves.toMatchObject({ name: "schema.pdf" });
+    for (const id of ["attPending001", "attKindRoot01", "attPrepJs0001", "fileQaTech001", "x' or 1=1"]) {
+      await expect(findAttachment(id)).resolves.toBeNull();
+    }
+  });
+
+  it("bytes: a Google document comes exported to PDF; any other file — as it is, through all drives", async () => {
+    const library = await listLibrary();
+    const gdoc = library.attachments.find((a) => a.id === "fileNotAudio1")!;
+    const png = library.attachments.find((a) => a.id === "attMonoImg001")!;
+    await expect(fetchAttachmentBytes(gdoc, 1000)).resolves.toEqual({ bytes: Buffer.from("%PDF-1.4 exported"), truncated: false });
+    expect(String(callsTo("https://www.googleapis.com/drive/v3/files/fileNotAudio1")[0][0])).toBe(
+      "https://www.googleapis.com/drive/v3/files/fileNotAudio1/export?mimeType=application%2Fpdf",
+    );
+    await fetchAttachmentBytes(png, 5000);
+    expect(String(callsTo("https://www.googleapis.com/drive/v3/files/attMonoImg001")[0][0])).toBe(
+      "https://www.googleapis.com/drive/v3/files/attMonoImg001?alt=media&supportsAllDrives=true",
+    );
+  });
+
+  it("bytes: over the limit → refused (by Drive's size before asking, or while reading); text keeps the beginning", async () => {
+    const library = await listLibrary();
+    const png = library.attachments.find((a) => a.id === "attMonoImg001")!; // size 4000
+    await expect(fetchAttachmentBytes(png, 3999)).rejects.toBeInstanceOf(AttachmentTooLargeError);
+    expect(callsTo("https://www.googleapis.com/drive/v3/files/attMonoImg001")).toHaveLength(0);
+    const pdf = library.attachments.find((a) => a.id === "attEpamPdf001")!; // no size from Drive; the body is "bytes"
+    await expect(fetchAttachmentBytes(pdf, 4)).rejects.toBeInstanceOf(AttachmentTooLargeError);
+    await expect(fetchAttachmentBytes(pdf, 4, { truncate: true })).resolves.toEqual({ bytes: Buffer.from("byte"), truncated: true });
+    await expect(fetchAttachmentBytes(pdf, 5)).resolves.toEqual({ bytes: Buffer.from("bytes"), truncated: false });
   });
 });
