@@ -17,7 +17,21 @@
 
 export const CABINET_API_TIMEOUT_MS = 5000;
 
-export type CabinetRole = "student" | "admin";
+// The roles the backend lets in (owner: students D22, the admin D23, the QA
+// moderator D81 — 2026-10-19). Any other answer is no role.
+export const CABINET_ROLES = ["student", "admin", "qa_moderator"] as const;
+export type CabinetRole = (typeof CABINET_ROLES)[number];
+
+export function isCabinetRole(value: unknown): value is CabinetRole {
+  return typeof value === "string" && (CABINET_ROLES as readonly string[]).includes(value);
+}
+
+// Who manages SkillKlan Job for everyone — sees and changes Settings →
+// «Функції»: the admin, and since 2026-10-19 the QA moderator too (owner,
+// D81: "access the same as the admin's").
+export function managesSkillklanJob(role: CabinetRole | null | undefined): boolean {
+  return role === "admin" || role === "qa_moderator";
+}
 
 export type CabinetIdentity = {
   userId: number;
@@ -72,13 +86,13 @@ export async function exchangeLoginCode(code: string): Promise<CabinetIdentity |
     !data ||
     !Number.isSafeInteger(data.userId) ||
     (data.userId as number) <= 0 ||
-    (data.role !== "student" && data.role !== "admin")
+    !isCabinetRole(data.role)
   ) {
     return null;
   }
   return {
     userId: data.userId as number,
-    role: data.role,
+    role: data.role as CabinetRole,
     name: typeof data.name === "string" ? data.name : "",
   };
 }
@@ -89,8 +103,8 @@ export async function getCabinetAccess(userId: number): Promise<CabinetAccess> {
     | { allowed?: unknown; role?: unknown }
     | null;
   if (!data || data.allowed !== true) return NO_ACCESS;
-  // A role we do not know is no role — never read as admin.
-  const role = data.role === "admin" || data.role === "student" ? data.role : null;
+  // A role we do not know is no role — never read as one that manages.
+  const role = isCabinetRole(data.role) ? data.role : null;
   return { allowed: true, role };
 }
 

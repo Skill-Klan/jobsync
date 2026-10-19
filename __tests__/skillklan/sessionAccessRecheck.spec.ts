@@ -18,9 +18,10 @@
 // a person it lets in.
 const backend = vi.hoisted(() => ({
   check: vi.fn(),
-  role: { value: "student" as "student" | "admin" | null },
+  role: { value: "student" as "student" | "admin" | "qa_moderator" | null },
 }));
-vi.mock("@/skillklan/cabinetApi", () => ({
+vi.mock("@/skillklan/cabinetApi", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/skillklan/cabinetApi")>()),
   getCabinetAccess: async (id: number) => {
     const allowed = await backend.check(id);
     return { allowed, role: allowed ? backend.role.value : null };
@@ -204,6 +205,7 @@ describe("the role (admin-only feature switches)", () => {
 
   it.each([
     ["admin", true],
+    ["qa_moderator", true], // owner 2026-10-19, D81: the QA moderator as the admin
     ["student", false],
     [null, false],
     [undefined, false],

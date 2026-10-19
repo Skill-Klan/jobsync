@@ -3,7 +3,10 @@
 // NextAuth instance gets the cabinet provider and nothing else, unless the
 // dev-only flag is on (local development, Playwright). The cabinet provider
 // opens a session only when the backend accepted the code.
-vi.mock("@/skillklan/cabinetApi", () => ({ exchangeLoginCode: vi.fn() }));
+vi.mock("@/skillklan/cabinetApi", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/skillklan/cabinetApi")>()),
+  exchangeLoginCode: vi.fn(),
+}));
 vi.mock("@/skillklan/cabinetUser", () => ({ findOrCreateCabinetUser: vi.fn() }));
 vi.mock("@/lib/db", () => ({ default: { user: { findUnique: vi.fn() } } }));
 

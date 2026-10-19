@@ -1,7 +1,7 @@
 import type { NextAuthConfig } from "next-auth";
 import { recheckCabinetAccess } from "@/skillklan/accessRecheck";
 import { isDevPasswordLoginEnabled } from "@/skillklan/devPasswordLogin";
-import type { CabinetRole } from "@/skillklan/cabinetApi";
+import { managesSkillklanJob, type CabinetRole } from "@/skillklan/cabinetApi";
 
 declare module "next-auth" {
   interface Session {
@@ -82,7 +82,8 @@ export const authConfig = {
       if (userId) {
         session.user.id = userId;
       }
-      session.user.isAdmin = token.cabinetRole === "admin";
+      // "Admin" here means manages SkillKlan Job: the admin or the QA moderator (D81).
+      session.user.isAdmin = managesSkillklanJob(token.cabinetRole as CabinetRole | null | undefined);
       return session;
     },
   },
