@@ -108,6 +108,25 @@
     "emptyFiltered": "No recordings match these filters.",
     "failed": "Couldn't load the recordings. Try again later.",
     "unplayable": "Your browser can't play this format — try another browser.",
-    "notConnected": "Interview recordings are not connected yet."
+    "notConnected": "Interview recordings are not connected yet.",
+    "attachments": {
+      "button": "Attachments",
+      "folder": "Folder attachments",
+      "aria": "Attachments: {count}",
+      "folderNote": "They lie in the folder — not tied to one recording.",
+      "view": "View",
+      "unavailable": "Can't be viewed",
+      "viewOnly": "View only — the file can't be downloaded.",
+      "counter": "{index} of {total}",
+      "previous": "Previous attachment",
+      "next": "Next attachment",
+      "page": "Page {page} of {pages}",
+      "previousPage": "Previous page",
+      "nextPage": "Next page",
+      "cannotShow": "This file couldn't be shown.",
+      "tooLarge": "The file is too large to view.",
+      "failed": "Couldn't open the file. Try again later.",
+      "truncated": "Showing the beginning — the file is too long."
+    }
   }
 }

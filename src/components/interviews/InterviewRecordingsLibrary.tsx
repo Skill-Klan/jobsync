@@ -24,11 +24,13 @@ import {
   DIRECTIONS,
   directionOf,
   STAGES,
+  attachmentPlaces,
   companyNames,
   companyOptions,
   directionCounts,
   filterRecordings,
   filtersToParams,
+  folderKey,
   groupByCompany,
   hasCyrillic,
   hasFilters,
@@ -39,6 +41,8 @@ import {
   type Filters,
   type LibraryRecording,
 } from "@/skillklan/recordingsLibrary";
+import type { Attachment } from "@/skillklan/recordingAttachments";
+import { AttachmentsButton } from "./RecordingAttachments";
 
 // The interview recordings library (owner 2026-10-16): every reviewed
 // recording, for everyone to listen to — and only to listen: no download
@@ -50,6 +54,10 @@ import {
 // Finding one (owner 2026-10-18): filters — direction, stage, company, search;
 // first the folders of the companies, the recordings inside by stage; the
 // filters are kept in the page address (recordingsLibrary.ts).
+//
+// The files lying next to the recordings (owner 2026-10-19): beside their
+// recording when that is certain, otherwise on their folder — viewed, not
+// downloaded (RecordingAttachments.tsx).
 
 const API = "/api/skillklan/interview-recordings";
 
@@ -69,6 +77,7 @@ export default function InterviewRecordingsLibrary() {
     parseFilters(new URLSearchParams(searchParams?.toString() ?? "")),
   );
   const [recordings, setRecordings] = useState<LibraryRecording[] | null>(null);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [failed, setFailed] = useState(false);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [unplayable, setUnplayable] = useState<string | null>(null);
@@ -79,8 +88,10 @@ export default function InterviewRecordingsLibrary() {
     fetch(API, { cache: "no-store" })
       .then(async (res) => {
         if (!res.ok) throw new Error(String(res.status));
-        const body = (await res.json()) as { recordings: LibraryRecording[] };
-        if (alive) setRecordings(body.recordings);
+        const body = (await res.json()) as { recordings: LibraryRecording[]; attachments?: Attachment[] };
+        if (!alive) return;
+        setRecordings(body.recordings);
+        setAttachments(body.attachments ?? []);
       })
       .catch(() => alive && setFailed(true));
     return () => {
@@ -106,6 +117,7 @@ export default function InterviewRecordingsLibrary() {
   const stagesCount = useMemo(() => stageCounts(all, filters), [all, filters]);
   const directionsCount = useMemo(() => directionCounts(all, filters), [all, filters]);
   const companies = useMemo(() => companyOptions(all, filters), [all, filters]);
+  const places = useMemo(() => attachmentPlaces(attachments, filters), [attachments, filters]);
   const filtered = hasFilters(filters);
 
   // A single company left (picked, or the only one the search finds) opens by
@@ -127,6 +139,7 @@ export default function InterviewRecordingsLibrary() {
             ? t(`recordings.directions.${directionOf(r.kind)}`)
             : null
       }
+      attachments={places.byRecording.get(r.id) ?? []}
       playing={playingId === r.id}
       unplayable={unplayable === r.id}
       onToggle={() => {
@@ -289,10 +302,20 @@ export default function InterviewRecordingsLibrary() {
                     <div id={bodyId} className="space-y-3 pb-3 pl-6">
                       {g.stages.map((s) => (
                         <div key={s.stage}>
-                          <h4 className="text-xs font-medium text-muted-foreground">
-                            {t(`recordings.stages.${s.stage}`)} ·{" "}
-                            {s.recordings.length + s.folders.reduce((n, f) => n + f.recordings.length, 0)}
-                          </h4>
+                          {/* The stage is what lies right in the company's folder: its
+                            attachments that belong to no one recording go here. */}
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-xs font-medium text-muted-foreground">
+                              {t(`recordings.stages.${s.stage}`)} ·{" "}
+                              {s.recordings.length + s.folders.reduce((n, f) => n + f.recordings.length, 0)}
+                            </h4>
+                            <span className="ml-auto">
+                              <AttachmentsButton
+                                attachments={places.byFolder.get(folderKey(g.key, s.stage, null)) ?? []}
+                                place="folder"
+                              />
+                            </span>
+                          </div>
                           {s.recordings.length > 0 && (
                             <ul className="divide-y">{s.recordings.map((r) => row(r, g))}</ul>
                           )}
@@ -301,6 +324,12 @@ export default function InterviewRecordingsLibrary() {
                               <div className="flex items-center gap-1 pt-1 text-xs text-muted-foreground">
                                 <Folder className="h-3.5 w-3.5" aria-hidden />
                                 <span className="truncate">{f.name}</span>
+                                <span className="ml-auto">
+                                  <AttachmentsButton
+                                    attachments={places.byFolder.get(folderKey(g.key, s.stage, f.name)) ?? []}
+                                    place="folder"
+                                  />
+                                </span>
                               </div>
                               <ul className="divide-y">{f.recordings.map((r) => row(r, g))}</ul>
                             </div>
@@ -407,6 +436,7 @@ function RecordingRow({
   recording: r,
   showCompany,
   badge,
+  attachments,
   playing,
   unplayable,
   onToggle,
@@ -415,6 +445,7 @@ function RecordingRow({
   recording: LibraryRecording;
   showCompany: boolean;
   badge: string | null;
+  attachments: Attachment[];
   playing: boolean;
   unplayable: boolean;
   onToggle: () => void;
@@ -446,6 +477,7 @@ function RecordingRow({
           )}
         </span>
         <div className="ml-auto flex shrink-0 gap-1 sm:ml-0">
+          <AttachmentsButton attachments={attachments} place="recording" />
           <Button type="button" size="sm" variant={playing ? "secondary" : "outline"} onClick={onToggle}>
             {playing ? <X className="h-3.5 w-3.5 sm:mr-1" /> : <Play className="h-3.5 w-3.5 sm:mr-1" />}
             {/* On a phone the icon alone; the name stays for screen readers. */}
