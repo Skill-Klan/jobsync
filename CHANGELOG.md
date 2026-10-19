@@ -6,6 +6,29 @@ SkillKlan Job is developed independently since 2026-10-14 (see the README). Its 
 each publishes `ghcr.io/skill-klan/jobsync`, deployed **by digest** after the owner's confirmation in Telegram.
 The upstream JobSync history below ends at 1.1.22.
 
+### sk-0.8.1 (2026-10-19) — `7a891cc`, `sha256:2bbbd7a0…08b0d`
+
+* **The QA moderator works like the admin:** signs in with the cabinet's button and manages Settings → «Функції».
+  The rest of the setup went out the same day: the backend issues them a sign-in code (`e97da22`), and the cabinet
+  shows them the button (`4549029`). Mentors still don't get in.
+* The texts say who can do it: «лише адміністратор і QA-модератор».
+
+### sk-0.8.0 (2026-10-19) — `84beb7e`, `sha256:0441fe55…f9333`
+
+* «Співбесіди» shows the **files lying next to the recordings** in the company folders: pictures, PDFs, documents.
+  * Next to a recording only when that is certain: the folder holds one recording, or the file's name starts with one
+    recording's name. Otherwise the files are listed for the whole folder, under the company's stage or a candidate's
+    sub-folder.
+  * Everyone who can listen to the recordings sees them too.
+* **View only, no download:**
+  * pictures are re-encoded without EXIF (no phone location) and turned upright;
+  * PDFs open as is; Google Docs, Sheets, Slides and Drawings open as PDF pages;
+  * Word files open as a page;
+  * text and code open as text (the first 1 MB);
+  * Excel and PowerPoint files and archives are listed as «Перегляд недоступний».
+* There is no download button or context menu, and the file's address opened in a tab gets nothing.
+* If the attachments list fails, only the attachments are missing; the library still works.
+
 ### sk-0.7.0 (2026-10-18) — `bb7fce3`, `sha256:a299837b…719fc`
 
 * Two more switches in Settings → «Функції» (admin only, hidden for the admin too), **both off**:
