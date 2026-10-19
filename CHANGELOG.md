@@ -6,6 +6,20 @@ SkillKlan Job is developed independently since 2026-10-14 (see the README). Its 
 each publishes `ghcr.io/skill-klan/jobsync`, deployed **by digest** after the owner's confirmation in Telegram.
 The upstream JobSync history below ends at 1.1.22.
 
+### sk-0.7.0 (2026-10-18) — `bb7fce3`, `sha256:a299837b…719fc`
+
+* Two more switches in Settings → «Функції» (admin only, hidden for the admin too), **both off**:
+  * **Automations** — with notifications, which are all about automation runs: no Automations tab or pages, no
+    "Add Automation" on the dashboard, no bell or Notifications page, no "accepted (discovered)" / "include dismissed"
+    job filters; the scheduler runs nothing. Due automations keep their next run and start on the first check after
+    switching back on.
+  * **Library** («Довідники») — no Library tab, company pages closed, company names in job lists and a job's header are
+    plain text. Creating a company, title, skill, role or activity type from a form still works, so the lists keep
+    filling up.
+* A page opened before a switch went off keeps its buttons until reloaded — every change it would make is refused on
+  the server, with "reload the page".
+* Nothing is deleted: switched back on, it is all there.
+
 ### sk-0.6.1 (2026-10-18) — `586a434`, `sha256:41bd8c3a…6f7fb`
 
 * Searched in Ukrainian → a hint to try English too: most names are in Latin letters (127 of 135 company folders —
