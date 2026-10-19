@@ -20,7 +20,9 @@ MIT License (see [`LICENSE`](./LICENSE), which must stay in this repository and 
   and the menu has «Кабінет» back to `CABINET_URL` (an http(s) address only; unset → no item).
 - **Ukrainian interface** with an English switch; the MCP server is removed.
 - **SkillKlan admin API** — numbers for the admin pages of the SkillKlan cabinet (see below).
-- **Feature switches** — an admin turns parts of the app on or off for everyone in Settings → «Функції»
+- **Who comes in:** students, the admin and the QA moderator (the backend's roles `student`, `admin`,
+  `qa_moderator`); the QA moderator has the admin's rights here (owner 2026-10-19).
+- **Feature switches** — the admin or the QA moderator turns parts of the app on or off for everyone in Settings → «Функції»
   (see below). Automations (with notifications), Activities and the Library are off.
 - **Interview recordings library** — «Співбесіди» plays the recordings students upload through the SkillKlan
   Telegram bot, straight from Google Drive, and shows the files lying next to them (see below).
@@ -58,10 +60,10 @@ students see — in Settings → «Функції». Code: [`src/skillklan/featu
 
 - **The list and the defaults live in code** (`FEATURES`); the `FeatureToggle` table keeps only the admin's
   choices (`updatedByCabinetUserId` — who). No row → the default. Adding a switch is a code change.
-- **Admins only.** The role is the SkillKlan backend's: taken at sign-in, refreshed by the ≤ 5-minute access
-  re-check, kept in the session token only (no role copy in the database). The settings page shows «Функції»
-  to admins only; a change asks the backend again at that moment (`confirmCabinetAdmin`) — a token minted
-  before a demotion is not enough.
+- **The admin and the QA moderator only** (`managesSkillklanJob`: roles `admin`, `qa_moderator`). The role is
+  the SkillKlan backend's: taken at sign-in, refreshed by the ≤ 5-minute access re-check, kept in the session
+  token only (no role copy in the database). The settings page shows «Функції» to them only; a change asks the
+  backend again at that moment (`confirmCabinetAdmin`) — a token minted before a demotion is not enough.
 - **Hidden, not deleted.** A switched-off part disappears from the menus, its page answers 404, the dashboard
   and other pages drop its blocks, and **every server action that changes it refuses** (a page opened before
   the switch went off keeps its buttons until reloaded). Data stays; switched back on, it is all there.

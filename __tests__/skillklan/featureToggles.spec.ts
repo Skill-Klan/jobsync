@@ -32,7 +32,10 @@ vi.mock("@/lib/db", async () => {
   return { default: new PrismaClient({ datasources: { db: { url: ctx.url } } }) };
 });
 vi.mock("@/auth", () => ({ auth: async () => ctx.session.value }));
-vi.mock("@/skillklan/cabinetApi", () => ({ getCabinetAccess: ctx.access }));
+vi.mock("@/skillklan/cabinetApi", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/skillklan/cabinetApi")>()),
+  getCabinetAccess: ctx.access,
+}));
 vi.mock("next/cache", () => ({ revalidatePath: ctx.revalidate }));
 
 import { setFeatureEnabled } from "@/actions/featureToggles.actions";
@@ -121,9 +124,21 @@ describe("an admin, confirmed by the backend now", () => {
   );
 });
 
+// Owner 2026-10-19 (D81): the QA moderator has the admin's access — «Функції» too.
+describe("the QA moderator, confirmed by the backend now", () => {
+  it("changes a switch for everyone — stored with who did it", async () => {
+    ctx.access.mockResolvedValue({ allowed: true, role: "qa_moderator" });
+    await expect(setFeatureEnabled("automations", true)).resolves.toMatchObject({ success: true });
+    expect(await rows()).toMatchObject([
+      { key: "automations", enabled: true, updatedByCabinetUserId: ADMIN_CABINET_ID },
+    ]);
+  });
+});
+
 describe("refused, nothing written", () => {
   it.each([
     ["the session says admin, the backend says student (demoted)", { allowed: true, role: "student" }],
+    ["a mentor (the backend lets mentors nowhere here; a role we do not know)", { allowed: true, role: "mentor" }],
     ["the backend no longer lets the person in", { allowed: false, role: null }],
     ["an allowed person with a role we do not know", { allowed: true, role: null }],
   ])("%s", async (_label, answer) => {

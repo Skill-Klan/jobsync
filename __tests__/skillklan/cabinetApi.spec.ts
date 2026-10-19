@@ -10,6 +10,7 @@ import {
   checkCabinetAccess,
   exchangeLoginCode,
   getCabinetAccess,
+  managesSkillklanJob,
 } from "@/skillklan/cabinetApi";
 
 const BASE = "https://api.example.invalid";
@@ -51,12 +52,18 @@ describe("exchangeLoginCode", () => {
     expect(init.signal).toBeInstanceOf(AbortSignal);
   });
 
+  // Owner 2026-10-19 (D81): the QA moderator comes in too.
+  it("the QA moderator → let in with that role", async () => {
+    fetchMock.mockReturnValue(answer(200, { success: true, data: { userId: 7, role: "qa_moderator", name: "Модератор" }, error: null }));
+    await expect(exchangeLoginCode(CODE)).resolves.toEqual({ userId: 7, role: "qa_moderator", name: "Модератор" });
+  });
+
   it.each([
     ["401 (used, expired or unknown code)", 401, { error: "Unauthorized", code: "JOBSYNC_CODE_INVALID" }],
     ["403 (no access any more)", 403, { error: "Forbidden", code: "JOBSYNC_ACCESS_DENIED" }],
     ["503 (secret not set on the backend)", 503, { error: "service_unavailable" }],
     ["200 without the envelope", 200, { userId: 42, role: "student" }],
-    ["200 with a role outside student/admin", 200, { success: true, data: { userId: 42, role: "mentor", name: "x" } }],
+    ["200 with a role outside student/admin/qa_moderator (a mentor)", 200, { success: true, data: { userId: 42, role: "mentor", name: "x" } }],
     ["200 with a non-integer id", 200, { success: true, data: { userId: "42", role: "student", name: "x" } }],
     // A proxy or error page that happens to carry a valid-looking envelope.
     ["500 with a valid-looking body", 500, { success: true, data: { userId: 42, role: "student", name: "x" }, error: null }],
@@ -149,17 +156,30 @@ describe("checkCabinetAccess", () => {
   });
 });
 
-// The role rides along (feature switches, owner 2026-10-16: admins only). It
-// is the backend's word; anything but a known role is no role — never admin.
+// The role rides along (feature switches, owner 2026-10-16: admins only;
+// 2026-10-19, D81: and the QA moderator). It is the backend's word; anything
+// but a known role is no role — never one that manages.
 describe("getCabinetAccess — the role", () => {
   it.each([
     ["admin", { allowed: true, role: "admin" }],
     ["student", { allowed: true, role: "student" }],
+    ["qa_moderator", { allowed: true, role: "qa_moderator" }],
+    ["mentor", { allowed: true, role: null }],
     ["superadmin", { allowed: true, role: null }],
     [undefined, { allowed: true, role: null }],
   ])("allowed, role %s → %o", async (role, expected) => {
     fetchMock.mockReturnValue(answer(200, { success: true, data: { allowed: true, role }, error: null }));
     await expect(getCabinetAccess(42)).resolves.toEqual(expected);
+  });
+
+  it.each([
+    ["admin", true],
+    ["qa_moderator", true],
+    ["student", false],
+    [null, false],
+    [undefined, false],
+  ] as const)("managesSkillklanJob(%s) → %s (D81: the QA moderator as the admin)", (role, manages) => {
+    expect(managesSkillklanJob(role)).toBe(manages);
   });
 
   it("not allowed → no role, even if one is sent", async () => {

@@ -269,7 +269,7 @@
   },
   "features": {
     "title": "Features",
-    "description": "Turn parts of SkillKlan Job on or off for everyone. What is on, everyone sees; what is off, no one sees — you included. Only an administrator sees this section.",
+    "description": "Turn parts of SkillKlan Job on or off for everyone. What is on, everyone sees; what is off, no one sees — you included. Only the administrator and the QA moderator see this section.",
     "items": {
       "automations": {
         "label": "Automations",
@@ -286,7 +286,7 @@
     },
     "saved": "Saved",
     "saveFailed": "Couldn't save. Try again.",
-    "adminOnly": "Only an administrator can change features.",
+    "adminOnly": "Only the administrator and the QA moderator can change features.",
     "invalid": "There is no such feature."
   }
 }
