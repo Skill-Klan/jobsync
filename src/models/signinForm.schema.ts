@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { vt } from "@/i18n/validation";
+import { vt, whenMissing } from "@/i18n/validation";
 
 export const SigninFormSchema = z.object({
   email: z
@@ -12,7 +12,7 @@ export const SigninFormSchema = z.object({
     .email({ error: () => vt("auth.email.invalid") }),
   password: z
     .string({
-      error: () => vt("auth.password.required"),
+      error: whenMissing("auth.password.required"),
     })
     .min(1),
 });

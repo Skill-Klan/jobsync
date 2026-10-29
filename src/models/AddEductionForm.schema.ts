@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { vt } from "@/i18n/validation";
+import { vt, whenMissing } from "@/i18n/validation";
 
 export const AddEducationFormSchema = z.object({
   id: z.string().optional(),
@@ -9,17 +9,17 @@ export const AddEducationFormSchema = z.object({
   sectionType: z.string().optional(),
   institution: z
     .string({
-      error: () => vt("education.institution.required"),
+      error: whenMissing("education.institution.required"),
     })
     .min(2),
   degree: z
     .string({
-      error: () => vt("education.degree.required"),
+      error: whenMissing("education.degree.required"),
     })
     .min(2),
   fieldOfStudy: z
     .string({
-      error: () => vt("education.fieldOfStudy.required"),
+      error: whenMissing("education.fieldOfStudy.required"),
     })
     .min(2),
   location: z

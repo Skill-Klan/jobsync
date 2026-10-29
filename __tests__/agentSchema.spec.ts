@@ -22,10 +22,18 @@ describe("AgentAddJobSchema", () => {
   // The shape used to be derived from the MCP server's add_job schema. The
   // fixture is the model-facing JSON schema captured before the MCP removal:
   // moving the fields here must not change one word the model reads.
+  // One change since, 2026-10-29: zod 4.6 requires seconds in its ISO
+  // datetime pattern (RFC 3339 — what "format": "date-time" always said).
   it("emits the same model-facing JSON schema as before the MCP removal", () => {
-    expect(z.toJSONSchema(AgentAddJobSchema, { io: "input" })).toEqual(
-      addJobInputSchemaBeforeMcpRemoval,
-    );
+    const minutesOk = "[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|";
+    const secondsRequired = "[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|";
+    const expected = structuredClone(addJobInputSchemaBeforeMcpRemoval);
+    for (const field of ["dueDate", "appliedDate"] as const) {
+      const property = expected.properties[field];
+      expect(property.pattern).toContain(minutesOk);
+      property.pattern = property.pattern.replace(minutesOk, secondsRequired);
+    }
+    expect(z.toJSONSchema(AgentAddJobSchema, { io: "input" })).toEqual(expected);
   });
 
   // Optional in the schema but asked for unconditionally in the text: an

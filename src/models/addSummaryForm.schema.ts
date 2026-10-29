@@ -1,11 +1,11 @@
 import { z } from "zod";
-import { vt } from "@/i18n/validation";
+import { whenMissing } from "@/i18n/validation";
 
 export const AddSummarySectionFormSchema = z.object({
   id: z.string().optional(),
   sectionTitle: z
     .string({
-      error: () => vt("summary.sectionTitle.required"),
+      error: whenMissing("summary.sectionTitle.required"),
     })
     .min(1),
   sectionType: z.string().optional(),
@@ -14,7 +14,7 @@ export const AddSummarySectionFormSchema = z.object({
   resumeId: z.string().optional(),
   content: z
     .string({
-      error: () => vt("summary.content.required"),
+      error: whenMissing("summary.content.required"),
     })
     .min(10),
 });
