@@ -39,6 +39,23 @@ const FLOORS: Floor[] = [
   // Arbitrary file read through a redirect mock path.
   { pkg: "vitest", min: "4.1.11", advisories: ["GHSA-82fw-gwwq-j7x9"] },
   { pkg: "@vitest/mocker", min: "4.1.11", advisories: ["GHSA-82fw-gwwq-j7x9"] },
+  // Code injection through an unauthenticated mock registration; Windows
+  // backslashes slipping past the redirect allowlist.
+  { pkg: "vitest", min: "4.1.12", advisories: ["GHSA-qxg6-89mg-rqv8", "GHSA-xp26-3454-mjgp"] },
+  { pkg: "@vitest/mocker", min: "4.1.12", advisories: ["GHSA-qxg6-89mg-rqv8", "GHSA-xp26-3454-mjgp"] },
+  // Dev server: files outside server.fs.allow, cross-origin script through
+  // custom middleware, and the bundled launch-editor (command execution).
+  {
+    pkg: "vite",
+    min: "8.1.6",
+    advisories: [
+      "GHSA-587h-7wmj-h5pm",
+      "GHSA-r825-w8mm-5pxw",
+      "GHSA-698v-4r3x-3vcv",
+      "GHSA-rq7h-c2jc-7f22",
+      "GHSA-9jrq-w75r-8gcw",
+    ],
+  },
 ];
 
 // Packages present on more than one major, each with its own patched release.
