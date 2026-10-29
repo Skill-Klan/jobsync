@@ -45,6 +45,16 @@ export function vt(key: ValidationKey, values?: Record<string, string | number>)
   return translators[pageLocale()](key, values);
 }
 
+/**
+ * A field's own message for a missing value only, for `z.string({ error })`
+ * whose checks carry no message: `.min(2)` keeps «Щонайменше 2 символи».
+ * Since zod 4.6 a schema's error covers its checks too; undefined hands the
+ * issue on to the check, then to zod's own message, as before.
+ */
+export function whenMissing(key: ValidationKey) {
+  return (issue: z.core.$ZodRawIssue) => (issue.code === "invalid_type" ? vt(key) : undefined);
+}
+
 const EMPTY = new Set<unknown>([undefined, null, ""]);
 
 // The server keeps zod's own English: "expected string, received undefined"

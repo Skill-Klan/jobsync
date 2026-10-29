@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { vt, type ValidationKey } from "@/i18n/validation";
+import { vt, type ValidationKey, whenMissing } from "@/i18n/validation";
 import { COMPANY_NOTES_MAX_LENGTH, COMPANY_SIZES } from "@/lib/constants";
 
 const isValidUrl = (url: string) => {
@@ -37,7 +37,7 @@ export const AddCompanyFormSchema = z.object({
   createdBy: z.string().optional(),
   company: z
     .string({
-      error: () => vt("fields.company.required"),
+      error: whenMissing("fields.company.required"),
     })
     .min(1),
   logoUrl: z

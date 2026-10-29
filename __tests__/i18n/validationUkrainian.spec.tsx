@@ -19,6 +19,10 @@ import { AddQuestionFormSchema } from "@/models/addQuestionForm.schema";
 import { AddContactFormSchema } from "@/models/addContactForm.schema";
 import { AddActivityFormSchema } from "@/models/addActivityForm.schema";
 import { SigninFormSchema } from "@/models/signinForm.schema";
+import { AddEducationFormSchema } from "@/models/AddEductionForm.schema";
+import { AddCertificationFormSchema } from "@/models/addCertificationForm.schema";
+import { AddCompanyFormSchema } from "@/models/addCompanyForm.schema";
+import { AddSummarySectionFormSchema } from "@/models/addSummaryForm.schema";
 import { CreateAutomationSchema } from "@/models/automation.schema";
 import { AddJobStageFormSchema } from "@/models/jobStage.model";
 import { TaskForm } from "@/components/tasks/TaskForm";
@@ -196,6 +200,26 @@ describe("schema messages in Ukrainian", () => {
       ["email", "Вкажіть правильну електронну пошту."],
       ["password", "Заповніть це поле"],
     ]);
+  });
+
+  // The owner, 2026-10-29: the zod update must leave these texts as they were.
+  // A field's own "required" message is for a missing value; a value that is
+  // there but too short keeps the length message. zod 4.6 started to apply a
+  // schema's error to its checks too, which would say «Вкажіть …» to someone
+  // who typed one letter.
+  it.each([
+    ["institution", AddEducationFormSchema, "Вкажіть назву навчального закладу.", "а", "Щонайменше 2 символи"],
+    ["degree", AddEducationFormSchema, "Вкажіть ступінь.", "а", "Щонайменше 2 символи"],
+    ["fieldOfStudy", AddEducationFormSchema, "Вкажіть спеціальність.", "а", "Щонайменше 2 символи"],
+    ["title", AddCertificationFormSchema, "Вкажіть назву сертифіката.", "а", "Щонайменше 2 символи"],
+    ["organization", AddCertificationFormSchema, "Вкажіть організацію, яка видала сертифікат.", "а", "Щонайменше 2 символи"],
+    ["company", AddCompanyFormSchema, "Вкажіть назву компанії.", "", "Заповніть це поле"],
+    ["sectionTitle", AddSummarySectionFormSchema, "Вкажіть назву розділу.", "", "Заповніть це поле"],
+    ["content", AddSummarySectionFormSchema, "Напишіть текст розділу", "Коротко", "Щонайменше 10 символів"],
+    ["password", SigninFormSchema, "Введіть пароль.", "", "Заповніть це поле"],
+  ] as const)("%s — missing gets its own message, too short the length one", (field, schema, missing, short, tooShort) => {
+    expect(messagesFor(schema, { [field]: undefined }, field)).toEqual([missing]);
+    expect(messagesFor(schema, { [field]: short }, field)).toEqual([tooShort]);
   });
 
   it("automation: a superRefine message, and field messages", () => {

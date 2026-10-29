@@ -33,6 +33,9 @@ const FLOORS: Floor[] = [
   // Uncontrolled resource consumption. Old copies came pinned by the
   // provider packages (@ai-sdk/openai, deepseek, google), not by `ai`.
   { pkg: "@ai-sdk/provider-utils", min: "4.0.33", advisories: ["GHSA-866g-f22w-33x8"] },
+  // Memory exhaustion: array, set and map elements were parsed before the
+  // size bound was checked, so a huge array passed to .max(n) was walked whole.
+  { pkg: "zod", min: "4.6.6", advisories: ["GHSA-mrhx-c7xc-m3w5"] },
   // Dev tooling below: never in the image, but it runs on CI and on our machines.
   // CPU DoS: maxTotalMergeKeys did not bound empty merge sources.
   { pkg: "js-yaml", min: "4.3.2", advisories: ["GHSA-2883-xcg3-v3hh"] },

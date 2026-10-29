@@ -82,7 +82,7 @@
     "unpdf": "^1.6.2",
     "use-intl": "4.14.8",
     "use-stick-to-bottom": "^1.1.6",
-    "zod": "^4.3.5"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",

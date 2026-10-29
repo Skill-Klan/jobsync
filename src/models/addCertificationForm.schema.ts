@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { vt } from "@/i18n/validation";
+import { whenMissing } from "@/i18n/validation";
 
 export const AddCertificationFormSchema = z.object({
   id: z.string().optional(),
@@ -8,12 +8,12 @@ export const AddCertificationFormSchema = z.object({
   sectionTitle: z.string().default("Certifications").optional(),
   title: z
     .string({
-      error: () => vt("certification.title.required"),
+      error: whenMissing("certification.title.required"),
     })
     .min(2),
   organization: z
     .string({
-      error: () => vt("certification.organization.required"),
+      error: whenMissing("certification.organization.required"),
     })
     .min(2),
   issueDate: z.date().nullable().optional(),
