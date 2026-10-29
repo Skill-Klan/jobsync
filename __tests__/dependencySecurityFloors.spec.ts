@@ -28,6 +28,20 @@ const FLOORS: Floor[] = [
   // WebSocket DoS (unrequested subprotocol, deflate error) and response
   // splitting through the retry interceptor.
   { pkg: "undici", min: "6.28.1", advisories: ["GHSA-rfgv-xxqx-mfg5", "GHSA-3wwx-pv8p-q78v", "GHSA-r53p-7pc4-xj5r"] },
+  // TLS options dropped by Agent (certificate check bypassed); crash on a
+  // renegotiated certificate or on too many content-encodings; unbounded
+  // memory in the EventSource parser and in WebSocket PONG replies.
+  {
+    pkg: "undici",
+    min: "6.29.1",
+    advisories: [
+      "GHSA-2m5v-pch6-74hx",
+      "GHSA-qrxm-fqhp-jwvm",
+      "GHSA-xjj6-f33q-929c",
+      "GHSA-4qv8-2p9j-2685",
+      "GHSA-9fm3-97px-rjf6",
+    ],
+  },
   // Quadratic linkify paths: a few hundred KB of markdown blocks the event loop.
   { pkg: "markdown-it", min: "14.3.1", advisories: ["GHSA-253c-mchw-3w2r"] },
   // Quadratic scan of one multi-line reference definition (any options — ours
