@@ -75,7 +75,8 @@ jobs:
           ACTOR: ${{ github.actor }}
           TRIGGERING_ACTOR: ${{ github.triggering_actor }}
           FORCE_ASK: ${{ inputs.ask }}
-          DIGEST_FROM_BUILD: ${{ inputs.digest_from_build }}
+          # Ручний запуск: digest_from_build у нього немає → manual.
+          DEPLOY_DIGEST_SOURCE: ${{ inputs.digest_from_build && 'build' || 'manual' }}
         run: bash skillklan/deploy/deploy-who.sh
 
       - name: Ask the owner in Telegram (not the owner's push)
