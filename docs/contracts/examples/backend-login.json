@@ -1,0 +1,31 @@
+{
+  "$comment": "Answers of the SkillKlan backend for docs/contracts/backend-login.md. Shapes, statuses, codes and texts are those the backend's own API tests and error handler assert (2026-10-29). Branch on status and code, never on the Ukrainian texts. Tests check the local backend (skillklan/dev/backend-stub.mjs) against these.",
+  "exchange": {
+    "ok": {
+      "status": 200,
+      "body": { "success": true, "data": { "userId": 1001, "role": "student", "name": "Test Student" }, "error": null }
+    },
+    "codeInvalid": {
+      "status": 401,
+      "body": { "error": "Не авторизовано", "message": "Код входу недійсний", "code": "JOBSYNC_CODE_INVALID" }
+    },
+    "accessDenied": {
+      "status": 403,
+      "body": { "error": "Доступ заборонено", "message": "Немає доступу до SkillKlan Job", "code": "JOBSYNC_ACCESS_DENIED" }
+    },
+    "wrongSecret": { "status": 401, "body": { "error": "unauthorized" } },
+    "noSecretConfigured": { "status": 503, "body": { "error": "service_unavailable" } }
+  },
+  "access": {
+    "allowed": {
+      "status": 200,
+      "body": { "success": true, "data": { "allowed": true, "role": "admin" }, "error": null }
+    },
+    "notAllowed": {
+      "status": 200,
+      "body": { "success": true, "data": { "allowed": false, "role": null }, "error": null }
+    },
+    "wrongSecret": { "status": 401, "body": { "error": "unauthorized" } },
+    "noSecretConfigured": { "status": 503, "body": { "error": "service_unavailable" } }
+  }
+}

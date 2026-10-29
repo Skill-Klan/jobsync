@@ -57,11 +57,17 @@ next-env.d.ts
 /playwright-report/
 /blob-report/
 /playwright/.cache/
-CLAUDE.md
-/docs
 .github/*
 !.github/workflows
-.claude
+!.github/CODEOWNERS
+# Agent instructions are shared (CLAUDE.md, .claude/rules/, .claude/settings.json); everything else in
+# .claude/ — agent worktrees, personal notes, settings.local.json — stays local. `!.claude/` re-includes
+# the folder over a global ignore of it.
+!.claude/
+.claude/*
+!.claude/rules/
+!.claude/settings.json
+CLAUDE.local.md
 .specify
 /specs
 .vscode
