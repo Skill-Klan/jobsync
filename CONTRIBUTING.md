@@ -1,307 +1,63 @@
-# Contributing to JobSync
+# Contributing to SkillKlan Job
 
-Thank you for your interest in contributing to JobSync! This document outlines the process and guidelines for contributing to this project. Please read it carefully before submitting any contributions.
+This repository is SkillKlan's own code base (a modified JobSync, MIT). It does not take changes from or
+send changes to upstream JobSync. Code of conduct: [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md).
 
-## Table of Contents
+Working with an AI agent? It reads [CLAUDE.md](./CLAUDE.md) and `.claude/rules/` — the same rules as
+below, in more detail. People should read them too.
 
-- [Contributing to JobSync](#contributing-to-jobsync)
-  - [Table of Contents](#table-of-contents)
-  - [Code of Conduct](#code-of-conduct)
-  - [Getting Started](#getting-started)
-    - [Prerequisites](#prerequisites)
-    - [Local Setup](#local-setup)
-  - [How to Contribute](#how-to-contribute)
-  - [Development Workflow](#development-workflow)
-  - [Branch Strategy](#branch-strategy)
-    - [Naming Convention](#naming-convention)
-  - [Commit Messages](#commit-messages)
-  - [Pull Request Guidelines](#pull-request-guidelines)
-    - [Before Opening a PR](#before-opening-a-pr)
-    - [Keep PRs Small and Focused](#keep-prs-small-and-focused)
-    - [PR Checklist](#pr-checklist)
-    - [PR Description Template](#pr-description-template)
-    - [Review Process](#review-process)
-  - [Code Style](#code-style)
-  - [Testing](#testing)
-    - [Unit Tests (Jest)](#unit-tests-jest)
-    - [E2E Tests (Playwright)](#e2e-tests-playwright)
-  - [Reporting Bugs](#reporting-bugs)
-  - [Suggesting Features](#suggesting-features)
-  - [Questions](#questions)
+## Set up
 
----
-
-## Code of Conduct
-
-This project follows a [Code of Conduct](./CODE_OF_CONDUCT.md). By participating, you agree to uphold these standards. Please report unacceptable behavior to the project maintainers.
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 20+
-- npm
-- Git
-
-### Local Setup
-
-1. **Fork** the repository on GitHub.
-2. **Clone** your fork:
-   ```bash
-   git clone https://github.com/<your-username>/jobsync.git
-   cd jobsync
-   ```
-3. **Add the upstream remote:**
-   ```bash
-   git remote add upstream https://github.com/Gsync/jobsync.git
-   ```
-4. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-5. **Copy the environment file and fill in your values:**
-   ```bash
-   cp .env.example .env
-   ```
-6. **Set up the database:**
-   ```bash
-   npx prisma migrate dev
-   ```
-7. **Start the development server:**
-   ```bash
-   npm run dev
-   ```
-
----
-
-## How to Contribute
-
-There are many ways to contribute:
-
-- **Bug fixes** — Find something broken? Fix it and open a PR.
-- **Features** — Check the [open issues](https://github.com/Gsync/jobsync/issues) for ideas, or propose a new one first.
-- **Documentation** — Improve README, docs, or inline code comments.
-- **Tests** — Add missing unit or e2e tests.
-- **Refactoring** — Improve code quality without changing behavior.
-
-For significant changes or new features, **open an issue first** to discuss your approach before writing code. This avoids duplicated effort and ensures alignment with the project's direction.
-
----
-
-## Development Workflow
-
-1. **Sync your fork** with the latest `dev` branch before starting work:
-   ```bash
-   git fetch upstream
-   git checkout dev
-   git merge upstream/dev
-   ```
-2. **Create a focused branch** from `dev` (see [Branch Strategy](#branch-strategy)):
-   ```bash
-   git checkout -b feat/your-feature-name
-   ```
-3. Make your changes, keeping the scope narrow and focused.
-4. **Run lint and tests** to verify everything passes (see [Testing](#testing)).
-5. Commit your changes following the [commit message conventions](#commit-messages).
-6. Push your branch to your fork and open a Pull Request.
-
----
-
-## Branch Strategy
-
-> **Important:** All pull requests must target the `dev` branch, **never** `main`. The `main` branch is the stable release branch and is only updated by maintainers via versioned merges from `dev`.
-
-### Naming Convention
-
-Use one of these prefixes for your branch name:
-
-| Prefix | Purpose |
-|--------|---------|
-| `feat/` | New feature |
-| `fix/` | Bug fix |
-| `docs/` | Documentation only |
-| `refactor/` | Code refactoring (no behavior change) |
-| `test/` | Adding or improving tests |
-| `chore/` | Build process, tooling, dependencies |
-
-**Examples:**
-```
-feat/add-resume-export
-fix/automation-rate-limit
-docs/update-api-routes
-refactor/ai-provider-cleanup
-test/task-actions-coverage
+```sh
+npm ci
+cp .env.example .env.local     # then fill in development values, see below
+DATABASE_URL="file:./dev.db" npx prisma migrate deploy   # creates prisma/dev.db
+npm run dev                    # http://localhost:3737
 ```
 
----
+`.env.local` needs at least `DATABASE_URL="file:./dev.db"`, `AUTH_SECRET` and `ENCRYPTION_KEY` (any local
+values, e.g. `openssl rand -base64 32`). The Next.js server reads `.env.local`; the Prisma CLI does **not** —
+give it `DATABASE_URL` on the command line, as above.
 
-## Commit Messages
+Sign in locally in one of two ways:
 
-Follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
+- **Like production** — the cabinet's one-time code against a local stand-in for the SkillKlan backend:
+  `npm run dev:backend`, see [docs/contracts/local-backend.md](./docs/contracts/local-backend.md). Use this
+  for anything about sign-in, roles, access or admin features.
+- **Quick** — `JOBSYNC_DEV_PASSWORD_LOGIN=1` in `.env.local` enables upstream email + password sign-in and
+  sign-up in development builds (never in production builds).
 
-```
-<type>(optional scope): <short summary>
+Never point a local setup at production (`api.`, `app.` or `jobs.skillklan.com.ua`), and never put real
+student data into a local database.
 
-[optional body]
+## Branches and pull requests
 
-[optional footer]
-```
+1. Branch `sk/<topic>` from the latest `main`. One topic per pull request.
+2. Before opening the PR run what CI runs, plus types:
+   `npx prisma generate && npm run lint && npm test && npx tsc --noEmit`.
+3. The PR description says **what** changed, **why**, and **how you verified it** (commands and results;
+   for UI — what you checked in the browser).
+4. Merge it yourself once the checks are green — unless it touches a path in
+   [.github/CODEOWNERS](./.github/CODEOWNERS) (instructions, docs, CI and deploy, migrations, dependencies,
+   license): then it waits for the owner's review.
+5. A merge into `main` is a release. Your merge is deployed after the owner approves it in Telegram, so keep
+   `main` deployable.
 
-**Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+Nobody but the owner pushes to `main` directly, and nobody force-pushes a shared branch.
 
-**Examples:**
-```
-feat(automations): add rate limiting for manual runs
-fix(tasks): prevent deletion of tasks with linked activities
-docs: update environment variable list in README
-refactor(ai): extract preprocessing into dedicated module
-test(job-actions): add coverage for edge cases
-```
+## Tests
 
-- Use the **imperative mood** in the summary ("add feature" not "added feature")
-- Keep the summary under **72 characters**
-- Reference relevant issues in the footer: `Closes #123`
+Tests come from the requirement, not from the code: write down what the right result is and why, then the
+test, and make sure it fails on the broken version — for the reason it is about. Run the whole suite before
+you start and note what already fails. Details: [CLAUDE.md](./CLAUDE.md#tests).
 
----
+## Dependencies
 
-## Pull Request Guidelines
+Adding an npm package needs the owner's approval — ask before `npm install <package>`. Security updates of
+existing packages are welcome as their own PRs.
 
-### Before Opening a PR
+## Backend contracts
 
-Ensure the following checks pass **locally** before submitting:
-
-```bash
-# Lint — must produce no errors
-npm run lint
-
-# Unit tests — all must pass
-npm run test
-
-# (Optional) E2e tests
-npm run test:e2e
-```
-
-A PR that fails lint or tests will **not be reviewed** until those issues are resolved.
-
-### Keep PRs Small and Focused
-
-Large PRs are difficult to review thoroughly and are more likely to introduce bugs. Follow these guidelines:
-
-- **One concern per PR** — a single bug fix, a single feature, or a single refactor; not all three.
-- **Aim for under 400 lines changed** (excluding generated files, migrations, and lock files).
-- If your change is large by necessity, break it into a sequence of smaller PRs that each build on the previous one.
-- Avoid bundling unrelated changes (e.g., fixing a bug while also reformatting unrelated files).
-
-### PR Checklist
-
-Before submitting, verify:
-
-- [ ] Branch is based on `dev`, not `main`
-- [ ] `npm run lint` passes with no errors
-- [ ] `npm run test` passes with no failures
-- [ ] PR is scoped to a single concern
-- [ ] Changes are under ~400 lines (excluding generated/migration files)
-- [ ] PR description explains **what** and **why**
-- [ ] Relevant tests have been added or updated
-- [ ] Documentation is updated if behavior changes
-- [ ] `npx prisma generate` and a migration have been added for any schema changes
-
-### PR Description Template
-
-When opening a PR, use this structure:
-
-```markdown
-## Summary
-A brief description of what this PR does and why.
-
-## Changes
-- List of specific changes made
-
-## Related Issues
-Closes #<issue-number>
-
-## Testing
-Describe how the change was tested.
-```
-
-### Review Process
-
-- At least one maintainer approval is required to merge.
-- Address all review comments before requesting re-review.
-- Keep discussion respectful and constructive — see the [Code of Conduct](./CODE_OF_CONDUCT.md).
-- Maintainers may request changes, squash commits, or close a PR that no longer aligns with the project's goals.
-
----
-
-## Code Style
-
-This project uses ESLint and TypeScript strict mode. All style rules are enforced via `npm run lint`.
-
-Key conventions:
-
-- **Imports:** Use `@/` absolute imports; group by external → internal → relative.
-- **Naming:** PascalCase for components, camelCase for functions/variables, kebab-case for files.
-- **Types:** All types live in `src/models/*.model.ts`; Zod schemas in `src/models/*.schema.ts`.
-- **Server actions:** Always validate auth with `getCurrentUser()` and return via `handleError()`.
-- **Database:** Run `npx prisma generate` then `npx prisma migrate dev` after any schema change.
-- **Files over 200 lines:** Break into a directory with focused modules and a barrel `index.ts`.
-- **Comments:** Minimal; explain "why" not "what"; no decorative separator comments.
-
----
-
-## Testing
-
-### Unit Tests (Jest)
-
-```bash
-npm run test               # Run all unit tests
-npm run test:watch         # Watch mode
-npm run test -- path/to/test.test.ts   # Single file
-npm run test -- --testNamePattern="test name"  # Single test
-```
-
-Tests live in `__tests__/` and should be co-located where possible. Mock external dependencies (AI providers, database). Focus on server actions and component behavior.
-
-### E2E Tests (Playwright)
-
-```bash
-npm run test:e2e
-```
-
-E2E tests live in `e2e/`. These require a running dev server.
-
----
-
-## Reporting Bugs
-
-Before filing a bug report, check if it has already been reported in the [issue tracker](https://github.com/Gsync/jobsync/issues).
-
-When opening a bug report, include:
-
-1. **Description** — clear summary of the problem.
-2. **Steps to reproduce** — step-by-step instructions.
-3. **Expected vs. actual behavior.**
-4. **Environment** — OS, Node.js version, browser (if applicable).
-5. **Screenshots or logs** — if relevant.
-
----
-
-## Suggesting Features
-
-Open a [feature request issue](https://github.com/Gsync/jobsync/issues/new) with:
-
-1. **Problem statement** — what problem does this solve or what need does it address?
-2. **Proposed solution** — your idea for how to implement it.
-3. **Alternatives considered** — other approaches you thought of.
-
-Feature requests are discussed before any implementation work begins.
-
----
-
-## Questions
-
-If you have a question that isn't answered here, feel free to open a [discussion](https://github.com/Gsync/jobsync/discussions) or an issue tagged `question`.
-
-Thank you for helping make JobSync better!
+This app talks to the SkillKlan backend only through the contracts in [docs/contracts/](./docs/contracts/README.md).
+If a feature needs data the contracts don't give, propose a new endpoint there — the owner builds the backend
+side.

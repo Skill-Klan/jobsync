@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "deny": [
+      "Edit(/CLAUDE.md)",
+      "Write(/CLAUDE.md)",
+      "Edit(/.claude/rules/**)",
+      "Write(/.claude/rules/**)",
+      "Edit(/.claude/settings.json)",
+      "Write(/.claude/settings.json)",
+      "Edit(/.github/**)",
+      "Write(/.github/**)",
+      "Edit(/skillklan/deploy/**)",
+      "Write(/skillklan/deploy/**)",
+      "Edit(/skillklan/server/**)",
+      "Write(/skillklan/server/**)",
+      "Edit(/LICENSE)",
+      "Write(/LICENSE)",
+      "Read(/.env)",
+      "Read(/.env.local)",
+      "Read(/.env.production)",
+      "Read(/.env.production.local)"
+    ],
+    "ask": [
+      "Edit(/prisma/migrations/**)",
+      "Write(/prisma/migrations/**)",
+      "Edit(/package.json)",
+      "Edit(/package-lock.json)",
+      "Bash(npm install *)",
+      "Bash(npm i *)",
+      "Bash(git push*)"
+    ]
+  }
+}

@@ -11,6 +11,7 @@
   "scripts": {
     "dev": "next dev --turbopack -p 3737",
     "dev:webpack": "next dev -p 3737",
+    "dev:backend": "node --env-file-if-exists=.env.local skillklan/dev/backend-stub.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",

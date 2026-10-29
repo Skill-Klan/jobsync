@@ -1,0 +1,24 @@
+# A pull request that touches any of these needs the owner's approval before it can be merged
+# (the branch rules of `main` require a code owner's review). Everything else a contributor merges
+# themselves after green checks; production still waits for the owner's approval in Telegram.
+
+# Instructions for people and agents
+/CLAUDE.md                @Skill-Klan
+/.claude/                 @Skill-Klan
+/CONTRIBUTING.md          @Skill-Klan
+/docs/                    @Skill-Klan
+
+# CI, image, deploy and server
+/.github/                 @Skill-Klan
+/Dockerfile               @Skill-Klan
+/.dockerignore            @Skill-Klan
+/skillklan/               @Skill-Klan
+
+# Database schema and dependencies
+/prisma/migrations/       @Skill-Klan
+/prisma/schema.prisma     @Skill-Klan
+/package.json             @Skill-Klan
+/package-lock.json        @Skill-Klan
+
+# License (MIT condition)
+/LICENSE                  @Skill-Klan
