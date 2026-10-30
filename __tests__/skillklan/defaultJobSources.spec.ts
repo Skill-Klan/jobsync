@@ -7,6 +7,7 @@
 //     not offered by default — Indeed, Monster, Glassdoor, ZipRecruiter and
 //     Job Street are gone; Linkedin, the company's own page, Google and
 //     "Other" stay;
+//   · the order is Linkedin, DOU, Djinni, Google, Company Career page, Other;
 //   · the labels are brand names — kept as written (D29/D30), not translated.
 // Real SQLite with the current schema (db push), real Prisma.
 import fs from "fs";
@@ -34,8 +35,8 @@ const EXPECTED = [
   { label: "Linkedin", value: "linkedin" },
   { label: "DOU", value: "dou" },
   { label: "Djinni", value: "djinni" },
-  { label: "Company Career page", value: "careerpage" },
   { label: "Google", value: "google" },
+  { label: "Company Career page", value: "careerpage" },
   { label: "Other", value: "other" },
 ];
 
