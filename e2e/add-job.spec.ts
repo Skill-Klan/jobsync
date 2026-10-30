@@ -28,7 +28,7 @@ test.describe("Add New Job", () => {
     await expect(page.getByLabel("Job Location")).toContainText(
       `location ${jobText.replace(/\s+/g, "-")}`,
     );
-    await expect(page.getByLabel("Job Source")).toContainText("Indeed");
+    await expect(page.getByLabel("Job Source")).toContainText("Linkedin");
     await expect(page.getByLabel("Select Job Status")).toContainText("Draft");
     await expect(
       page.getByLabel("Job Description").getByRole("paragraph"),

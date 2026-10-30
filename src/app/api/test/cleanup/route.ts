@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // Sources are never created by the tests (they select the seeded "Indeed"),
+  // Sources are never created by the tests (they select the seeded "Linkedin"),
   // so they are intentionally not cleaned up here.
   await deleteLibraryByName("jobTitle", titles, userId);
   await deleteLibraryByName("company", companies, userId);

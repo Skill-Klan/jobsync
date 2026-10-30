@@ -110,8 +110,8 @@ export async function createNewJob(
 
   await page.getByRole("dialog").getByText("Part-time", { exact: true }).click();
   await page.getByLabel("Job Source").click();
-  await page.getByRole("option", { name: "Indeed" }).click();
-  await expect(page.getByLabel("Job Source")).toContainText("Indeed");
+  await page.getByRole("option", { name: "Linkedin" }).click();
+  await expect(page.getByLabel("Job Source")).toContainText("Linkedin");
   await page.getByLabel("Job Description").locator("div").click();
   await page
     .getByLabel("Job Description")

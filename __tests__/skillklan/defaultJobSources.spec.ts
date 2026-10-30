@@ -2,9 +2,12 @@
 // Requirement — product owner's testing notes: students look for jobs on
 // Ukrainian boards, but the default sources had only LinkedIn from them.
 //   · every new account starts with "DOU" (value "dou") and "Djinni" (value
-//     "djinni"), placed right after LinkedIn, before Monster;
-//   · the labels are brand names — kept as written (D29/D30), not translated;
-//   · the other defaults stay as they were.
+//     "djinni"), placed right after LinkedIn;
+//   · owner, 2026-10-30: boards that nobody in the Ukrainian market uses are
+//     not offered by default — Indeed, Monster, Glassdoor, ZipRecruiter and
+//     Job Street are gone; Linkedin, the company's own page, Google and
+//     "Other" stay;
+//   · the labels are brand names — kept as written (D29/D30), not translated.
 // Real SQLite with the current schema (db push), real Prisma.
 import fs from "fs";
 import { PrismaClient } from "@prisma/client";
@@ -28,16 +31,11 @@ import { findOrCreateCabinetUser } from "@/skillklan/cabinetUser";
 const prisma = new PrismaClient({ datasources: { db: { url: ctx.url } } });
 
 const EXPECTED = [
-  { label: "Indeed", value: "indeed" },
   { label: "Linkedin", value: "linkedin" },
   { label: "DOU", value: "dou" },
   { label: "Djinni", value: "djinni" },
-  { label: "Monster", value: "monster" },
-  { label: "Glassdoor", value: "glassdoor" },
   { label: "Company Career page", value: "careerpage" },
   { label: "Google", value: "google" },
-  { label: "ZipRecruiter", value: "ziprecruiter" },
-  { label: "Job Street", value: "jobstreet" },
   { label: "Other", value: "other" },
 ];
 
@@ -48,7 +46,7 @@ afterAll(async () => {
 });
 
 describe("default job sources", () => {
-  it("the list has DOU and Djinni right after LinkedIn, the rest unchanged", () => {
+  it("the list has DOU and Djinni right after LinkedIn, and nothing else for foreign markets", () => {
     expect(JOB_SOURCES.map(({ label, value }) => ({ label, value }))).toEqual(EXPECTED);
   });
 
