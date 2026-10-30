@@ -2,10 +2,11 @@
 # (digest образу, що щойно пройшов smoke) або вручну з digest — для відкату чи повтору.
 #
 #   digest існує в ghcr → хто викладає: власник — далі, будь-хто інший — кнопка в Telegram (та сама,
-#   що для сайту; fail closed) → на Server2 примусова команда jobsync-deploy: копія /data, заміна,
-#   перевірка здоровʼя, відкат
+#   що для сайту; fail closed); ручний запуск не власником — відмова → на Server2 примусова команда
+#   jobsync-deploy: копія /data, заміна, перевірка здоровʼя, відкат
 #
-# Ключ SERVER2_DEPLOY_KEY уміє на сервері лише `deploy <digest>` і `status` (ForceCommand).
+# Ключ SERVER2_DEPLOY_KEY уміє на сервері лише `deploy <digest>` і `status` (ForceCommand). Він і секрет
+# кнопки лежать у середовищі server2, яке дозволяє лише main: воркфлоу з будь-якої іншої гілки їх не бачить.
 # Лог цього рану публічний — обгортка логів застосунку сюди не друкує.
 name: SkillKlan deploy
 
@@ -28,6 +29,11 @@ on:
       ask:
         type: boolean
         default: false
+      # Лише для виклику: digest зібрано й перевірено в цьому ж рані. У ручного запуску такого входу немає
+      # (GitHub відкидає невідомі входи), тож там digest завжди вважається вписаним людиною.
+      digest_from_build:
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -38,6 +44,8 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    # Секрети деплою — лише в цьому середовищі; його правило гілок (Settings → Environments) — тільки main.
+    environment: server2
     # На рівні job, а не воркфлоу: так черга діє й тоді, коли деплой викликано з «SkillKlan image».
     concurrency:
       group: sk-deploy-server2
@@ -58,6 +66,7 @@ jobs:
           echo "OK: ghcr.io/skill-klan/jobsync@$DIGEST"
 
       # Пушив власник (агенти пушать його ж акаунтом) — без кнопки; будь-хто інший — кнопка.
+      # Ручний запуск із digest — лише довіреним, іншим — відмова (крок падає).
       # Довірені — змінна репозиторію DEPLOY_TRUSTED_ACTORS; порожня — кнопка для всіх (fail-closed).
       - name: Who deploys
         id: who
@@ -66,6 +75,8 @@ jobs:
           ACTOR: ${{ github.actor }}
           TRIGGERING_ACTOR: ${{ github.triggering_actor }}
           FORCE_ASK: ${{ inputs.ask }}
+          # Ручний запуск: digest_from_build у нього немає → manual.
+          DEPLOY_DIGEST_SOURCE: ${{ inputs.digest_from_build && 'build' || 'manual' }}
         run: bash skillklan/deploy/deploy-who.sh
 
       - name: Ask the owner in Telegram (not the owner's push)

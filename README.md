@@ -171,8 +171,12 @@ npm test
   `DEPLOY_TRUSTED_ACTORS` — no button; anyone else — the owner presses the button first, no press, no deploy
   ([`skillklan/deploy/deploy-who.sh`](./skillklan/deploy/deploy-who.sh); an empty variable means the button for
   everyone).
-- A manual run of `skillklan-deploy.yml` with a digest redeploys or rolls back to that image; tick `ask` to get
+- A manual run of `skillklan-deploy.yml` with a digest redeploys or rolls back to that image — **for a trusted
+  login only**; anyone else's manual run is refused, not asked about: a typed-in digest can be any image in
+  ghcr, not necessarily one built from `main`, and the button message shows only the digest. Tick `ask` to get
   the button even as the owner.
+- The deploy key and the button's secret live in the **`server2` environment**, which allows `main` only — a
+  workflow on any other branch never sees them.
 - The same digest again is a no-op — unless `app.env` changed since the last deploy (the wrapper keeps its
   sha256, never the values): then it is redeployed the same way, so new settings reach the container.
 

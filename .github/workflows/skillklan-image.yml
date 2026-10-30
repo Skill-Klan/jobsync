@@ -121,4 +121,6 @@ jobs:
     uses: ./.github/workflows/skillklan-deploy.yml
     with:
       digest: ${{ needs.image.outputs.digest }}
+      # Цей digest зібрано тут же з main — не довіреному кнопка, а не відмова, як при ручному запуску.
+      digest_from_build: true
     secrets: inherit
