@@ -267,6 +267,8 @@ export const SCHEDULER_CONSTANTS = {
 export const JOB_SOURCES = [
   { label: "Indeed", value: "indeed" },
   { label: "Linkedin", value: "linkedin" },
+  { label: "DOU", value: "dou" },
+  { label: "Djinni", value: "djinni" },
   { label: "Monster", value: "monster" },
   { label: "Glassdoor", value: "glassdoor" },
   { label: "Company Career page", value: "careerpage" },
