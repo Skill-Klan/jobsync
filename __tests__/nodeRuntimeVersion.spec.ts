@@ -10,17 +10,39 @@ const ROOT = path.resolve(__dirname, "..");
 const read = (rel: string) => fs.readFileSync(path.join(ROOT, rel), "utf8");
 const NODE_MAJOR = 24;
 
+const nodeFroms = () =>
+  read("Dockerfile")
+    .split("\n")
+    .filter((line) => /^FROM\s+node:/i.test(line));
+
 describe("Node runtime version", () => {
   it("builds every Dockerfile stage on node:24 alpine, pinned by digest", () => {
-    const froms = read("Dockerfile")
-      .split("\n")
-      .filter((line) => /^FROM\s+node:/i.test(line));
+    const froms = nodeFroms();
     // Anchor: the Dockerfile really has a node base stage to check.
     expect(froms.length).toBeGreaterThan(0);
     for (const line of froms) {
       expect(line).toMatch(
         new RegExp(`^FROM node:${NODE_MAJOR}\\.\\d+\\.\\d+-alpine@sha256:[0-9a-f]{64}\\b`),
       );
+    }
+  });
+
+  // The undici behind global fetch: certificate check bypass through dropped
+  // TLS options, crashes on TLS renegotiation and on too many content
+  // encodings, unbounded EventSource and WebSocket PONG memory
+  // (GHSA-2m5v-pch6-74hx, GHSA-qrxm-fqhp-jwvm, GHSA-xjj6-f33q-929c,
+  // GHSA-4qv8-2p9j-2685, GHSA-9fm3-97px-rjf6). Fixed in undici 7.30.1, first
+  // bundled by Node 24.22.1 — measured in the images: 24.22.0 still has 7.29.1.
+  it("runs a Node whose bundled undici has the fixes (>= 24.22.1)", () => {
+    const versions = nodeFroms().map((line) => {
+      const v = line.match(/^FROM node:(\d+)\.(\d+)\.(\d+)-/i);
+      expect(v).not.toBeNull();
+      return v!.slice(1).map(Number);
+    });
+    expect(versions.length).toBeGreaterThan(0);
+    for (const [major, minor, patch] of versions) {
+      expect(major).toBe(24);
+      expect(minor * 1000 + patch).toBeGreaterThanOrEqual(22 * 1000 + 1);
     }
   });
 
