@@ -12,7 +12,7 @@ import {
 // `value`, which never changes — the stored label stays English, so switching
 // the language needs no migration. A label the person renamed, or an item they
 // created, is theirs and is shown exactly as stored. Brand sources (LinkedIn,
-// Indeed…) have no translation and are shown as stored, too.
+// DOU…) have no translation and are shown as stored, too.
 
 export type LabelKind =
   | "jobStatus"
