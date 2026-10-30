@@ -1,4 +1,4 @@
-# Образ SkillKlan JobSync (єдиний Dockerfile репозиторію з 2026-10-14; апстрімний прибрано).
+# Образ SkillKlan Job (єдиний Dockerfile репозиторію з 2026-10-14; апстрімний прибрано).
 # Базовий образ за digest; Prisma CLI в образі (без npx на старті); процес — uid 1001 від самого
 # початку; entrypoint — skillklan/docker-entrypoint.sh (fail closed без справжніх секретів).
 

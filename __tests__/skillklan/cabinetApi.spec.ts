@@ -1,6 +1,6 @@
 // @vitest-environment node
-// Requirement — the backend contract (documentation/05-api/JOBSYNC_LOGIN_API.md
-// in the backend repo) and SkillKlan rules §2.3: every call to the backend is
+// Requirement — the backend contract (docs/contracts/backend-login.md) and
+// SkillKlan rules §2.3: every call to the backend is
 // fail-closed. Missing configuration, a timeout, a non-200 answer, a network
 // error or an answer of the wrong shape all mean "no session" / "no access";
 // the exchange is never retried (the code burns on first use); the code is

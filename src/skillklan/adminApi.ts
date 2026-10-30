@@ -2,7 +2,7 @@ import "server-only";
 import crypto from "crypto";
 
 // The machine API the SkillKlan backend calls for the admin pages
-// (contract: the backend's documentation/05-api/JOBSYNC_ADMIN_API.md).
+// (contract: docs/contracts/admin-stats.md).
 //
 // The routes live outside /api on purpose — like /auth/cabinet — so the
 // session middleware never sees them: the caller is a server, not a person,

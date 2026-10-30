@@ -1,6 +1,6 @@
 // @vitest-environment node
 // Requirement — the machine API the SkillKlan backend calls for the admin
-// pages (contract: backend documentation/05-api/JOBSYNC_ADMIN_API.md):
+// pages (contract: docs/contracts/admin-stats.md):
 //   · the only way in is the backend's secret in X-Jobsync-Admin-Secret —
 //     not a session: the routes sit outside the session middleware;
 //   · fail closed: no secret configured, or one shorter than 32 characters,

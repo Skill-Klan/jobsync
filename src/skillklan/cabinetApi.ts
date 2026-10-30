@@ -1,5 +1,5 @@
-// Calls to the SkillKlan backend for the cabinet login (contract: the
-// backend's documentation/05-api/JOBSYNC_LOGIN_API.md):
+// Calls to the SkillKlan backend for the cabinet login (contract:
+// docs/contracts/backend-login.md):
 //
 //   exchangeLoginCode — trade the one-time code the cabinet posted for the
 //                       person behind it;
