@@ -191,6 +191,36 @@ describe("jobActions", () => {
       expect(prisma.jobSource.findMany).toHaveBeenCalledTimes(1);
     });
 
+    // Requirement — owner, 2026-10-30: the source picker reads Linkedin, DOU,
+    // Djinni, Google, Company Career page, Other — for every account, however
+    // the rows came to be (a migration adds DOU and Djinni after the rest).
+    // What the person created themselves comes after, as they were stored.
+    it("returns sources in the owner's order, the person's own after", async () => {
+      (prisma.jobSource.findMany as any).mockResolvedValue([
+        { id: "1", label: "Linkedin", value: "linkedin" },
+        { id: "2", label: "Company Career page", value: "careerpage" },
+        { id: "3", label: "Telegram", value: "telegram" },
+        { id: "4", label: "Google", value: "google" },
+        { id: "5", label: "Other", value: "other" },
+        { id: "6", label: "Djinni", value: "djinni" },
+        { id: "7", label: "DOU", value: "dou" },
+        { id: "8", label: "Work.ua", value: "work.ua" },
+      ]);
+
+      const result = await getJobSourceList();
+
+      expect(result.map((s: any) => s.value)).toEqual([
+        "linkedin",
+        "dou",
+        "djinni",
+        "google",
+        "careerpage",
+        "other",
+        "telegram",
+        "work.ua",
+      ]);
+    });
+
     it("should returns failure response on error", async () => {
       (prisma.jobSource.findMany as any).mockRejectedValue(
         new Error("Failed to fetch job source list."),

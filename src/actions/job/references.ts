@@ -2,7 +2,7 @@
 import prisma from "@/lib/db";
 import { handleError } from "@/lib/utils";
 import { canonicalizeEntityValue } from "@/lib/jobs/canonicalize";
-import { JOB_STATUSES } from "@/lib/constants";
+import { JOB_SOURCES, JOB_STATUSES } from "@/lib/constants";
 import { requireUser } from "../shared";
 import { jobsError } from "./errorMessages";
 
@@ -11,6 +11,13 @@ import { jobsError } from "./errorMessages";
 // rows are in insertion order, and migrations insert some before signup.
 const STATUS_ORDER = new Map<string, number>(
   JOB_STATUSES.map((s, i) => [s.value, i]),
+);
+
+// Sources are the person's own rows, in insertion order — and a migration adds
+// some after the rest. The picker shows them in the order of JOB_SOURCES, then
+// the ones the person created, as stored (the sort is stable).
+const SOURCE_ORDER = new Map<string, number>(
+  JOB_SOURCES.map((s, i) => [s.value, i]),
 );
 
 export const getStatusList = async (): Promise<any | undefined> => {
@@ -33,7 +40,9 @@ export const getJobSourceList = async (): Promise<any | undefined> => {
         createdBy: user.id,
       },
     });
-    return list;
+    const rank = (value: string) =>
+      SOURCE_ORDER.get(value) ?? JOB_SOURCES.length;
+    return list.sort((a, b) => rank(a.value) - rank(b.value));
   } catch (error) {
     const msg = await jobsError("fetchSources");
     return handleError(error, msg);
