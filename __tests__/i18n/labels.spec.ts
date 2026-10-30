@@ -36,6 +36,8 @@ describe("labelFor", () => {
   it("brand sources are not translated", () => {
     expect(labelFor(t("uk"), "jobSource", { value: "linkedin", label: "Linkedin" })).toBe("Linkedin");
     expect(labelFor(t("uk"), "jobSource", { value: "indeed", label: "Indeed" })).toBe("Indeed");
+    expect(labelFor(t("uk"), "jobSource", { value: "dou", label: "DOU" })).toBe("DOU");
+    expect(labelFor(t("uk"), "jobSource", { value: "djinni", label: "Djinni" })).toBe("Djinni");
   });
 
   it("an item without a stored label (constant lists) is translated by value", () => {
@@ -55,7 +57,7 @@ describe("the labels dictionaries", () => {
 
   it("every seeded default except brand sources has a translation", () => {
     const uk = MESSAGES.uk.labels as unknown as Record<LabelKind, Record<string, string>>;
-    const brands = new Set(["indeed", "linkedin", "monster", "glassdoor", "google", "ziprecruiter", "jobstreet"]);
+    const brands = new Set(["indeed", "linkedin", "dou", "djinni", "monster", "glassdoor", "google", "ziprecruiter", "jobstreet"]);
     const missing: string[] = [];
     for (const [kind, defaults] of Object.entries(DEFAULT_LABELS) as [LabelKind, Map<string, string>][]) {
       for (const value of defaults.keys()) {
