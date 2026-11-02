@@ -28,7 +28,8 @@ jobs:
           shellcheck --version | head -2
           shellcheck -S warning skillklan/deploy/*.sh skillklan/server/*.sh \
             skillklan/tests/deploy-wrapper.test.sh skillklan/tests/cloudflare-sync.test.sh \
-            skillklan/tests/deploy-who.test.sh skillklan/tests/deploy-gate.test.sh
+            skillklan/tests/deploy-who.test.sh skillklan/tests/deploy-gate.test.sh \
+            skillklan/tests/deploy-is-head.test.sh
 
       - name: Deploy wrapper (W1–W11)
         run: bash skillklan/tests/deploy-wrapper.test.sh
@@ -42,6 +43,10 @@ jobs:
         run: |
           bash skillklan/tests/deploy-who.test.sh
           bash skillklan/tests/deploy-gate.test.sh
+
+      - name: Only the head of main is deployed (H1–H10, W1–W4)
+        if: ${{ !cancelled() }}
+        run: bash skillklan/tests/deploy-is-head.test.sh
 
       - name: nginx -t on nginx 1.24 (as on Server2)
         if: ${{ !cancelled() }}
