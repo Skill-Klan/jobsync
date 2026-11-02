@@ -268,6 +268,8 @@ export const JOB_SOURCES = [
   { label: "Linkedin", value: "linkedin" },
   { label: "DOU", value: "dou" },
   { label: "Djinni", value: "djinni" },
+  { label: "Work.ua", value: "work.ua" },
+  { label: "Robota.ua", value: "robota.ua" },
   { label: "Google", value: "google" },
   { label: "Company Career page", value: "careerpage" },
   { label: "Other", value: "other" },
