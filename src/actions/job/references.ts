@@ -3,29 +3,17 @@ import prisma from "@/lib/db";
 import { handleError } from "@/lib/utils";
 import { canonicalizeEntityValue } from "@/lib/jobs/canonicalize";
 import { JOB_SOURCES, JOB_STATUSES } from "@/lib/constants";
+import { sortByDefaultOrder } from "@/lib/jobs/sortByDefaultOrder";
 import { requireUser } from "../shared";
 import { jobsError } from "./errorMessages";
 
 // JobStatus is global reference data with no createdBy column, so unlike every
 // other list here it is not scoped to the current user. Sorted in JS because
 // rows are in insertion order, and migrations insert some before signup.
-const STATUS_ORDER = new Map<string, number>(
-  JOB_STATUSES.map((s, i) => [s.value, i]),
-);
-
-// Sources are the person's own rows, in insertion order — and a migration adds
-// some after the rest. The picker shows them in the order of JOB_SOURCES, then
-// the ones the person created, as stored (the sort is stable).
-const SOURCE_ORDER = new Map<string, number>(
-  JOB_SOURCES.map((s, i) => [s.value, i]),
-);
-
 export const getStatusList = async (): Promise<any | undefined> => {
   try {
     const statuses = await prisma.jobStatus.findMany();
-    const rank = (value: string) =>
-      STATUS_ORDER.get(value) ?? JOB_STATUSES.length;
-    return statuses.sort((a, b) => rank(a.value) - rank(b.value));
+    return sortByDefaultOrder(statuses, JOB_STATUSES);
   } catch (error) {
     const msg = await jobsError("fetchStatuses");
     return handleError(error, msg);
@@ -40,9 +28,7 @@ export const getJobSourceList = async (): Promise<any | undefined> => {
         createdBy: user.id,
       },
     });
-    const rank = (value: string) =>
-      SOURCE_ORDER.get(value) ?? JOB_SOURCES.length;
-    return list.sort((a, b) => rank(a.value) - rank(b.value));
+    return sortByDefaultOrder(list, JOB_SOURCES);
   } catch (error) {
     const msg = await jobsError("fetchSources");
     return handleError(error, msg);
