@@ -12,6 +12,7 @@ import {
 import { visibleSidebarLinks } from "@/lib/constants";
 import { getFeatureFlags } from "@/skillklan/featureFlags";
 import { cabinetLink } from "@/skillklan/cabinetLink";
+import { isAdminSession } from "@/skillklan/cabinetAdmin";
 import SidebarToggle from "./SidebarToggle";
 import { AgentChatTrigger } from "./AgentChatTrigger";
 import { NotificationBell } from "./notifications/NotificationBell";
@@ -21,6 +22,7 @@ async function Header() {
   const t = await getTranslations("nav");
   const tc = await getTranslations("common");
   const features = await getFeatureFlags();
+  const isAdmin = await isAdminSession();
   const cabinetUrl = cabinetLink();
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
@@ -43,7 +45,7 @@ async function Header() {
                 <span className="sr-only">SkillKlan Job</span>
               </Link>
             </SheetClose>
-            {visibleSidebarLinks(features).map((item) => {
+            {visibleSidebarLinks(features, undefined, isAdmin).map((item) => {
               return (
                 <SheetClose asChild key={item.route}>
                   <Link

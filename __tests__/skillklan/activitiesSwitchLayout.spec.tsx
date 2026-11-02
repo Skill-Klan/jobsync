@@ -4,11 +4,13 @@
 import { render, screen } from "@testing-library/react";
 
 const flags = vi.hoisted(() => ({ value: { activities: false } }));
-const sidebar = vi.hoisted(() => ({ props: null as null | { cabinetUrl?: string | null } }));
+const sidebar = vi.hoisted(() => ({ props: null as null | { cabinetUrl?: string | null; isAdmin?: boolean } }));
+const admin = vi.hoisted(() => ({ value: false }));
 
 vi.mock("@/skillklan/featureFlags", () => ({ getFeatureFlags: vi.fn(async () => flags.value) }));
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => undefined }) }));
 vi.mock("@/auth", () => ({ signOut: vi.fn() }));
+vi.mock("@/skillklan/cabinetAdmin", () => ({ isAdminSession: async () => admin.value }));
 vi.mock("@/utils/user.utils", () => ({ getCurrentUser: async () => ({ id: "u1", name: "A", email: "a@example.invalid" }) }));
 vi.mock("@/actions/agentChat.actions", () => ({ getChatConversation: async () => ({ data: [] }) }));
 const passthrough = vi.hoisted(() => ({ children }: { children: unknown }) => children);
@@ -20,7 +22,7 @@ vi.mock("@/components/agent/AgentChatProvider", () => ({
 }));
 vi.mock("@/components/agent/AgentChatPanel", () => ({ AgentChatPanel: () => null }));
 vi.mock("@/components/Sidebar", () => ({
-  default: (props: { cabinetUrl?: string | null }) => {
+  default: (props: { cabinetUrl?: string | null; isAdmin?: boolean }) => {
     sidebar.props = props;
     return null;
   },
@@ -54,4 +56,13 @@ it.each([
   render(await RootLayout({ children: <p>page</p> }));
   expect(sidebar.props?.cabinetUrl).toBe(expected);
   delete process.env.CABINET_URL;
+});
+
+// Owner 2026-11-02: «Плани студентів» in the side menu is for whoever manages
+// SkillKlan Job — the layout hands the menu the session's answer, nothing more.
+it.each([true, false])("the session says admin: %s → the side menu is told so", async (isAdmin) => {
+  admin.value = isAdmin;
+  render(await RootLayout({ children: <p>page</p> }));
+  expect(sidebar.props?.isAdmin).toBe(isAdmin);
+  admin.value = false;
 });

@@ -33,14 +33,14 @@ describe("menu in Ukrainian (glossary D30)", () => {
     const nav = screen.getByRole("navigation");
     const labels = within(nav).getAllByRole("link").map((a) => a.textContent?.trim());
     expect(labels).toEqual([
-      "Головна", "Вакансії", "Співбесіди", "Автопошук", "Завдання", "Активності", "Питання", "Профіль", "Довідники",
+      "Головна", "Вакансії", "Співбесіди", "Автопошук", "Завдання", "Навчальний план", "Активності", "Питання", "Профіль", "Довідники",
     ]);
   });
 
   it("in English — the same items in English", () => {
     renderSidebar();
     const labels = within(screen.getByRole("navigation")).getAllByRole("link").map((a) => a.textContent?.trim());
-    expect(labels).toEqual(["Dashboard", "Jobs", "Interviews", "Automations", "Tasks", "Activities", "Questions", "Profile", "Library"]);
+    expect(labels).toEqual(["Dashboard", "Jobs", "Interviews", "Automations", "Tasks", "Study plan", "Activities", "Questions", "Profile", "Library"]);
   });
 });
 

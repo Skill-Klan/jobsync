@@ -26,6 +26,11 @@ export const FEATURES = {
   // job lists and details stop being links (D76). The lists themselves keep
   // filling up from forms — creating on the fly stays open. Off at launch (D74).
   library: { default: false },
+  // The study plan: the «Навчальний план» tab and page where a student ticks
+  // off and annotates their copy of a course plan, and the «Плани студентів»
+  // page where the admin hands copies out; every action that changes a plan.
+  // Off at launch.
+  plans: { default: false },
 } as const;
 
 export type FeatureKey = keyof typeof FEATURES;

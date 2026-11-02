@@ -32,7 +32,7 @@ vi.mock("@/context/ActivityContext", () => ({
 }));
 vi.mock("@/components/agent/AgentChatProvider", () => ({ useAgentChat: () => ({ busy: false }) }));
 
-const ALL_ON: FeatureFlags = { automations: true, activities: true, library: true };
+const ALL_ON: FeatureFlags = { automations: true, activities: true, library: true, plans: true };
 const withFeatures = (features: FeatureFlags, ui: React.ReactNode) =>
   render(<FeaturesProvider value={features}>{ui}</FeaturesProvider>);
 

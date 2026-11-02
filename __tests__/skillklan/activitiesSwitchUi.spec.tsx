@@ -47,7 +47,7 @@ beforeEach(() => {
 // Only the Activities switch moves here; the others stay on.
 const withFeatures = (activities: boolean, ui: React.ReactNode) =>
   render(
-    <FeaturesProvider value={{ automations: true, activities, library: true }}>{ui}</FeaturesProvider>,
+    <FeaturesProvider value={{ automations: true, activities, library: true, plans: true }}>{ui}</FeaturesProvider>,
   );
 
 describe.each([

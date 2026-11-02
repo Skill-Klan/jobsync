@@ -11,6 +11,8 @@ import {
   Zap,
   BookOpen,
   CalendarCheck,
+  ListChecks,
+  Users,
 } from "lucide-react";
 
 export const APP_CONSTANTS = {
@@ -378,6 +380,8 @@ export const SIDEBAR_LINKS: {
   labelKey: keyof Messages["nav"];
   devOnly?: boolean;
   feature?: FeatureKey;
+  // Shown only to whoever manages SkillKlan Job (the admin, the QA moderator).
+  adminOnly?: boolean;
 }[] = [
   {
     icon: LayoutDashboard,
@@ -404,6 +408,19 @@ export const SIDEBAR_LINKS: {
     icon: SquareCheckBig,
     route: "/dashboard/tasks",
     labelKey: "tasks",
+  },
+  {
+    icon: ListChecks,
+    route: "/dashboard/plan",
+    labelKey: "plan",
+    feature: "plans",
+  },
+  {
+    icon: Users,
+    route: "/dashboard/student-plans",
+    labelKey: "studentPlans",
+    feature: "plans",
+    adminOnly: true,
   },
   {
     icon: CalendarClock,
@@ -463,14 +480,17 @@ export const DAILY_GOALS = {
 
 // The menu items this person sees: no dev-only items outside development, no
 // item whose SkillKlan feature switch is off. The same for everyone — the
-// admin included (owner 2026-10-16): there is no role here on purpose.
+// admin included (owner 2026-10-16). The one role-aware item is the admin's own
+// «Плани студентів» page: a student never sees it.
 export function visibleSidebarLinks(
   features: FeatureFlags,
   nodeEnv: string | undefined = process.env.NODE_ENV,
+  isAdmin = false,
 ): typeof SIDEBAR_LINKS {
   return SIDEBAR_LINKS.filter(
     (item) =>
       (!item.devOnly || nodeEnv === "development") &&
+      (!item.adminOnly || isAdmin) &&
       (!item.feature || features[item.feature]),
   );
 }
