@@ -218,7 +218,12 @@ describe("the list of students — the manager only", () => {
     const result = await listPlanStudents();
     expect(result.success).toBe(true);
     if (!result.success) return;
-    expect(result.data.tracks).toEqual([{ track: "java", title: "Java" }]);
+    expect(result.data.tracks).toEqual([
+      { track: "java", title: "Java" },
+      { track: "javascript", title: "JavaScript" },
+      { track: "python", title: "Python" },
+      { track: "manual", title: "Manual QA" },
+    ]);
     expect(result.data.students.find((s) => s.id === ann)).toEqual({ id: ann, name: "Анна", cabinetUserId: 1, tracks: ["java"], plans: [{ track: "java", done: 0, notes: 0 }] });
     expect(result.data.students.find((s) => s.id === manager)?.tracks).toEqual([]);
     expect(JSON.stringify(result.data)).not.toMatch(/@|password/);
@@ -281,7 +286,7 @@ describe("giving a plan — the backend is asked now", () => {
   });
 
   it.each([
-    ["an unknown track", ann, "python"],
+    ["an unknown track", ann, "go"],
     ["an unknown student", "nobody", "java"],
     ["not text", 7, "java"],
   ])("%s — refused with a reason, nothing given", async (_label, id, track) => {

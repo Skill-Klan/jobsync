@@ -1,4 +1,7 @@
 import java from "./templates/java.json";
+import javascript from "./templates/javascript.json";
+import python from "./templates/python.json";
+import manual from "./templates/manual.json";
 import { PLAN_KINDS, type PlanKind } from "./kinds";
 
 // A plan template is a tree in the same shape as the rows a student's copy is
@@ -66,7 +69,7 @@ export function validatePlanTemplate(raw: unknown): PlanTemplate {
 
 // Tracks are data: a new language is a new file here.
 const TEMPLATES: Record<string, PlanTemplate> = {};
-for (const raw of [java]) {
+for (const raw of [java, javascript, python, manual]) {
   const template = validatePlanTemplate(raw);
   TEMPLATES[template.track] = template;
 }
