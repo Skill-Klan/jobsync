@@ -192,7 +192,8 @@ describe("jobActions", () => {
     });
 
     // Requirement — owner, 2026-10-30: the source picker reads Linkedin, DOU,
-    // Djinni, Google, Company Career page, Other — for every account, however
+    // Djinni, Work.ua, Robota.ua, Google, Company Career page, Other — for
+    // every account, however
     // the rows came to be (a migration adds DOU and Djinni after the rest).
     // What the person created themselves comes after, as they were stored.
     it("returns sources in the owner's order, the person's own after", async () => {
@@ -204,7 +205,9 @@ describe("jobActions", () => {
         { id: "5", label: "Other", value: "other" },
         { id: "6", label: "Djinni", value: "djinni" },
         { id: "7", label: "DOU", value: "dou" },
-        { id: "8", label: "Work.ua", value: "work.ua" },
+        { id: "8", label: "OLX Робота", value: "olx" },
+        { id: "9", label: "Robota.ua", value: "robota.ua" },
+        { id: "10", label: "Work.ua", value: "work.ua" },
       ]);
 
       const result = await getJobSourceList();
@@ -213,11 +216,13 @@ describe("jobActions", () => {
         "linkedin",
         "dou",
         "djinni",
+        "work.ua",
+        "robota.ua",
         "google",
         "careerpage",
         "other",
         "telegram",
-        "work.ua",
+        "olx",
       ]);
     });
 

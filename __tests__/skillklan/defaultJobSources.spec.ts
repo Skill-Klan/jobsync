@@ -7,7 +7,9 @@
 //     not offered by default — Indeed, Monster, Glassdoor, ZipRecruiter and
 //     Job Street are gone; Linkedin, the company's own page, Google and
 //     "Other" stay;
-//   · the order is Linkedin, DOU, Djinni, Google, Company Career page, Other;
+//   · owner, 2026-10-30: Work.ua and Robota.ua are offered too, after Djinni;
+//   · the order is Linkedin, DOU, Djinni, Work.ua, Robota.ua, Google,
+//     Company Career page, Other;
 //   · the labels are brand names — kept as written (D29/D30), not translated.
 // Real SQLite with the current schema (db push), real Prisma.
 import fs from "fs";
@@ -35,6 +37,8 @@ const EXPECTED = [
   { label: "Linkedin", value: "linkedin" },
   { label: "DOU", value: "dou" },
   { label: "Djinni", value: "djinni" },
+  { label: "Work.ua", value: "work.ua" },
+  { label: "Robota.ua", value: "robota.ua" },
   { label: "Google", value: "google" },
   { label: "Company Career page", value: "careerpage" },
   { label: "Other", value: "other" },
@@ -49,6 +53,16 @@ afterAll(async () => {
 describe("default job sources", () => {
   it("the list has DOU and Djinni right after LinkedIn, and nothing else for foreign markets", () => {
     expect(JOB_SOURCES.map(({ label, value }) => ({ label, value }))).toEqual(EXPECTED);
+  });
+
+  // The creatable picker matches a typed name to a row by canonicalizeEntityValue
+  // (job.actions createJobSource): a seeded value that differs would mint a
+  // duplicate of the same board the first time a person types it.
+  it("the new boards' values are what typing their names resolves to", () => {
+    for (const label of ["DOU", "Djinni", "Work.ua", "Robota.ua"]) {
+      const source = JOB_SOURCES.find((s) => s.label === label);
+      expect(source?.value).toBe(label.toLowerCase());
+    }
   });
 
   it("a new account is seeded with every one of them, brand names as written", async () => {
