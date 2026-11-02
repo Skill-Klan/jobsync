@@ -69,3 +69,4 @@ Only decisions that matter for code are listed.
 | D84 | Contributors don't push to `main`: pull requests only. Ordinary PRs the contributor merges after green checks; PRs touching CODEOWNERS paths need the owner's review. |
 | D85 | Agent instructions, commits and PRs are in **English**. |
 | D87 | **New npm packages only with the owner's approval.** |
+| D88 | **Only the head of `main` is deployed.** A run whose commit is no longer the head of `main` deploys nothing (checked before the Telegram button and after it). A manual deploy of a digest — a deliberate redeploy or rollback — is not checked. |

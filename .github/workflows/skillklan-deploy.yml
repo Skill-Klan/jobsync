@@ -1,7 +1,8 @@
 # skillklan: деплой SkillKlan Job на Server2. Викликається з «SkillKlan image» на кожен push у main
 # (digest образу, що щойно пройшов smoke) або вручну з digest — для відкату чи повтору.
 #
-#   digest існує в ghcr → хто викладає: власник — далі, будь-хто інший — кнопка в Telegram (та сама,
+#   digest існує в ghcr → коміт рану досі голова main (лише для digest зі збірки; ні — нічого не викладаємо) →
+#   хто викладає: власник — далі, будь-хто інший — кнопка в Telegram (та сама,
 #   що для сайту; fail closed); ручний запуск не власником — відмова → на Server2 примусова команда
 #   jobsync-deploy: копія /data, заміна, перевірка здоровʼя, відкат
 #
@@ -65,11 +66,22 @@ jobs:
           [ "$code" = 200 ] || { echo "::error::ghcr.io/skill-klan/jobsync@$DIGEST not found (HTTP $code)"; exit 1; }
           echo "OK: ghcr.io/skill-klan/jobsync@$DIGEST"
 
+      # Лише голова main (D88): рани main ідуть по черзі, і старший — перезапуск скасованого чи той, що чекав, поки
+      # main пішов далі, — відкотив би прод на старіший образ. Новіший коміт викладе власний ран, тож тут — нічого,
+      # без кнопки й без помилки. Ручний запуск — свідомий відкат чи повтор з digest від людини: без цієї перевірки.
+      - name: Only the head of main is deployed
+        id: head
+        if: inputs.digest_from_build
+        env:
+          DEPLOY_SHA: ${{ github.sha }}
+        run: bash skillklan/deploy/deploy-is-head.sh
+
       # Пушив власник (агенти пушать його ж акаунтом) — без кнопки; будь-хто інший — кнопка.
       # Ручний запуск із digest — лише довіреним, іншим — відмова (крок падає).
       # Довірені — змінна репозиторію DEPLOY_TRUSTED_ACTORS; порожня — кнопка для всіх (fail-closed).
       - name: Who deploys
         id: who
+        if: steps.head.outputs.deploy != 'no'
         env:
           DEPLOY_TRUSTED_ACTORS: ${{ vars.DEPLOY_TRUSTED_ACTORS }}
           ACTOR: ${{ github.actor }}
@@ -80,7 +92,7 @@ jobs:
         run: bash skillklan/deploy/deploy-who.sh
 
       - name: Ask the owner in Telegram (not the owner's push)
-        if: steps.who.outputs.gate != 'skip'
+        if: steps.head.outputs.deploy != 'no' && steps.who.outputs.gate != 'skip'
         env:
           DEPLOY_GATE_SECRET: ${{ secrets.DEPLOY_GATE_SECRET }}
           GATE_ID: jobsync-${{ github.run_id }}-${{ github.run_attempt }}
@@ -91,7 +103,16 @@ jobs:
           GATE_MESSAGE: "SkillKlan Job → Server2: ${{ inputs.digest }}"
         run: bash skillklan/deploy/deploy-gate.sh
 
+      # Ще раз після кнопки: поки чекали рішення (до 30 хв), main міг піти далі.
+      - name: Still the head of main after the approval
+        id: head_after
+        if: inputs.digest_from_build && steps.head.outputs.deploy != 'no'
+        env:
+          DEPLOY_SHA: ${{ github.sha }}
+        run: bash skillklan/deploy/deploy-is-head.sh
+
       - name: Deploy on Server2
+        if: steps.head.outputs.deploy != 'no' && steps.head_after.outputs.deploy != 'no'
         env:
           SSH_KEY: ${{ secrets.SERVER2_DEPLOY_KEY }}
           DIGEST: ${{ inputs.digest }}

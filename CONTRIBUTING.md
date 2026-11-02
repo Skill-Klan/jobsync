@@ -42,6 +42,9 @@ student data into a local database.
    license): then it waits for the owner's review.
 5. A merge into `main` is a release. Your merge is deployed after the owner approves it in Telegram, so keep
    `main` deployable.
+6. Only the newest commit of `main` is deployed. Several merges in a row queue up, and GitHub cancels the older
+   runs — that is expected: the newest run deploys them all. **Do not re-run a cancelled run**; a run for an older
+   commit ends green with the notice «Не викладаю…» and deploys nothing.
 
 Nobody but the owner pushes to `main` directly, and nobody force-pushes a shared branch.
 

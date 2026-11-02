@@ -44,6 +44,9 @@ nothing is merged from upstream.
 - **Approval:** the owner's pushes deploy right away; anyone else's merge waits for the owner's approval in Telegram
   (no approval, no deploy). Pull requests that touch paths in [`.github/CODEOWNERS`](./.github/CODEOWNERS) need the
   owner's review before they can be merged.
+- **Only the head of `main` is deployed.** Runs of `main` queue up; GitHub cancels the older ones, and a run whose
+  commit is no longer the head — a re-run, or one that waited for the button while `main` moved on — finishes green
+  without deploying. It checks before the button and again after it. Do not re-run cancelled runs.
 - **Manual deploy** of a digest (redeploy, rollback) is for the owner only; tick `ask` to get the Telegram button anyway.
   The same digest again is a no-op unless the server's settings changed.
 - The deploy key and the button's secret live in the GitHub environment `server2`, which only `main` may use.

@@ -43,6 +43,8 @@ before you call a change done — and `npx tsc --noEmit` too: `npm test` does no
   what they showed.
 - **A merge into `main` is a release**: it goes to production after the checks pass, and a merge by anyone
   but the owner waits for the owner's approval in Telegram. Keep `main` deployable at every commit.
+- Only the newest commit of `main` is deployed. A **cancelled** run on `main` was replaced by a newer one — do not
+  re-run it; a run for an older commit finishes green without deploying, because its image would roll production back.
 - Files in `.github/CODEOWNERS` (these instructions, `docs/`, CI and deploy, migrations, `package.json`,
   `package-lock.json`, `LICENSE`) need the owner's review. Put such changes in their own PR.
 
