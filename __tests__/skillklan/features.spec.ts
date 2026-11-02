@@ -12,15 +12,15 @@ import {
 } from "@/skillklan/features";
 import { SIDEBAR_LINKS, visibleSidebarLinks } from "@/lib/constants";
 
-const ALL_OFF: FeatureFlags = { automations: false, activities: false, library: false };
-const ALL_ON: FeatureFlags = { automations: true, activities: true, library: true };
+const ALL_OFF: FeatureFlags = { automations: false, activities: false, library: false, plans: false };
+const ALL_ON: FeatureFlags = { automations: true, activities: true, library: true, plans: true };
 
 describe("resolveFeatureFlags", () => {
-  it("no choice made → Automations, Activities and the Library all off (the launch state)", () => {
+  it("no choice made → Automations, Activities, the Library and the study plan all off (the launch state)", () => {
     expect(resolveFeatureFlags([])).toEqual(ALL_OFF);
   });
 
-  it.each(["automations", "activities", "library"] as const)(
+  it.each(["automations", "activities", "library", "plans"] as const)(
     "the admin's choice for %s wins, both ways, and touches no other switch",
     (key) => {
       expect(resolveFeatureFlags([{ key, enabled: true }])).toEqual({ ...ALL_OFF, [key]: true });
@@ -32,8 +32,8 @@ describe("resolveFeatureFlags", () => {
     expect(resolveFeatureFlags([{ key: "interviews", enabled: true }])).toEqual(ALL_OFF);
   });
 
-  it("exactly these three, in menu order — a new switch is a decision, not a side effect", () => {
-    expect(Object.keys(FEATURES)).toEqual(["automations", "activities", "library"]);
+  it("exactly these four, in menu order — a new switch is a decision, not a side effect", () => {
+    expect(Object.keys(FEATURES)).toEqual(["automations", "activities", "library", "plans"]);
   });
 });
 
@@ -42,7 +42,7 @@ describe("isFeatureKey", () => {
     "%s (from the object prototype) is not a switch",
     (key) => expect(isFeatureKey(key)).toBe(false),
   );
-  it.each(["automations", "activities", "library"])("%s is", (key) =>
+  it.each(["automations", "activities", "library", "plans"])("%s is", (key) =>
     expect(isFeatureKey(key)).toBe(true),
   );
 });
@@ -55,6 +55,7 @@ describe("visibleSidebarLinks — the menu for everyone, the admin included", ()
     "/dashboard/interviews",
     "/dashboard/automations",
     "/dashboard/tasks",
+    "/dashboard/plan",
     "/dashboard/activities",
     "/dashboard/questions",
     "/dashboard/profile",
@@ -69,6 +70,7 @@ describe("visibleSidebarLinks — the menu for everyone, the admin included", ()
     ["automations", "/dashboard/automations"],
     ["activities", "/dashboard/activities"],
     ["library", "/dashboard/admin"],
+    ["plans", "/dashboard/plan"],
   ] as const)("%s off → only its item is gone (%s), every other item stays", (key, route) => {
     const shown = routes(visibleSidebarLinks({ ...ALL_ON, [key]: false }, "production"));
     expect(shown).toEqual(FULL_MENU.filter((r) => r !== route));
@@ -83,6 +85,25 @@ describe("visibleSidebarLinks — the menu for everyone, the admin included", ()
       "/dashboard/questions",
       "/dashboard/profile",
     ]);
+  });
+
+  // Owner, 2026-11-02: «Навчальний план» for students, «Плани студентів» for
+  // whoever manages SkillKlan Job — and the one switch `plans` covers both.
+  it("«Плани студентів» is the admin's alone, and only while `plans` is on", () => {
+    const adminMenu = (flags: FeatureFlags) => routes(visibleSidebarLinks(flags, "production", true));
+    expect(adminMenu(ALL_ON)).toEqual([
+      ...FULL_MENU.slice(0, FULL_MENU.indexOf("/dashboard/plan") + 1),
+      "/dashboard/student-plans",
+      ...FULL_MENU.slice(FULL_MENU.indexOf("/dashboard/plan") + 1),
+    ]);
+    // a student, same switches: the student's page only
+    expect(routes(visibleSidebarLinks(ALL_ON, "production", false))).toContain("/dashboard/plan");
+    expect(routes(visibleSidebarLinks(ALL_ON, "production", false))).not.toContain("/dashboard/student-plans");
+    // switch off: neither item, the admin included, every other item stays
+    const off = adminMenu({ ...ALL_ON, plans: false });
+    expect(off).not.toContain("/dashboard/plan");
+    expect(off).not.toContain("/dashboard/student-plans");
+    expect(off).toEqual(FULL_MENU.filter((r) => r !== "/dashboard/plan"));
   });
 
   it("dev-only items stay out of production and show in development", () => {

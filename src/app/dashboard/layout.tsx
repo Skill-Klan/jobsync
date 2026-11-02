@@ -17,6 +17,7 @@ import { signOut } from "@/auth";
 import { FeaturesProvider } from "@/context/FeaturesContext";
 import { getFeatureFlags } from "@/skillklan/featureFlags";
 import { cabinetLink } from "@/skillklan/cabinetLink";
+import { isAdminSession } from "@/skillklan/cabinetAdmin";
 
 export default async function RootLayout({
   children,
@@ -33,6 +34,7 @@ export default async function RootLayout({
   const user = await getCurrentUser();
   // SkillKlan feature switches, read once here and handed to the browser.
   const features = await getFeatureFlags();
+  const isAdmin = await isAdminSession();
 
   const signOutAction = async () => {
     "use server";
@@ -54,7 +56,7 @@ export default async function RootLayout({
             <NotificationProvider>
               <AgentChatProvider initialMessages={conversation.data ?? []}>
                 <div className="flex min-h-screen w-full flex-col bg-muted/40">
-                  <Sidebar user={user} signOutAction={signOutAction} cabinetUrl={cabinetLink()} />
+                  <Sidebar user={user} signOutAction={signOutAction} cabinetUrl={cabinetLink()} isAdmin={isAdmin} />
                   <SidebarInset>
                     <Header />
                     {features.activities && <GlobalActivityBanner />}

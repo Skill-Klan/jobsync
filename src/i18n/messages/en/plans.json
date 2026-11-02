@@ -1,0 +1,45 @@
+{
+  "student": {
+    "title": "Study plan",
+    "empty": "Your manager has not given you a study plan yet. It will appear here once they do.",
+    "overall": "{done} of {total} done · {percent}%",
+    "material": "Material for the topic",
+    "homeworkPointer": "This homework is done in another topic",
+    "tickLabel": "Mark as done: {title}",
+    "noteAdd": "Add a note",
+    "noteEdit": "Edit the note",
+    "noteLabel": "Note on “{title}”",
+    "notePlaceholder": "What to remember or ask about",
+    "noteSave": "Save",
+    "noteCancel": "Cancel",
+    "noteSaved": "Note saved"
+  },
+  "admin": {
+    "title": "Student plans",
+    "description": "Give a student their copy of a study plan. There is one copy per student and plan, and the template does not change it after it is given.",
+    "searchPlaceholder": "Search by name",
+    "searchLabel": "Search for a student",
+    "noStudents": "There are no users yet.",
+    "noMatch": "Nobody found.",
+    "unnamed": "No name",
+    "cabinetId": "Cabinet #{id}",
+    "noPlans": "No plan yet",
+    "assign": "Give the “{track}” plan",
+    "assigned": "Plan given",
+    "has": "{track} — given"
+  },
+  "errors": {
+    "unavailable": "The study plan is not available right now.",
+    "signedOut": "Sign in to see the study plan.",
+    "invalid": "Invalid request.",
+    "notFound": "There is no such point in your plan.",
+    "noteTooLong": "The note is too long: at most {max, number} characters.",
+    "saveFailed": "Couldn't save. Try again.",
+    "adminOnly": "Only the administrator and the QA moderator can give plans."
+  },
+  "assign": {
+    "unknown_track": "There is no such plan.",
+    "unknown_user": "There is no such user.",
+    "already_assigned": "This student already has that plan."
+  }
+}

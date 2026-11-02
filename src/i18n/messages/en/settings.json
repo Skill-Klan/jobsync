@@ -282,6 +282,10 @@
       "library": {
         "label": "Library",
         "description": "Lists of companies, job titles, locations, skills, contacts and more: the Library tab and company pages. When off, the lists still fill up from forms, but there is nowhere to view or clean them up."
+      },
+      "plans": {
+        "label": "Study plan",
+        "description": "Each student's own copy of a course plan: the Study plan tab, where they tick off points and add notes, and the Student plans tab, where the administrator hands plans out. When off, the plans handed out and the ticks are kept — they are just not shown."
       }
     },
     "saved": "Saved",

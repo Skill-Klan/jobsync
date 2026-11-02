@@ -18,9 +18,11 @@ interface SidebarProps {
   signOutAction: () => void;
   // D72: back to the cabinet — its address from the server (cabinetLink), null → no item.
   cabinetUrl?: string | null;
+  // The admin or the QA moderator (from the session): adds «Плани студентів».
+  isAdmin?: boolean;
 }
 
-function Sidebar({ user, signOutAction, cabinetUrl = null }: SidebarProps) {
+function Sidebar({ user, signOutAction, cabinetUrl = null, isAdmin = false }: SidebarProps) {
   const path = usePathname();
   const { expanded } = useSidebar();
   const t = useTranslations("nav");
@@ -63,7 +65,7 @@ function Sidebar({ user, signOutAction, cabinetUrl = null }: SidebarProps) {
         </div>
 
         <nav className="flex flex-1 flex-col gap-1 overflow-y-auto py-2">
-          {visibleSidebarLinks(features).map((item) => {
+          {visibleSidebarLinks(features, undefined, isAdmin).map((item) => {
             return (
               <NavLink
                 key={item.route}

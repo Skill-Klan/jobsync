@@ -71,7 +71,7 @@ afterAll(async () => {
 
 const rows = () => prisma.featureToggle.findMany();
 
-const OFF = { automations: false, activities: false, library: false };
+const OFF = { automations: false, activities: false, library: false, plans: false };
 
 describe("launch state", () => {
   it("no row → Automations, Activities and the Library off for everyone", async () => {
@@ -109,7 +109,7 @@ describe("an admin, confirmed by the backend now", () => {
     expect(await rows()).toMatchObject([{ key: "activities", enabled: false }]);
   });
 
-  it.each(["automations", "library"] as const)(
+  it.each(["automations", "library", "plans"] as const)(
     "turns %s on for everyone — that switch only, the others stay off",
     async (key) => {
       await expect(setFeatureEnabled(key, true)).resolves.toEqual({

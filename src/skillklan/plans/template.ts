@@ -1,17 +1,9 @@
 import java from "./templates/java.json";
+import { PLAN_KINDS, type PlanKind } from "./kinds";
 
 // A plan template is a tree in the same shape as the rows a student's copy is
 // made of: module → topic → (group →) point, with a homework under a topic.
-export const PLAN_KINDS = [
-  "module",
-  "topic",
-  "group",
-  "item",
-  "homework",
-  "homework_task",
-  "homework_ref",
-] as const;
-export type PlanKind = (typeof PLAN_KINDS)[number];
+export { PLAN_KINDS, TICKABLE_KINDS, type PlanKind } from "./kinds";
 
 export interface PlanNode {
   kind: PlanKind;
@@ -37,9 +29,6 @@ const CHILDREN_OF: Record<PlanKind | "root", readonly PlanKind[]> = {
   homework_task: [],
   homework_ref: [],
 };
-
-// What a student can tick. A group, a homework and a module are done by their parts.
-export const TICKABLE_KINDS: readonly PlanKind[] = ["item", "homework_task"];
 
 const TRACK = /^[a-z][a-z0-9-]*$/;
 
