@@ -1,4 +1,8 @@
-export const JOB_SOURCES = [
+// Rows for the job form tests (AddJob.spec.tsx): ids as the database gives
+// them, a fixed list that the tests pick from by label ("Indeed" is first).
+// Not the defaults a new account is seeded with — those are JOB_SOURCES in
+// src/lib/constants.ts and change on their own.
+export const MOCK_JOB_SOURCES = [
   {
     id: "1359dac4-a397-4461-b747-382706dcbe79",
     label: "Indeed",
