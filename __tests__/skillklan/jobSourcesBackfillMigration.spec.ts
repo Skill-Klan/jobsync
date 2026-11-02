@@ -23,6 +23,9 @@ const ROOT = path.resolve(__dirname, "../..");
 const PRISMA_DIR = path.join(ROOT, "prisma");
 // The newest migration on main before this one: what production runs now.
 const LAST_BEFORE = "20261016120000_feature_toggle";
+// This migration itself: the upgrade is checked up to it, so a later migration
+// that touches job sources again does not change what this spec asserts.
+const THIS_ONE = "20261030120000_job_sources_ukraine";
 
 function prisma(args: string[], url: string): string {
   return execFileSync("npx", ["prisma", ...args], {
@@ -144,7 +147,7 @@ describe("job sources backfill migration", () => {
       await before.$disconnect();
     }
 
-    prisma(["migrate", "deploy"], url);
+    prisma(["migrate", "deploy", "--schema", stageMigrations(path.join(dir, "after"), (n) => n <= THIS_ONE)], url);
 
     const after = new PrismaClient({ datasources: { db: { url } } });
     try {
