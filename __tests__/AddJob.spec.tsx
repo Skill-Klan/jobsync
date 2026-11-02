@@ -1,5 +1,5 @@
 import { AddJob } from "@/components/myjobs/AddJob";
-import { JOB_SOURCES } from "@/lib/data/jobSourcesData";
+import { MOCK_JOB_SOURCES } from "./fixtures/mockJobSources";
 import { JOB_STATUSES } from "@/lib/data/jobStatusesData";
 import { getMockJobDetails, getMockList } from "@/lib/mock.utils";
 import { screen, render, waitFor } from "@testing-library/react";
@@ -74,7 +74,7 @@ document.createRange = () => {
 describe("AddJob Component", () => {
   const mockUser = { id: "user-id" };
   const mockJobStatuses = JOB_STATUSES;
-  const mockJobSources = JOB_SOURCES;
+  const mockJobSources = MOCK_JOB_SOURCES;
   const mockResetEditJob = vi.fn();
   const user = userEvent.setup({ skipHover: true });
   window.HTMLElement.prototype.scrollIntoView = vi.fn(); // Fixes the issue with combobox
@@ -306,7 +306,7 @@ describe("AddJob Component", () => {
 
 describe("AddJob Component - Last Used Location/Source", () => {
   const mockJobStatuses = JOB_STATUSES;
-  const mockJobSources = JOB_SOURCES;
+  const mockJobSources = MOCK_JOB_SOURCES;
   const mockResetEditJob = vi.fn();
   const user = userEvent.setup({ skipHover: true });
 
@@ -405,7 +405,7 @@ describe("AddJob Component - Last Used Location/Source", () => {
 
 describe("AddJob Component - Edit Mode", () => {
   const mockJobStatuses = JOB_STATUSES;
-  const mockJobSources = JOB_SOURCES;
+  const mockJobSources = MOCK_JOB_SOURCES;
   const mockResetEditJob = vi.fn();
   window.HTMLElement.prototype.scrollIntoView = vi.fn();
   window.HTMLElement.prototype.hasPointerCapture = vi.fn();
@@ -530,7 +530,7 @@ describe("AddJob Component - Edit Mode", () => {
 
 describe("AddJob Component - Error Handling", () => {
   const mockJobStatuses = JOB_STATUSES;
-  const mockJobSources = JOB_SOURCES;
+  const mockJobSources = MOCK_JOB_SOURCES;
   const mockResetEditJob = vi.fn();
   window.HTMLElement.prototype.scrollIntoView = vi.fn();
   window.HTMLElement.prototype.hasPointerCapture = vi.fn();
@@ -613,7 +613,7 @@ describe("AddJob Component - Status Order", () => {
         companies={[]}
         jobTitles={[]}
         locations={[]}
-        jobSources={JOB_SOURCES}
+        jobSources={MOCK_JOB_SOURCES}
         tags={[]}
         editJob={null}
         resetEditJob={vi.fn()}
