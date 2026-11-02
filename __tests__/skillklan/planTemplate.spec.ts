@@ -27,9 +27,9 @@ describe("the Java template", () => {
     expect(java.title).toBe("Java");
   });
 
-  it("has the eight modules of the sheet, without the 📱 emoji", () => {
+  it("has the eight modules in a row (the sheet skips 7), without the 📱 emoji", () => {
     expect(java.children.map((m) => m.title.split(/[.:]/)[0])).toEqual([
-      "Модуль 1", "Модуль 2", "Модуль 3", "Модуль 4", "Модуль 5", "Модуль 6", "Модуль 8", "Модуль 9",
+      "Модуль 1", "Модуль 2", "Модуль 3", "Модуль 4", "Модуль 5", "Модуль 6", "Модуль 7", "Модуль 8",
     ]);
     const titles: string[] = [];
     walk(java.children, (n) => titles.push(n.title));
