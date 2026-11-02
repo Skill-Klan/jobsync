@@ -26,6 +26,7 @@ Code: [`src/skillklan/features.ts`](../src/skillklan/features.ts), [`src/skillkl
 | `automations` | off | no Automations tab or pages, no "Add Automation" on the dashboard, no discovered-jobs filters; the scheduler runs nothing; notifications (all about automation runs) go too — no bell, no Notifications page; the actions and API routes that change automations or notifications refuse (`run`, `cancel`, `logs/clear` → 403) |
 | `activities` | off | no Activities tab, no running-activity banner, no "Start activity" in Tasks; the dashboard shows applications only (no hours card, activity chart or calendar, hours goal); goal days and streaks count applications alone; the actions that change activities refuse |
 | `library` | off | no Library («Довідники») tab, company pages answer 404, company names in job lists are plain text; the actions only the Library uses (edit, delete, watch) refuse. Creating a company, title, skill, role or activity type on the fly from a form stays open |
+| `plans` | off | no «Навчальний план» (student) and «Плани студентів» (admin, QA moderator) menu items; both pages answer 404; every plan action refuses (tick, note, hand out). Plans already handed out stay in the database and come back when the switch is on |
 
 ## Adding a switch
 
