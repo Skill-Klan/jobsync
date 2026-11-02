@@ -37,6 +37,7 @@ model User {
   Activity       Activity[]
   ActivityType   ActivityType[]
   Task           Task[]
+  Plan           Plan[]
   Automation     Automation[]
   Settings       UserSettings?
   ApiKey         ApiKey[]
@@ -735,4 +736,43 @@ model FeatureToggle {
   updatedAt              DateTime @updatedAt
   // auth_users.id of the admin who last changed it — who, not a role copy.
   updatedByCabinetUserId Int?
+}
+
+// A student's copy of a plan template (one per track: "java", "python", …):
+// module → topic → subtopic → point, with a tick and a note on each. Created
+// for the student by the admin and frozen at that moment — a later change to
+// the template does not reach copies that exist. The tree is PlanItem rows.
+model Plan {
+  id        String     @id @default(uuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id])
+  track     String
+  title     String
+  createdAt DateTime   @default(now())
+  items     PlanItem[]
+
+  @@unique([userId, track])
+}
+
+model PlanItem {
+  id       String     @id @default(uuid())
+  planId   String
+  plan     Plan       @relation(fields: [planId], references: [id], onDelete: Cascade)
+  parentId String?
+  parent   PlanItem?  @relation("PlanItemTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children PlanItem[] @relation("PlanItemTree")
+
+  // module | topic | group | item | homework | homework_task | homework_ref —
+  // checked in code, like the other string-typed enums here.
+  kind        String
+  title       String
+  position    Int
+  materialUrl String?
+
+  // Only the student's own state; progress above a leaf is computed, never stored.
+  done   Boolean   @default(false)
+  doneAt DateTime?
+  note   String?
+
+  @@index([planId, parentId, position])
 }
