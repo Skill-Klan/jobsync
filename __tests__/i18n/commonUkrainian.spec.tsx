@@ -76,13 +76,22 @@ describe("shared components in Ukrainian", () => {
     expect(screen.getByText("Створити:")).toBeInTheDocument();
   });
 
+  // The calendar opens on the current month, so "today" is pinned to the
+  // harness date; otherwise the month name asserted below changes with the
+  // day the suite runs (it failed from 2026-11-01).
   it("date picker: the date and presets in Ukrainian", async () => {
-    render(<DateHarness />);
-    const trigger = screen.getByRole("button", { name: /14 жовт\. 2026/ });
-    await userEvent.click(trigger);
-    expect(screen.getByText("Швидкий вибір")).toBeInTheDocument();
-    // the calendar itself: Ukrainian month name
-    expect(screen.getAllByText(/жовтень 2026/i).length).toBeGreaterThan(0);
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 9, 14));
+    try {
+      render(<DateHarness />);
+      const trigger = screen.getByRole("button", { name: /14 жовт\. 2026/ });
+      await userEvent.click(trigger);
+      expect(screen.getByText("Швидкий вибір")).toBeInTheDocument();
+      // the calendar itself: Ukrainian month name
+      expect(screen.getAllByText(/жовтень 2026/i).length).toBeGreaterThan(0);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("form footer, dialog close", () => {
