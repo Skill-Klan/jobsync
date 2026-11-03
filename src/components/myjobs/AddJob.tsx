@@ -372,7 +372,7 @@ export function AddJob({
                     name="title"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>{t("addJob.jobTitle")}</FormLabel>
+                        <FormLabel required>{t("addJob.jobTitle")}</FormLabel>
                         <FormControl>
                           <Combobox
                             options={titleOptions}
@@ -413,7 +413,7 @@ export function AddJob({
                     name="company"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>{t("addJob.company")}</FormLabel>
+                        <FormLabel required>{t("addJob.company")}</FormLabel>
                         <FormControl>
                           <Combobox
                             options={companyOptions}
@@ -434,7 +434,7 @@ export function AddJob({
                     name="location"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>{t("addJob.location")}</FormLabel>
+                        <FormLabel required>{t("addJob.location")}</FormLabel>
                         <FormControl>
                           <Combobox
                             options={locationOptions}
@@ -523,7 +523,7 @@ export function AddJob({
                     name="source"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>{t("addJob.source")}</FormLabel>
+                        <FormLabel required>{t("addJob.source")}</FormLabel>
                         <Combobox
                           options={sourceOptions}
                           field={field}
@@ -543,7 +543,7 @@ export function AddJob({
                     name="status"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>{t("addJob.status")}</FormLabel>
+                        <FormLabel required>{t("addJob.status")}</FormLabel>
                         <SelectFormCtrl
                           label="Job Status"
                           options={statusOptions}
@@ -693,7 +693,7 @@ export function AddJob({
                     name="jobDescription"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel id="job-description-label">
+                        <FormLabel id="job-description-label" required>
                           {t("addJob.description")}
                         </FormLabel>
                         <FormControl>

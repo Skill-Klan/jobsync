@@ -255,3 +255,18 @@ describe("with the catalog off — the form is what it was", () => {
     expect(optionsOf()).toEqual(["Acme", "My Garage Ltd"]);
   });
 });
+
+// Requirement — product notes, 2026-11-03: the fields the job form will not
+// submit without carry a red star, the optional ones do not.
+describe("required fields", () => {
+  it("title, company, location, source, status and description are starred; URL, salary, resume are not", () => {
+    renderForm({ catalogOn: false });
+    const starred = (text: string) => screen.getByText(text, { selector: "label" }).className.includes("after:content-['*']");
+    for (const name of ["Job Title", "Company", "Job Location", "Job Source", "Status", "Job Description"]) {
+      expect(starred(name), name).toBe(true);
+    }
+    for (const name of ["Job URL", "Salary Range", "Resume"]) {
+      expect(starred(name), name).toBe(false);
+    }
+  });
+});

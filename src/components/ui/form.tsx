@@ -86,14 +86,22 @@ FormItem.displayName = "FormItem"
 
 const FormLabel = React.forwardRef<
   React.ElementRef<typeof LabelPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
->(({ className, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root> & {
+    // a field the form will not submit without: marked with a red star
+    required?: boolean
+  }
+>(({ className, required, ...props }, ref) => {
   const { error, formItemId } = useFormField()
 
   return (
     <Label
       ref={ref}
-      className={cn(error && "text-destructive", className)}
+      className={cn(
+        error && "text-destructive",
+        // drawn by CSS, so the label's text (and its accessible name) stays the same
+        required && "after:ml-0.5 after:text-destructive after:content-['*']",
+        className,
+      )}
       htmlFor={formItemId}
       {...props}
     />
