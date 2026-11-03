@@ -72,7 +72,7 @@ afterAll(async () => {
 const rows = () => prisma.featureToggle.findMany();
 
 // The launch state: all off but Tasks, which students already have (2026-11-03).
-const OFF = { automations: false, activities: false, library: false, plans: false, tasks: true };
+const OFF = { automations: false, activities: false, library: false, plans: false, tasks: true, catalog: false };
 
 describe("launch state", () => {
   it("no row → Automations, Activities and the Library off for everyone, Tasks on", async () => {

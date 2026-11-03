@@ -14,7 +14,7 @@ import userEvent from "@testing-library/user-event";
 import { FEATURES, resolveFeatureFlags, type FeatureFlags } from "@/skillklan/features";
 
 const flags = vi.hoisted(() => ({
-  value: { automations: true, activities: true, library: true, plans: true, tasks: true } as FeatureFlags,
+  value: { automations: true, activities: true, library: true, plans: true, tasks: true, catalog: true } as FeatureFlags,
 }));
 const db = vi.hoisted(() => {
   const model = () => ({
@@ -60,7 +60,7 @@ import { createTask, deleteTaskById, updateTask, updateTaskStatus } from "@/acti
 import { startActivityFromTask } from "@/actions/task/activity";
 import { getActivityTypesWithTaskCounts } from "@/actions/task.actions";
 
-const ON: FeatureFlags = { automations: true, activities: true, library: true, plans: true, tasks: true };
+const ON: FeatureFlags = { automations: true, activities: true, library: true, plans: true, tasks: true, catalog: true };
 
 beforeEach(() => {
   flags.value = { ...ON };
@@ -76,6 +76,7 @@ describe("the default", () => {
       library: false,
       plans: false,
       tasks: true,
+      catalog: false,
     });
   });
 
@@ -93,7 +94,7 @@ describe("the page", () => {
   });
 
   it("on → the page, even with every other switch off", async () => {
-    flags.value = { automations: false, activities: false, library: false, plans: false, tasks: true };
+    flags.value = { automations: false, activities: false, library: false, plans: false, tasks: true, catalog: false };
     render(await TasksPage());
     expect(screen.getByTestId("tasks")).toBeInTheDocument();
   });

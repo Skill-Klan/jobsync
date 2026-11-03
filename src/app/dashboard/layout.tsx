@@ -18,6 +18,8 @@ import { FeaturesProvider } from "@/context/FeaturesContext";
 import { getFeatureFlags } from "@/skillklan/featureFlags";
 import { cabinetLink } from "@/skillklan/cabinetLink";
 import { isAdminSession } from "@/skillklan/cabinetAdmin";
+import { CatalogProvider } from "@/context/CatalogContext";
+import { listCatalog } from "@/skillklan/catalog/catalog";
 
 export default async function RootLayout({
   children,
@@ -35,6 +37,8 @@ export default async function RootLayout({
   // SkillKlan feature switches, read once here and handed to the browser.
   const features = await getFeatureFlags();
   const isAdmin = await isAdminSession();
+  // The shared catalog, only while its switch is on: the job form offers it.
+  const catalog = features.catalog ? await listCatalog() : null;
 
   const signOutAction = async () => {
     "use server";
@@ -50,6 +54,7 @@ export default async function RootLayout({
 
   return (
     <FeaturesProvider value={features}>
+      <CatalogProvider value={catalog}>
       <ActivityProvider>
         <SidebarProvider initialExpanded={initialExpanded}>
           <RightRailProvider>
@@ -77,6 +82,7 @@ export default async function RootLayout({
           </RightRailProvider>
         </SidebarProvider>
       </ActivityProvider>
+      </CatalogProvider>
     </FeaturesProvider>
   );
 }

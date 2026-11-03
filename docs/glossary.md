@@ -18,6 +18,7 @@ time is 24-hour in Ukrainian (D36).
 | Questions | Питання |
 | Profile | Профіль |
 | Library | Довідники |
+| Catalog | Каталог |
 | Settings | Налаштування |
 
 ## Job status

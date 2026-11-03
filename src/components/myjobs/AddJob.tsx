@@ -64,6 +64,9 @@ import {
   saveToLocalStorage,
 } from "@/utils/localstorage.utils";
 import { useLabel, useTranslations } from "@/i18n/client";
+import { useCatalog } from "@/context/CatalogContext";
+import { useFeatures } from "@/context/FeaturesContext";
+import { mergeCatalogOptions, type CatalogKind } from "@/skillklan/catalog/kinds";
 import {
   JOB_TYPE_CODES,
   WORKPLACE_CODES,
@@ -110,6 +113,24 @@ export function AddJob({
   const [availableTags, setAvailableTags] = useState<Tag[]>(tags);
   const [isPending, startTransition] = useTransition();
 
+  // The shared catalog (switch `catalog`): the pickers offer its list only, and
+  // a student suggests what is missing. Without it, everything works as before.
+  const catalog = useCatalog();
+  const inCatalog = useFeatures().catalog && catalog !== null;
+  const pickable = <T extends { id: string; label: string; value: string }>(
+    kind: CatalogKind,
+    own: T[],
+    keep: (string | undefined)[] = [],
+  ): T[] =>
+    inCatalog
+      ? (mergeCatalogOptions(own, catalog.filter((e) => e.kind === kind), keep) as unknown as T[])
+      : own;
+  const titleOptions = pickable("jobTitle", jobTitles, [editJob?.JobTitle.id]);
+  const companyOptions = pickable("company", companies, [editJob?.Company.id]);
+  const locationOptions = pickable("location", locations, [editJob?.Location?.id]);
+  const sourceChoices = pickable("jobSource", jobSources, [editJob?.JobSource?.id]);
+  const skillOptions = pickable("skill", availableTags, editJob?.tags?.map((tag) => tag.id));
+
   useEffect(() => {
     if (!dialogOpen && searchParams.get("add-job") === "true") {
       const params = new URLSearchParams(searchParams.toString());
@@ -143,8 +164,8 @@ export function AddJob({
     salaryRange: "",
     jobUrl: "",
     jobDescription: "N/A",
-    location: locations.find((l) => l.id === lastLocationId)?.id,
-    source: jobSources.find((s) => s.id === lastSourceId)?.id,
+    location: locationOptions.find((l) => l.id === lastLocationId)?.id,
+    source: sourceChoices.find((s) => s.id === lastSourceId)?.id,
   };
 
   // Seeded statuses and sources are stored in English; the pickers show them
@@ -153,7 +174,7 @@ export function AddJob({
     ...s,
     label: label("jobStatus", s),
   }));
-  const sourceOptions = jobSources.map((s) => ({
+  const sourceOptions = sourceChoices.map((s) => ({
     ...s,
     label: label("jobSource", s),
   }));
@@ -351,12 +372,13 @@ export function AddJob({
                     name="title"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>{t("addJob.jobTitle")}</FormLabel>
+                        <FormLabel required>{t("addJob.jobTitle")}</FormLabel>
                         <FormControl>
                           <Combobox
-                            options={jobTitles}
+                            options={titleOptions}
                             field={field}
                             creatable
+                            catalogKind={inCatalog ? "jobTitle" : undefined}
                           />
                         </FormControl>
                         <FormMessage />
@@ -391,12 +413,13 @@ export function AddJob({
                     name="company"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>{t("addJob.company")}</FormLabel>
+                        <FormLabel required>{t("addJob.company")}</FormLabel>
                         <FormControl>
                           <Combobox
-                            options={companies}
+                            options={companyOptions}
                             field={field}
                             creatable
+                            catalogKind={inCatalog ? "company" : undefined}
                           />
                         </FormControl>
                         <FormMessage />
@@ -411,12 +434,13 @@ export function AddJob({
                     name="location"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>{t("addJob.location")}</FormLabel>
+                        <FormLabel required>{t("addJob.location")}</FormLabel>
                         <FormControl>
                           <Combobox
-                            options={locations}
+                            options={locationOptions}
                             field={field}
                             creatable
+                            catalogKind={inCatalog ? "location" : undefined}
                           />
                         </FormControl>
                         <FormMessage />
@@ -499,11 +523,12 @@ export function AddJob({
                     name="source"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>{t("addJob.source")}</FormLabel>
+                        <FormLabel required>{t("addJob.source")}</FormLabel>
                         <Combobox
                           options={sourceOptions}
                           field={field}
                           creatable
+                          catalogKind={inCatalog ? "jobSource" : undefined}
                         />
                         <FormMessage />
                       </FormItem>
@@ -518,7 +543,7 @@ export function AddJob({
                     name="status"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>{t("addJob.status")}</FormLabel>
+                        <FormLabel required>{t("addJob.status")}</FormLabel>
                         <SelectFormCtrl
                           label="Job Status"
                           options={statusOptions}
@@ -649,7 +674,8 @@ export function AddJob({
                         <FormLabel>{t("addJob.skills")}</FormLabel>
                         <FormControl>
                           <TagInput
-                            availableTags={availableTags}
+                            availableTags={skillOptions}
+                            catalogMode={inCatalog}
                             selectedTagIds={field.value ?? []}
                             onChange={(ids) => field.onChange(ids)}
                           />
@@ -667,7 +693,7 @@ export function AddJob({
                     name="jobDescription"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel id="job-description-label">
+                        <FormLabel id="job-description-label" required>
                           {t("addJob.description")}
                         </FormLabel>
                         <FormControl>

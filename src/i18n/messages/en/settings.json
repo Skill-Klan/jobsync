@@ -283,6 +283,10 @@
         "label": "Activities",
         "description": "Time tracking: the Activities tab, the timer, “Start activity” in Tasks, and hours and the activity goal on the dashboard. When off, records are kept — they are just not shown."
       },
+      "catalog": {
+        "label": "Catalog",
+        "description": "One shared list of skills, companies, job titles, locations and job sources, changed only by the administrator and the QA moderator. When on, the job form offers only the list and students suggest what is missing; the Catalog tab holds the lists and the requests. When off, everyone creates their own as before."
+      },
       "library": {
         "label": "Library",
         "description": "Lists of companies, job titles, locations, skills, contacts and more: the Library tab and company pages. When off, the lists still fill up from forms, but there is nowhere to view or clean them up."

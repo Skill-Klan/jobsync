@@ -26,7 +26,14 @@ import { createLocation } from "@/actions/job.actions";
 import { JobForm } from "@/models/job.model";
 import { addCompany } from "@/actions/company.actions";
 import { createJobTitle } from "@/actions/jobtitle.actions";
-import { toastError } from "@/lib/toast";
+import { toastError, toastSuccess } from "@/lib/toast";
+import { pickCatalogItem, requestCatalogItem } from "@/actions/catalog.actions";
+import {
+  catalogEntryIdOf,
+  isCatalogOptionId,
+  type CatalogKind,
+  type PickerOption,
+} from "@/skillklan/catalog/kinds";
 import { createActivityType } from "@/actions/activity.actions";
 import { createJobSource } from "@/actions/job.actions";
 import { createContactRole } from "@/actions/contactRole.actions";
@@ -40,6 +47,10 @@ interface ComboboxProps {
   onSearchChange?: (search: string) => void;
   // Opt out of the default fixed trigger width when the field sits in a grid
   fullWidth?: boolean;
+  // The shared catalog is on for this field: nothing is created on the fly —
+  // the person picks from the list (an entry they have not used yet becomes
+  // their own row on the first pick) or suggests what is missing.
+  catalogKind?: CatalogKind;
 }
 
 export function Combobox({
@@ -50,9 +61,18 @@ export function Combobox({
   label,
   onSearchChange,
   fullWidth,
+  catalogKind,
 }: ComboboxProps) {
   // Placeholder text only; the accessible name comes from FormLabel/FormControl
   const t = useTranslations("common");
+  const tCatalog = useTranslations("catalog");
+  // Rows made from catalog entries during this session, so the field can show
+  // the picked one without the page reloading.
+  const [picked, setPicked] = useState<PickerOption[]>([]);
+  const shown = options.map((option) => {
+    const own = isCatalogOptionId(option.id) ? picked.find((p) => p.value === option.value) : undefined;
+    return own ? { ...option, id: own.id } : option;
+  });
   // The English prompts name the item ("Select stage"); the Ukrainian ones do
   // not (the noun would need declining) — common.comboBox.
   const displayName = label ?? field.name;
@@ -70,14 +90,40 @@ export function Combobox({
 
     if (hasHighlightedItem) return;
 
-    if (!creatable) return;
+    if (!creatable && !catalogKind) return;
 
     const label = newOption.trim();
     if (!label) return;
 
     e.preventDefault();
-    onCreateOption(label);
+    if (catalogKind) onSuggest(label);
+    else onCreateOption(label);
     setNewOption("");
+  };
+
+  // The catalog has no such thing: ask the administrator for it.
+  const onSuggest = (label: string) => {
+    if (!catalogKind || !label.trim()) return;
+    startTransition(async () => {
+      const result = await requestCatalogItem(catalogKind, label).catch(() => null);
+      if (result?.success) {
+        toastSuccess(tCatalog(result.data.again ? "suggest.again" : "suggest.sent"));
+        setIsPopoverOpen(false);
+      } else toastError(result?.message ?? tCatalog("errors.failed"));
+    });
+  };
+
+  // An entry of the catalog the person has not used yet: make their own row,
+  // then set the field to it.
+  const onPickCatalog = (optionId: string) => {
+    startTransition(async () => {
+      const result = await pickCatalogItem(catalogEntryIdOf(optionId)).catch(() => null);
+      if (result?.success) {
+        setPicked((prev) => [result.data, ...prev.filter((p) => p.id !== result.data.id)]);
+        field.onChange(result.data.id);
+        setIsPopoverOpen(false);
+      } else toastError(result?.message ?? tCatalog("errors.failed"));
+    });
   };
   const onCreateOption = (label: string) => {
     if (!label) return;
@@ -154,7 +200,7 @@ export function Combobox({
           >
             <span className="min-w-0 truncate">
               {field.value
-                ? (options.find((option) => option.id === field.value)?.label ??
+                ? (shown.find((option) => option.id === field.value)?.label ??
                   (freeText ? field.value : null))
                 : t("comboBox.select", { item: displayName })}
             </span>
@@ -187,7 +233,7 @@ export function Combobox({
               onSearchChange?.(val);
             }}
             placeholder={
-              creatable
+              creatable && !catalogKind
                 ? t("comboBox.createOrSearch", { item: displayName })
                 : t("comboBox.search", { item: displayName })
             }
@@ -196,7 +242,8 @@ export function Combobox({
           <CommandList>
             <CommandEmpty
               onClick={() => {
-                onCreateOption(newOption);
+                if (catalogKind) onSuggest(newOption);
+                else onCreateOption(newOption);
                 setNewOption("");
               }}
               className={cn(
@@ -204,7 +251,18 @@ export function Combobox({
                 !newOption && "text-muted-foreground cursor-default"
               )}
             >
-              {creatable ? (
+              {catalogKind ? (
+                newOption.trim() ? (
+                  <>
+                    <CirclePlus className="h-4 w-4" />
+                    <p className="block max-w-56 truncate font-semibold text-primary">
+                      {tCatalog("suggest.action", { label: newOption.trim() })}
+                    </p>
+                  </>
+                ) : (
+                  <p>{tCatalog("suggest.notInList")}</p>
+                )
+              ) : creatable ? (
                 <>
                   <CirclePlus className="h-4 w-4" />
                   <p>{t("comboBox.create")} </p>
@@ -217,14 +275,16 @@ export function Combobox({
               )}
             </CommandEmpty>
             <CommandGroup>
-              {options.map((option) => (
+              {shown.map((option) => (
                 <CommandItem
                   // Searched by what the person sees (the label, in any
                   // language) and by the stored value.
                   value={`${option.label} ${option.value}`}
                   key={option.id}
                   onSelect={() => {
-                    if (field.onChange) {
+                    if (isCatalogOptionId(option.id)) {
+                      onPickCatalog(option.id);
+                    } else if (field.onChange) {
                       field.onChange(option.id);
                       setIsPopoverOpen(false);
                     }
