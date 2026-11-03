@@ -1,9 +1,19 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { assignStudentPlan, type PlanStudent } from "@/actions/plan.actions";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { assignStudentPlan, removeStudentPlan, type PlanStudent } from "@/actions/plan.actions";
 import { useTranslations } from "@/i18n/client";
 import { toastError, toastSuccess } from "@/lib/toast";
 
@@ -20,6 +30,7 @@ export default function StudentPlansAdmin({
   const [held, setHeld] = useState(() => new Map(students.map((s) => [s.id, s.tracks])));
   const [query, setQuery] = useState("");
   const [pending, setPending] = useState<string | null>(null);
+  const [removing, setRemoving] = useState<{ student: PlanStudent; track: string } | null>(null);
   const [, startTransition] = useTransition();
 
   const give = (studentId: string, track: string) => {
@@ -30,6 +41,21 @@ export default function StudentPlansAdmin({
       if (result?.success) {
         setHeld((prev) => new Map(prev).set(studentId, [...(prev.get(studentId) ?? []), track]));
         toastSuccess(t("admin.assigned"));
+      } else {
+        toastError(result?.message);
+      }
+    });
+  };
+
+  const takeBack = (studentId: string, track: string) => {
+    setRemoving(null);
+    setPending(`${studentId}:${track}`);
+    startTransition(async () => {
+      const result = await removeStudentPlan(studentId, track).catch(() => null);
+      setPending(null);
+      if (result?.success) {
+        setHeld((prev) => new Map(prev).set(studentId, (prev.get(studentId) ?? []).filter((x) => x !== track)));
+        toastSuccess(t("admin.removed"));
       } else {
         toastError(result?.message);
       }
@@ -70,6 +96,19 @@ export default function StudentPlansAdmin({
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
+                  {mine.map((track) => (
+                    <Button
+                      key={track}
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      disabled={pending !== null}
+                      aria-label={t("admin.removeLabel", { track: titleOf(track), name: student.name || t("admin.unnamed") })}
+                      onClick={() => setRemoving({ student, track })}
+                    >
+                      {t("admin.remove")}
+                    </Button>
+                  ))}
                   {tracks
                     .filter((x) => !mine.includes(x.track))
                     .map((x) => (
@@ -89,6 +128,29 @@ export default function StudentPlansAdmin({
           })}
         </ul>
       )}
+      <AlertDialog open={removing !== null} onOpenChange={(open) => !open && setRemoving(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{removing && t("admin.removeTitle", { track: titleOf(removing.track) })}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {removing &&
+                t("admin.removeLoss", {
+                  done: removing.student.plans.find((p) => p.track === removing.track)?.done ?? 0,
+                  notes: removing.student.plans.find((p) => p.track === removing.track)?.notes ?? 0,
+                })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("student.noteCancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              className={buttonVariants({ variant: "destructive" })}
+              onClick={() => removing && takeBack(removing.student.id, removing.track)}
+            >
+              {t("admin.removeConfirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

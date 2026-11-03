@@ -2,7 +2,7 @@
 // tab per module and its percent, topics that open, a tick and a note on each
 // point and homework task; the progress follows the ticks at once and goes
 // back when saving fails. The admin sees the students and the plans each
-// holds, and gives a plan with a button — a plan already given has none.
+// holds, and gives a plan with a button — a plan already given has none, and offers to take it back.
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { setTestLocale } from "../helpers/i18n";
@@ -11,6 +11,7 @@ const actions = vi.hoisted(() => ({
   setPlanItemDone: vi.fn(),
   setPlanItemNote: vi.fn(),
   assignStudentPlan: vi.fn(),
+  removeStudentPlan: vi.fn(),
 }));
 vi.mock("@/actions/plan.actions", () => actions);
 const toasts = vi.hoisted(() => ({ toastError: vi.fn(), toastSuccess: vi.fn() }));
@@ -136,9 +137,9 @@ describe("the student's page", () => {
 
 describe("the admin's page", () => {
   const students = [
-    { id: "ann", name: "Анна", cabinetUserId: 1, tracks: ["java"] },
-    { id: "bob", name: "Богдан", cabinetUserId: 2, tracks: [] },
-    { id: "dev", name: "", cabinetUserId: null, tracks: [] },
+    { id: "ann", name: "Анна", cabinetUserId: 1, tracks: ["java"], plans: [{ track: "java", done: 12, notes: 1 }] },
+    { id: "bob", name: "Богдан", cabinetUserId: 2, tracks: [], plans: [] },
+    { id: "dev", name: "", cabinetUserId: null, tracks: [], plans: [] },
   ];
   const tracks = [{ track: "java", title: "Java" }];
 
@@ -146,7 +147,7 @@ describe("the admin's page", () => {
     render(<StudentPlansAdmin students={students} tracks={tracks} />);
     const ann = screen.getByText("Анна").closest("li")!;
     expect(within(ann).getByText(/Java — given/)).toBeInTheDocument();
-    expect(within(ann).queryByRole("button")).not.toBeInTheDocument();
+    expect(within(ann).queryByRole("button", { name: /Give/ })).not.toBeInTheDocument();
     const bob = screen.getByText("Богдан").closest("li")!;
     expect(within(bob).getByText(/No plan yet/)).toBeInTheDocument();
     expect(within(bob).getByRole("button", { name: "Give the “Java” plan" })).toBeInTheDocument();
@@ -159,7 +160,7 @@ describe("the admin's page", () => {
     const bob = screen.getByText("Богдан").closest("li")!;
     await user.click(within(bob).getByRole("button", { name: "Give the “Java” plan" }));
     expect(actions.assignStudentPlan).toHaveBeenCalledWith("bob", "java");
-    await waitFor(() => expect(within(bob).queryByRole("button")).not.toBeInTheDocument());
+    await waitFor(() => expect(within(bob).queryByRole("button", { name: /Give/ })).not.toBeInTheDocument());
     expect(within(bob).getByText(/Java — given/)).toBeInTheDocument();
     expect(toasts.toastSuccess).toHaveBeenCalled();
   });
@@ -172,6 +173,52 @@ describe("the admin's page", () => {
     await user.click(within(bob).getByRole("button", { name: "Give the “Java” plan" }));
     await waitFor(() => expect(toasts.toastError).toHaveBeenCalledWith("Видавати плани можуть лише адміністратор."));
     expect(within(bob).getByRole("button", { name: "Give the “Java” plan" })).toBeInTheDocument();
+  });
+
+  it("taking a plan back: the button is only where the plan is held, and asks first, saying what is lost", async () => {
+    const user = userEvent.setup();
+    render(<StudentPlansAdmin students={students} tracks={tracks} />);
+    const bob = screen.getByText("Богдан").closest("li")!;
+    expect(within(bob).queryByRole("button", { name: /Take back/ })).not.toBeInTheDocument();
+    const ann = screen.getByText("Анна").closest("li")!;
+    await user.click(within(ann).getByRole("button", { name: "Take back the “Java” plan from Анна" }));
+    expect(actions.removeStudentPlan).not.toHaveBeenCalled();
+    const dialog = screen.getByRole("alertdialog");
+    expect(within(dialog).getByText("Take back the “Java” plan?")).toBeInTheDocument();
+    expect(within(dialog).getByText(/12 points are ticked and there is 1 note/)).toBeInTheDocument();
+  });
+
+  it("cancelling the question takes nothing back", async () => {
+    const user = userEvent.setup();
+    render(<StudentPlansAdmin students={students} tracks={tracks} />);
+    const ann = screen.getByText("Анна").closest("li")!;
+    await user.click(within(ann).getByRole("button", { name: /Take back/ }));
+    await user.click(within(screen.getByRole("alertdialog")).getByRole("button", { name: "Cancel" }));
+    expect(actions.removeStudentPlan).not.toHaveBeenCalled();
+    expect(within(ann).getByText(/Java — given/)).toBeInTheDocument();
+  });
+
+  it("confirming takes it back and offers to give it again", async () => {
+    actions.removeStudentPlan.mockResolvedValue({ success: true });
+    const user = userEvent.setup();
+    render(<StudentPlansAdmin students={students} tracks={tracks} />);
+    const ann = screen.getByText("Анна").closest("li")!;
+    await user.click(within(ann).getByRole("button", { name: /Take back/ }));
+    await user.click(within(screen.getByRole("alertdialog")).getByRole("button", { name: "Take back" }));
+    expect(actions.removeStudentPlan).toHaveBeenCalledWith("ann", "java");
+    await waitFor(() => expect(within(ann).getByRole("button", { name: "Give the “Java” plan" })).toBeInTheDocument());
+    expect(within(ann).getByText(/No plan yet/)).toBeInTheDocument();
+  });
+
+  it("a refusal says why and the plan stays", async () => {
+    actions.removeStudentPlan.mockResolvedValue({ success: false, message: "Тільки адміністратор." });
+    const user = userEvent.setup();
+    render(<StudentPlansAdmin students={students} tracks={tracks} />);
+    const ann = screen.getByText("Анна").closest("li")!;
+    await user.click(within(ann).getByRole("button", { name: /Take back/ }));
+    await user.click(within(screen.getByRole("alertdialog")).getByRole("button", { name: "Take back" }));
+    await waitFor(() => expect(toasts.toastError).toHaveBeenCalledWith("Тільки адміністратор."));
+    expect(within(ann).getByText(/Java — given/)).toBeInTheDocument();
   });
 
   it("search narrows the list by name; nobody found says so", async () => {

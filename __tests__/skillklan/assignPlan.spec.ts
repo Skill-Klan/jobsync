@@ -72,6 +72,18 @@ describe("assignPlan", () => {
     expect(rows.filter((r) => r.materialUrl).length).toBe(links(java.children));
   }, 60_000);
 
+  it.each(["javascript", "python", "manual"])("gives the student the whole %s template too, in order", async (track) => {
+    const template = getPlanTemplate(track)!;
+    const result = await assignPlan(db, "b", track);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const rows = await db.planItem.findMany({ where: { planId: result.planId } });
+    expect(outlineOfCopy(rows)).toEqual(outline(template.children));
+    expect((await db.plan.findUniqueOrThrow({ where: { id: result.planId } })).title).toBe(template.title);
+    // «Java» and «JavaScript» are different plans of one student
+    expect(await db.plan.count({ where: { userId: "b", track } })).toBe(1);
+  }, 60_000);
+
   it("is the student's alone: ticking in one copy does not touch another", async () => {
     const second = await assignPlan(db, "b", "java");
     expect(second.ok).toBe(true);
@@ -104,7 +116,7 @@ describe("assignPlan", () => {
   it("an unknown track or an unknown student creates nothing", async () => {
     const plans = await db.plan.count();
     const items = await db.planItem.count();
-    expect(await assignPlan(db, "a", "python")).toEqual({ ok: false, reason: "unknown_track" });
+    expect(await assignPlan(db, "a", "go")).toEqual({ ok: false, reason: "unknown_track" });
     expect(await assignPlan(db, "a", "constructor")).toEqual({ ok: false, reason: "unknown_track" });
     expect(await assignPlan(db, "nobody", "java")).toEqual({ ok: false, reason: "unknown_user" });
     expect(await db.plan.count()).toBe(plans);

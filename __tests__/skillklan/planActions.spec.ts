@@ -7,6 +7,9 @@
 //   · the manager (admin or QA moderator, as the backend says right now) gives
 //     a student a plan; a student, a demoted admin, a backend that says no or
 //     does not answer, or no session — nothing is given;
+//   · the manager takes a plan back (a mistake, or a graduate): the copy goes
+//     with its ticks and notes, nobody else's plan is touched, and the same plan
+//     can be given again; the same refusals as for giving;
 //   · the study plan is behind its own switch `plans`, off at launch: while off,
 //     every action refuses — and another switch being on does not help;
 //   · the list of students shows names and plan tracks, no e-mail, no password.
@@ -41,6 +44,7 @@ import {
   assignStudentPlan,
   getMyPlans,
   listPlanStudents,
+  removeStudentPlan,
   setPlanItemDone,
   setPlanItemNote,
 } from "@/actions/plan.actions";
@@ -214,8 +218,13 @@ describe("the list of students — the manager only", () => {
     const result = await listPlanStudents();
     expect(result.success).toBe(true);
     if (!result.success) return;
-    expect(result.data.tracks).toEqual([{ track: "java", title: "Java" }]);
-    expect(result.data.students.find((s) => s.id === ann)).toEqual({ id: ann, name: "Анна", cabinetUserId: 1, tracks: ["java"] });
+    expect(result.data.tracks).toEqual([
+      { track: "java", title: "Java" },
+      { track: "javascript", title: "JavaScript" },
+      { track: "python", title: "Python" },
+      { track: "manual", title: "Manual QA" },
+    ]);
+    expect(result.data.students.find((s) => s.id === ann)).toEqual({ id: ann, name: "Анна", cabinetUserId: 1, tracks: ["java"], plans: [{ track: "java", done: 0, notes: 0 }] });
     expect(result.data.students.find((s) => s.id === manager)?.tracks).toEqual([]);
     expect(JSON.stringify(result.data)).not.toMatch(/@|password/);
   });
@@ -277,7 +286,7 @@ describe("giving a plan — the backend is asked now", () => {
   });
 
   it.each([
-    ["an unknown track", ann, "python"],
+    ["an unknown track", ann, "go"],
     ["an unknown student", "nobody", "java"],
     ["not text", 7, "java"],
   ])("%s — refused with a reason, nothing given", async (_label, id, track) => {
@@ -294,5 +303,91 @@ describe("giving a plan — the backend is asked now", () => {
     await expect(assignStudentPlan(ann, "java")).resolves.toMatchObject({ success: false });
     expect(await prisma.plan.count({ where: { userId: ann } })).toBe(1);
     expect((await prisma.planItem.findUniqueOrThrow({ where: { id: item.id } })).done).toBe(true);
+  });
+});
+
+describe("the list tells what taking a plan back would lose", () => {
+  it("counts the ticked points and the notes of each plan", async () => {
+    asManager();
+    const items = await prisma.planItem.findMany({ where: { plan: { userId: ann }, kind: "item" }, take: 3, orderBy: { id: "asc" } });
+    await prisma.planItem.updateMany({ where: { id: { in: items.slice(0, 2).map((i) => i.id) } }, data: { done: true } });
+    await prisma.planItem.update({ where: { id: items[2].id }, data: { note: "q" } });
+    const result = await listPlanStudents();
+    if (!result.success) throw new Error("refused");
+    expect(result.data.students.find((s) => s.id === ann)?.plans).toEqual([{ track: "java", done: 2, notes: 1 }]);
+  });
+});
+
+describe("taking a plan back — the backend is asked now", () => {
+  beforeEach(async () => {
+    await prisma.plan.deleteMany({ where: { userId: bob } });
+    await assignPlan(prisma, bob, "java");
+    asManager();
+  });
+
+  it.each(["admin", "qa_moderator"])("%s takes Bob's plan back with all its points; Anna's stays", async (role) => {
+    ctx.access.mockResolvedValue({ allowed: true, role });
+    const annItems = await prisma.planItem.count({ where: { plan: { userId: ann } } });
+    await expect(removeStudentPlan(bob, "java")).resolves.toEqual({ success: true });
+    expect(await prisma.plan.count({ where: { userId: bob } })).toBe(0);
+    expect(await prisma.planItem.count({ where: { plan: { userId: bob } } })).toBe(0);
+    expect(await prisma.planItem.count({ where: { plan: { userId: ann } } })).toBe(annItems);
+    expect(ctx.revalidate).toHaveBeenCalledWith("/dashboard/student-plans");
+  });
+
+  it("then the same plan can be given again, fresh", async () => {
+    ctx.access.mockResolvedValue({ allowed: true, role: "admin" });
+    const item = await firstOf(bob, "item");
+    await prisma.planItem.update({ where: { id: item.id }, data: { done: true, note: "x" } });
+    await removeStudentPlan(bob, "java");
+    await expect(assignStudentPlan(bob, "java")).resolves.toEqual({ success: true });
+    expect(await prisma.planItem.count({ where: { plan: { userId: bob }, OR: [{ done: true }, { note: { not: null } }] } })).toBe(0);
+  });
+
+  it.each([
+    ["the session says admin, the backend says student (demoted)", { allowed: true, role: "student" }],
+    ["a mentor", { allowed: true, role: "mentor" }],
+    ["the backend no longer lets the person in", { allowed: false, role: null }],
+  ])("%s — nothing taken back", async (_label, answer) => {
+    ctx.access.mockResolvedValue(answer);
+    await expect(removeStudentPlan(bob, "java")).resolves.toMatchObject({ success: false });
+    expect(await prisma.plan.count({ where: { userId: bob } })).toBe(1);
+  });
+
+  it("the backend did not answer — fail closed", async () => {
+    ctx.access.mockRejectedValue(new Error("timeout"));
+    await expect(removeStudentPlan(bob, "java")).resolves.toMatchObject({ success: false });
+    expect(await prisma.plan.count({ where: { userId: bob } })).toBe(1);
+  });
+
+  it("a student taking back their own plan — refused", async () => {
+    asStudent(bob);
+    ctx.access.mockResolvedValue({ allowed: true, role: "student" });
+    await expect(removeStudentPlan(bob, "java")).resolves.toMatchObject({ success: false });
+    expect(await prisma.plan.count({ where: { userId: bob } })).toBe(1);
+  });
+
+  it("no session — the backend is not even asked", async () => {
+    ctx.session.value = null;
+    await expect(removeStudentPlan(bob, "java")).resolves.toMatchObject({ success: false });
+    expect(ctx.access).not.toHaveBeenCalled();
+    expect(await prisma.plan.count({ where: { userId: bob } })).toBe(1);
+  });
+
+  it("the switch off — refused before the backend is asked", async () => {
+    await setSwitch("plans", false);
+    ctx.access.mockResolvedValue({ allowed: true, role: "admin" });
+    await expect(removeStudentPlan(bob, "java")).resolves.toMatchObject({ success: false });
+    expect(ctx.access).not.toHaveBeenCalled();
+    expect(await prisma.plan.count({ where: { userId: bob } })).toBe(1);
+  });
+
+  it.each([
+    ["a student without that plan", ann, "python"],
+    ["not text", 7, "java"],
+  ])("%s — refused, nothing removed", async (_label, id, track) => {
+    ctx.access.mockResolvedValue({ allowed: true, role: "admin" });
+    await expect(removeStudentPlan(id, track)).resolves.toMatchObject({ success: false });
+    expect(await prisma.plan.count({ where: { userId: { in: [ann, bob] } } })).toBe(2);
   });
 });

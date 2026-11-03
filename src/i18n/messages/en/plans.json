@@ -26,7 +26,13 @@
     "noPlans": "No plan yet",
     "assign": "Give the “{track}” plan",
     "assigned": "Plan given",
-    "has": "{track} — given"
+    "has": "{track} — given",
+    "remove": "Take back",
+    "removeLabel": "Take back the “{track}” plan from {name}",
+    "removed": "Plan taken back",
+    "removeTitle": "Take back the “{track}” plan?",
+    "removeLoss": "{done, plural, =0 {No points are ticked} one {# point is ticked} other {# points are ticked}} and {notes, plural, =0 {there are no notes} one {there is # note} other {there are # notes}}. They will be deleted with the plan and cannot be restored. You can give the plan again afterwards.",
+    "removeConfirm": "Take back"
   },
   "errors": {
     "unavailable": "The study plan is not available right now.",
@@ -41,5 +47,8 @@
     "unknown_track": "There is no such plan.",
     "unknown_user": "There is no such user.",
     "already_assigned": "This student already has that plan."
+  },
+  "remove": {
+    "notFound": "This student has no such plan."
   }
 }
