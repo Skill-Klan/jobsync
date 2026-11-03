@@ -57,6 +57,16 @@ Only decisions that matter for code are listed.
 | D61 | The uploader's name from the file name is shown. |
 | D77–D80 | Attachments next to a recording only when the match is certain, otherwise on its folder; pictures, PDFs and other files are **viewed, not downloaded**; for everyone, like the recordings. |
 
+## Study plans («Навчальний план»)
+
+| # | Decision |
+|---|---|
+| D89 | Mentors **don't sign in yet**. The first stage is for the admin and the QA moderator: mentor → their students → a student's plan. |
+| D90, D95 | The admin sees every mentor and every student without a mentor; the QA moderator — **QA mentors and QA students without a mentor only**. |
+| D91 | Students without a mentor are a separate entry, «Без ментора». |
+| D92 | The admin and the QA moderator **only look** at a student's plan; ticks and notes stay the student's. |
+| D93 | Giving and taking back a plan stays on «Плани студентів»; the mentor path is view-only. |
+
 ## Engineering
 
 | # | Decision |
