@@ -18,7 +18,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tag } from "@/models/job.model";
 import { createTag } from "@/actions/tag.actions";
-import { toastError } from "@/lib/toast";
+import { toastError, toastSuccess } from "@/lib/toast";
+import { pickCatalogItem, requestCatalogItem } from "@/actions/catalog.actions";
+import { catalogEntryIdOf, isCatalogOptionId } from "@/skillklan/catalog/kinds";
 import { cn } from "@/lib/utils";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { useTranslations } from "@/i18n/client";
@@ -30,6 +32,10 @@ interface TagInputProps {
   max?: number;
   placeholder?: string;
   onTagCreated?: (tag: Tag) => void;
+  // The shared catalog is on: skills are picked from the list (an entry the
+  // person has not used yet becomes their own tag on the first pick) and a
+  // missing one is suggested to the administrator instead of created.
+  catalogMode?: boolean;
 }
 
 export function TagInput({
@@ -39,8 +45,10 @@ export function TagInput({
   max = APP_CONSTANTS.MAX_JOB_TAGS,
   placeholder,
   onTagCreated,
+  catalogMode,
 }: TagInputProps) {
   const t = useTranslations("jobs");
+  const tCatalog = useTranslations("catalog");
   const triggerText = placeholder ?? t("tagInput.placeholder");
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -55,7 +63,10 @@ export function TagInput({
       const ids = new Set(prev.map((t) => t.id));
       const merged = [...prev];
       for (const t of availableTags) {
-        if (!ids.has(t.id)) merged.push(t);
+        if (ids.has(t.id)) continue;
+        // a catalog entry already picked this session is the person's own tag now
+        if (isCatalogOptionId(t.id) && prev.some((p) => p.value === t.value)) continue;
+        merged.push(t);
       }
       return merged;
     });
@@ -114,9 +125,38 @@ export function TagInput({
   };
 
   const handleSelect = (tagId: string) => {
+    if (isCatalogOptionId(tagId)) {
+      if (selectedTagIds.length >= max) return;
+      startTransition(async () => {
+        const result = await pickCatalogItem(catalogEntryIdOf(tagId)).catch(() => null);
+        if (!result?.success) {
+          toastError(result?.message ?? tCatalog("errors.failed"));
+          return;
+        }
+        const own = { ...result.data, createdBy: "" } as Tag;
+        setLocalTags((prev) => [...prev.filter((x) => x.id !== tagId && x.id !== own.id), own]);
+        addTagById(own.id);
+        setInputValue("");
+        setOpen(false);
+      });
+      return;
+    }
     addTagById(tagId);
     setInputValue("");
     setOpen(false);
+  };
+
+  const handleSuggest = () => {
+    const label = inputValue.trim();
+    if (!label) return;
+    startTransition(async () => {
+      const result = await requestCatalogItem("skill", label).catch(() => null);
+      if (result?.success) {
+        toastSuccess(tCatalog(result.data.again ? "suggest.again" : "suggest.sent"));
+        setInputValue("");
+        setOpen(false);
+      } else toastError(result?.message ?? tCatalog("errors.failed"));
+    });
   };
 
   return (
@@ -165,8 +205,8 @@ export function TagInput({
               {inputValue.trim() && !exactMatchExists && (
                 <CommandGroup>
                   <CommandItem
-                    onSelect={handleCreate}
-                    disabled={isPending || isMaxReached}
+                    onSelect={catalogMode ? handleSuggest : handleCreate}
+                    disabled={isPending || (!catalogMode && isMaxReached)}
                     className="text-primary"
                   >
                     {isPending ? (
@@ -174,7 +214,9 @@ export function TagInput({
                     ) : (
                       <CirclePlus className="mr-2 h-4 w-4" />
                     )}
-                    {t("tagInput.create", { name: inputValue.trim() })}
+                    {catalogMode
+                      ? tCatalog("suggest.action", { label: inputValue.trim() })
+                      : t("tagInput.create", { name: inputValue.trim() })}
                   </CommandItem>
                 </CommandGroup>
               )}

@@ -38,6 +38,7 @@ model User {
   ActivityType   ActivityType[]
   Task           Task[]
   Plan           Plan[]
+  CatalogRequest CatalogRequest[]
   Automation     Automation[]
   Settings       UserSettings?
   ApiKey         ApiKey[]
@@ -736,6 +737,44 @@ model FeatureToggle {
   updatedAt              DateTime @updatedAt
   // auth_users.id of the admin who last changed it — who, not a role copy.
   updatedByCabinetUserId Int?
+}
+
+// The shared catalog: the one list of skills, companies, job titles, locations
+// and job sources everybody picks from in the job form. Only the admin and the
+// QA moderator change it (src/skillklan/catalog). `value` is the stable key
+// (canonical form of the first label): a rename changes `label` only, so the
+// per-person rows that share the key stay linked. `kind`: skill | company |
+// jobTitle | location | jobSource.
+model CatalogEntry {
+  id                     String   @id @default(uuid())
+  kind                   String
+  label                  String
+  value                  String
+  createdAt              DateTime @default(now())
+  // auth_users.id of the admin who added it — who, not a role copy.
+  createdByCabinetUserId Int?
+
+  @@unique([kind, value])
+  @@index([kind])
+}
+
+// A student's suggestion for something the catalog lacks. The admin approves it
+// (it becomes a CatalogEntry) or rejects it. One row per person, kind and value.
+model CatalogRequest {
+  id                     String    @id @default(uuid())
+  kind                   String
+  label                  String
+  value                  String
+  requestedBy            String
+  User                   User      @relation(fields: [requestedBy], references: [id], onDelete: Cascade)
+  // pending | approved | rejected
+  status                 String    @default("pending")
+  createdAt              DateTime  @default(now())
+  decidedAt              DateTime?
+  decidedByCabinetUserId Int?
+
+  @@unique([kind, value, requestedBy])
+  @@index([status])
 }
 
 // A student's copy of a plan template (one per track: "java", "python", …):

@@ -1,0 +1,66 @@
+{
+  "page": {
+    "title": "Catalog",
+    "description": "One list for everyone: what students pick from in the job form. Only you change it; students suggest what is missing."
+  },
+  "tabs": {
+    "requests": "Requests",
+    "skill": "Skills",
+    "company": "Companies",
+    "jobTitle": "Job titles",
+    "location": "Locations",
+    "jobSource": "Job sources"
+  },
+  "kinds": {
+    "skill": "skill",
+    "company": "company",
+    "jobTitle": "job title",
+    "location": "location",
+    "jobSource": "job source"
+  },
+  "add": {
+    "placeholder": "Add to the list",
+    "button": "Add"
+  },
+  "rename": "Rename",
+  "renameLabel": "New name",
+  "save": "Save",
+  "cancel": "Cancel",
+  "remove": "Remove",
+  "removeTitle": "Remove from the catalog?",
+  "removeText": "“{label}” will no longer be offered in the job form. Jobs that already have it keep it.",
+  "removeConfirm": "Remove",
+  "empty": "Nothing here yet.",
+  "count": "{count, plural, one {# item} other {# items}}",
+  "requests": {
+    "empty": "No requests.",
+    "from": "from {name}",
+    "approve": "Approve",
+    "reject": "Reject",
+    "editLabel": "Name to add",
+    "approved": "Added to the catalog.",
+    "rejected": "Request rejected."
+  },
+  "suggest": {
+    "action": "Suggest “{label}”",
+    "sent": "Sent. The administrator will look at it.",
+    "again": "You have already suggested this.",
+    "inCatalog": "It is already in the list — pick it from there.",
+    "notInList": "Not in the list. Suggest it to the administrator.",
+    "hint": "Only the list is offered here"
+  },
+  "added": "Added to the catalog.",
+  "renamed": "Renamed.",
+  "removed": "Removed from the catalog.",
+  "errors": {
+    "unavailable": "The catalog is switched off. Reload the page.",
+    "adminOnly": "Only the administrator and the QA moderator can change the catalog.",
+    "signedOut": "Sign in again.",
+    "badLabel": "A name needs 2 to 80 characters.",
+    "badKind": "There is no such list.",
+    "exists": "This is already in the catalog.",
+    "notFound": "Not found. It may have been changed already — reload the page.",
+    "inCatalog": "It is already in the list — pick it from there.",
+    "failed": "Could not do that. Try again."
+  }
+}

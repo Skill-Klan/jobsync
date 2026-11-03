@@ -4,6 +4,7 @@ import enActivities from "./en/activities.json";
 import enAgent from "./en/agent.json";
 import enAuth from "./en/auth.json";
 import enAutomations from "./en/automations.json";
+import enCatalog from "./en/catalog.json";
 import enCommon from "./en/common.json";
 import enDashboard from "./en/dashboard.json";
 import enInterviews from "./en/interviews.json";
@@ -23,6 +24,7 @@ import ukActivities from "./uk/activities.json";
 import ukAgent from "./uk/agent.json";
 import ukAuth from "./uk/auth.json";
 import ukAutomations from "./uk/automations.json";
+import ukCatalog from "./uk/catalog.json";
 import ukCommon from "./uk/common.json";
 import ukDashboard from "./uk/dashboard.json";
 import ukInterviews from "./uk/interviews.json";
@@ -48,6 +50,7 @@ const en = {
   agent: enAgent,
   auth: enAuth,
   automations: enAutomations,
+  catalog: enCatalog,
   common: enCommon,
   dashboard: enDashboard,
   interviews: enInterviews,
@@ -70,6 +73,7 @@ const uk: typeof en = {
   agent: ukAgent,
   auth: ukAuth,
   automations: ukAutomations,
+  catalog: ukCatalog,
   common: ukCommon,
   dashboard: ukDashboard,
   interviews: ukInterviews,

@@ -13,6 +13,7 @@ import {
   CalendarCheck,
   ListChecks,
   Users,
+  LibraryBig,
 } from "lucide-react";
 
 export const APP_CONSTANTS = {
@@ -487,6 +488,13 @@ export const SIDEBAR_LINKS: {
     route: "/dashboard/admin",
     labelKey: "library",
     feature: "library",
+  },
+  {
+    icon: LibraryBig,
+    route: "/dashboard/catalog",
+    labelKey: "catalog",
+    feature: "catalog",
+    adminOnly: true,
   },
   {
     icon: Wrench,

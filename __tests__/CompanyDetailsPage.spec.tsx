@@ -21,7 +21,7 @@ vi.mock("@/components/admin/CompanyDetails", () => ({
 
 // The Library switch is tested in __tests__/skillklan/automationsLibrarySwitchPages; here it is on.
 vi.mock("@/skillklan/featureFlags", () => ({
-  getFeatureFlags: vi.fn(async () => ({ automations: true, activities: true, library: true, plans: true, tasks: true })),
+  getFeatureFlags: vi.fn(async () => ({ automations: true, activities: true, library: true, plans: true, tasks: true, catalog: true })),
 }));
 
 describe("CompanyDetailsPage", () => {
