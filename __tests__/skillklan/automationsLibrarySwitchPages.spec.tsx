@@ -10,7 +10,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 const flags = vi.hoisted(() => ({
-  value: { automations: true, activities: true, library: true, plans: true },
+  value: { automations: true, activities: true, library: true, plans: true, tasks: true },
 }));
 
 vi.mock("@/skillklan/featureFlags", () => ({ getFeatureFlags: vi.fn(async () => flags.value) }));
@@ -72,7 +72,7 @@ const pages = [
 ] as const;
 
 beforeEach(() => {
-  flags.value = { automations: true, activities: true, library: true, plans: true };
+  flags.value = { automations: true, activities: true, library: true, plans: true, tasks: true };
 });
 
 describe.each(pages)("%s switch — %s", (key, _label, page, testId, reads) => {

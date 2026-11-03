@@ -10,6 +10,7 @@ time is 24-hour in Ukrainian (D36).
 |---|---|
 | Dashboard | Головна |
 | Jobs | Вакансії |
+| Job bank (menu item and its page title) | Банк вакансій |
 | Interviews | Співбесіди |
 | Automations | Автопошук |
 | Tasks | Завдання |

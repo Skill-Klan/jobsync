@@ -9,7 +9,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 const flags = vi.hoisted(() => ({
-  value: { automations: true, activities: true, library: true, plans: true },
+  value: { automations: true, activities: true, library: true, plans: true, tasks: true },
 }));
 const admin = vi.hoisted(() => ({ value: true }));
 
@@ -37,7 +37,7 @@ import Header from "@/components/Header";
 import { getMyPlans, listPlanStudents } from "@/actions/plan.actions";
 
 beforeEach(() => {
-  flags.value = { automations: true, activities: true, library: true, plans: true };
+  flags.value = { automations: true, activities: true, library: true, plans: true, tasks: true };
   admin.value = true;
 });
 
@@ -52,7 +52,7 @@ describe.each([
   });
 
   it("on → the page, even with every other switch off", async () => {
-    flags.value = { automations: false, activities: false, library: false, plans: true };
+    flags.value = { automations: false, activities: false, library: false, plans: true, tasks: true };
     render(await page());
     expect(screen.getByTestId(testId)).toBeInTheDocument();
   });

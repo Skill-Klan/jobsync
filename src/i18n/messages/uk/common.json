@@ -21,7 +21,8 @@
     "notFound": "Нічого не знайдено"
   },
   "select": {
-    "placeholder": "Оберіть…"
+    "placeholder": "Оберіть…",
+    "none": "Не обрано"
   },
   "datePicker": {
     "pick": "Оберіть дату",

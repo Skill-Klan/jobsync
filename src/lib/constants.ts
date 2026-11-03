@@ -277,6 +277,49 @@ export const JOB_SOURCES = [
   { label: "Other", value: "other" },
 ] as const;
 
+// The skills a student picks most often on a job («Навички» in the job form),
+// matching the study plan tracks: Java, JavaScript, Python and Manual QA. Seeded
+// per user at signup as Tags. `value` must equal canonicalizeEntityValue(label)
+// or the creatable picker will mint a duplicate instead of matching the seeded
+// row. Brand and tool names are kept as written, not translated.
+export const DEFAULT_SKILLS = [
+  "Manual Testing",
+  "Test Cases",
+  "Bug Reporting",
+  "Test Design",
+  "API Testing",
+  "Regression Testing",
+  "Smoke Testing",
+  "Java",
+  "JavaScript",
+  "TypeScript",
+  "Python",
+  "SQL",
+  "Git",
+  "Selenium",
+  "Playwright",
+  "Cypress",
+  "Appium",
+  "TestNG",
+  "JUnit",
+  "Pytest",
+  "Postman",
+  "REST API",
+  "Swagger",
+  "Charles",
+  "Allure",
+  "Maven",
+  "Jenkins",
+  "Docker",
+  "CI/CD",
+  "Jira",
+  "TestRail",
+  "Agile",
+  "Scrum",
+  "Linux",
+  "English",
+].map((label) => ({ label, value: label.toLowerCase() }));
+
 // Seeded per user at signup and backfilled by the contacts migration. `value`
 // must equal canonicalizeEntityValue(label) or the creatable role picker will
 // mint a duplicate instead of matching the seeded row.
@@ -408,6 +451,7 @@ export const SIDEBAR_LINKS: {
     icon: SquareCheckBig,
     route: "/dashboard/tasks",
     labelKey: "tasks",
+    feature: "tasks",
   },
   {
     icon: ListChecks,

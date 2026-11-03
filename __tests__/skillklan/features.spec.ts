@@ -12,28 +12,31 @@ import {
 } from "@/skillklan/features";
 import { SIDEBAR_LINKS, visibleSidebarLinks } from "@/lib/constants";
 
-const ALL_OFF: FeatureFlags = { automations: false, activities: false, library: false, plans: false };
-const ALL_ON: FeatureFlags = { automations: true, activities: true, library: true, plans: true };
+const ALL_OFF: FeatureFlags = { automations: false, activities: false, library: false, plans: false, tasks: false };
+// What nobody has chosen yet: everything off except Tasks (2026-11-03: students
+// already have Tasks, so the admin picks the moment to close it).
+const LAUNCH: FeatureFlags = { ...ALL_OFF, tasks: true };
+const ALL_ON: FeatureFlags = { automations: true, activities: true, library: true, plans: true, tasks: true };
 
 describe("resolveFeatureFlags", () => {
-  it("no choice made → Automations, Activities, the Library and the study plan all off (the launch state)", () => {
-    expect(resolveFeatureFlags([])).toEqual(ALL_OFF);
+  it("no choice made → Automations, Activities, the Library and the study plan off, Tasks on (the launch state)", () => {
+    expect(resolveFeatureFlags([])).toEqual(LAUNCH);
   });
 
-  it.each(["automations", "activities", "library", "plans"] as const)(
+  it.each(["automations", "tasks", "activities", "library", "plans"] as const)(
     "the admin's choice for %s wins, both ways, and touches no other switch",
     (key) => {
-      expect(resolveFeatureFlags([{ key, enabled: true }])).toEqual({ ...ALL_OFF, [key]: true });
-      expect(resolveFeatureFlags([{ key, enabled: false }])).toEqual(ALL_OFF);
+      expect(resolveFeatureFlags([{ key, enabled: true }])).toEqual({ ...LAUNCH, [key]: true });
+      expect(resolveFeatureFlags([{ key, enabled: false }])).toEqual({ ...LAUNCH, [key]: false });
     },
   );
 
   it("a row for a switch no longer in the list is ignored, not an error", () => {
-    expect(resolveFeatureFlags([{ key: "interviews", enabled: true }])).toEqual(ALL_OFF);
+    expect(resolveFeatureFlags([{ key: "interviews", enabled: true }])).toEqual(LAUNCH);
   });
 
-  it("exactly these four, in menu order — a new switch is a decision, not a side effect", () => {
-    expect(Object.keys(FEATURES)).toEqual(["automations", "activities", "library", "plans"]);
+  it("exactly these five, in menu order — a new switch is a decision, not a side effect", () => {
+    expect(Object.keys(FEATURES)).toEqual(["automations", "tasks", "activities", "library", "plans"]);
   });
 });
 
@@ -42,7 +45,7 @@ describe("isFeatureKey", () => {
     "%s (from the object prototype) is not a switch",
     (key) => expect(isFeatureKey(key)).toBe(false),
   );
-  it.each(["automations", "activities", "library", "plans"])("%s is", (key) =>
+  it.each(["automations", "tasks", "activities", "library", "plans"])("%s is", (key) =>
     expect(isFeatureKey(key)).toBe(true),
   );
 });
@@ -68,6 +71,7 @@ describe("visibleSidebarLinks — the menu for everyone, the admin included", ()
 
   it.each([
     ["automations", "/dashboard/automations"],
+    ["tasks", "/dashboard/tasks"],
     ["activities", "/dashboard/activities"],
     ["library", "/dashboard/admin"],
     ["plans", "/dashboard/plan"],
@@ -77,11 +81,19 @@ describe("visibleSidebarLinks — the menu for everyone, the admin included", ()
   });
 
   it("the launch state → the core only", () => {
-    expect(routes(visibleSidebarLinks(ALL_OFF, "production"))).toEqual([
+    expect(routes(visibleSidebarLinks(LAUNCH, "production"))).toEqual([
       "/dashboard",
       "/dashboard/myjobs",
       "/dashboard/interviews",
       "/dashboard/tasks",
+      "/dashboard/questions",
+      "/dashboard/profile",
+    ]);
+    // Tasks closed too: the same menu without it
+    expect(routes(visibleSidebarLinks(ALL_OFF, "production"))).toEqual([
+      "/dashboard",
+      "/dashboard/myjobs",
+      "/dashboard/interviews",
       "/dashboard/questions",
       "/dashboard/profile",
     ]);

@@ -83,7 +83,9 @@ describe("MyJobsTable", () => {
     expect(within(statusButton).queryByText("Applied")).not.toBeInTheDocument();
   });
 
-  it("shows an Expired badge for past-due draft jobs", () => {
+// Requirement — product notes, 2026-11-03: the due date is no longer a field of the job
+  // form, so a past date no longer turns a draft into «Expired»; it stays a draft.
+  it("keeps a past-due draft job a draft — no Expired badge", () => {
     renderTable([
       makeJob({
         dueDate: new Date("2000-01-01"),
@@ -91,7 +93,9 @@ describe("MyJobsTable", () => {
       }),
     ]);
 
-    expect(screen.getByText("Expired")).toBeInTheDocument();
+    expect(screen.queryByText("Expired")).not.toBeInTheDocument();
+    const statusButton = screen.getByRole("button", { name: /Change status/ });
+    expect(within(statusButton).getByText("Draft")).toBeInTheDocument();
   });
 
   it("does not show Expired for past-due jobs that are not drafts", () => {

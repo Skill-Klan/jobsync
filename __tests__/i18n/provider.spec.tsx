@@ -16,12 +16,12 @@ function Probe() {
 describe("IntlClientProvider", () => {
   it("renders the Ukrainian dictionary", () => {
     render(<IntlClientProvider locale="uk" messages={MESSAGES.uk}><Probe /></IntlClientProvider>);
-    expect(screen.getByText("Вакансії")).toBeInTheDocument();
+    expect(screen.getByText("Банк вакансій")).toBeInTheDocument();
   });
 
   it("renders the English dictionary", () => {
     render(<IntlClientProvider locale="en" messages={MESSAGES.en}><Probe /></IntlClientProvider>);
-    expect(screen.getByText("Jobs")).toBeInTheDocument();
+    expect(screen.getByText("Job bank")).toBeInTheDocument();
   });
 
   it("a key missing in Ukrainian falls back to English, not to 'nav.jobs'", () => {
@@ -29,7 +29,7 @@ describe("IntlClientProvider", () => {
     const broken = { ...MESSAGES.uk, nav: navWithoutJobs } as unknown as typeof MESSAGES.uk;
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     render(<IntlClientProvider locale="uk" messages={broken}><Probe /></IntlClientProvider>);
-    expect(screen.getByText("Jobs")).toBeInTheDocument();
+    expect(screen.getByText("Job bank")).toBeInTheDocument();
     expect(screen.queryByText("nav.jobs")).toBeNull();
     spy.mockRestore();
   });

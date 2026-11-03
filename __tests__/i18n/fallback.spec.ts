@@ -6,7 +6,7 @@ import { fallbackMessage } from "@/i18n/fallback";
 
 describe("fallbackMessage", () => {
   it("missing in uk — the English text", () => {
-    expect(fallbackMessage({ namespace: "nav", key: "jobs" })).toBe("Jobs");
+    expect(fallbackMessage({ namespace: "nav", key: "jobs" })).toBe("Job bank");
   });
 
   it("nested key without a namespace", () => {

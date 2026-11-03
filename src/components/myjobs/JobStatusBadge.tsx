@@ -26,16 +26,6 @@ export function JobStatusBadge({ job, className }: JobStatusBadgeProps) {
     );
   }
 
-  if (job.dueDate && new Date() > job.dueDate && job.Status?.value === "draft") {
-    return (
-      <StatusBadge
-        label={label("jobStatus", { value: "expired" })}
-        color="amber"
-        className={className}
-      />
-    );
-  }
-
   return (
     <StatusBadge
       label={job.Status ? label("jobStatus", job.Status) : ""}

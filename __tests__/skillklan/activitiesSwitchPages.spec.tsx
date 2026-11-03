@@ -9,7 +9,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-const flags = vi.hoisted(() => ({ value: { activities: false }, admin: { value: false } }));
+const flags = vi.hoisted(() => ({ value: { activities: false } as { activities: boolean; tasks?: boolean }, admin: { value: false } }));
 
 vi.mock("@/skillklan/featureFlags", () => ({ getFeatureFlags: vi.fn(async () => flags.value) }));
 vi.mock("@/skillklan/cabinetAdmin", () => ({ isAdminSession: vi.fn(async () => flags.admin.value) }));
@@ -132,7 +132,8 @@ describe("the phone menu (Header)", () => {
     [false, false],
     [true, true],
   ])("Activities %s → the Activities link shown: %s", async (activities, shown) => {
-    flags.value = { activities };
+    // Tasks is a switch of its own now: on, so the check below stays about Activities.
+    flags.value = { activities, tasks: true };
     const user = userEvent.setup();
     render(await Header());
     await user.click(screen.getByRole("button", { name: "Toggle Menu" }));

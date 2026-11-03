@@ -1596,6 +1596,34 @@ describe("jobActions", () => {
       expect(result).toStrictEqual({ data: jobData, success: true });
       expect(prisma.job.update).toHaveBeenCalledTimes(1);
     });
+    // Requirement — product notes, 2026-11-03: choosing «Not selected» for the
+    // resume or the cover letter takes the old one off the job. Prisma leaves a
+    // field it is given as undefined untouched, so it must be sent as null.
+    it.each([
+      ["resumeId", "resume"],
+      ["coverLetterId", "coverLetter"],
+    ])("takes %s off the job when the form sends no %s", async (column, field) => {
+      (getCurrentUser as any).mockResolvedValue(mockUser);
+      (prisma.job as any).findFirst.mockResolvedValue({
+        ...currentRefs,
+        [column]: "old-id",
+      });
+      (prisma.job.update as any).mockResolvedValue(jobData);
+
+      const result = await updateJob({ ...jobData, [field]: undefined });
+
+      expect(result.success).toBe(true);
+      expect((prisma.job.update as any).mock.calls[0][0].data[column]).toBeNull();
+    });
+    it("keeps a chosen resume", async () => {
+      (getCurrentUser as any).mockResolvedValue(mockUser);
+      (prisma as any).resume.count.mockResolvedValue(1);
+      (prisma.job.update as any).mockResolvedValue(jobData);
+
+      await updateJob({ ...jobData, resume: "resume-id" });
+
+      expect((prisma.job.update as any).mock.calls[0][0].data.resumeId).toBe("resume-id");
+    });
     it("keeps an Interview job applied when it has no date", async () => {
       (getCurrentUser as any).mockResolvedValue(mockUser);
       (prisma as any).jobStatus.findUnique.mockResolvedValue({

@@ -18,6 +18,10 @@ export const FEATURES = {
   // Notifications page and its menu item, since every notification is about
   // an automation run (owner 2026-10-18, D75). Off at launch (D74).
   automations: { default: false },
+  // Tasks: the «Завдання» tab and page, «Add task» on the dashboard, and every
+  // action that changes a task. On at launch: it is the one switch that closes
+  // something students already have, so the admin chooses when.
+  tasks: { default: true },
   // Time tracking: the Activities tab and page, the running-activity banner,
   // "start activity" in Tasks, and the dashboard's hours, activity chart,
   // activity calendar, activity goal and recent activities. Off at launch.

@@ -48,7 +48,7 @@
     "cards": "Card view"
   },
   "list": {
-    "title": "Jobs",
+    "title": "Job bank",
     "reload": "Reload jobs",
     "search": "Search jobs...",
     "export": "Export jobs",
@@ -306,7 +306,6 @@
     "source": "Job Source",
     "status": "Status",
     "dateApplied": "Date Applied",
-    "dueDate": "Due Date",
     "salary": "Salary Range",
     "resume": "Resume",
     "addNew": "Add New",

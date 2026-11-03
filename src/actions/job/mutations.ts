@@ -229,8 +229,10 @@ export const updateJob = async (
           jobType: type,
           workplaceType,
           jobUrl,
-          resumeId: resume,
-          coverLetterId: coverLetter,
+          // The form sends nothing when "Not selected" is chosen: that clears
+          // the link — undefined would leave the old one in place.
+          resumeId: resume || null,
+          coverLetterId: coverLetter || null,
           tags: { set: tagIds.map((id) => ({ id })) },
           // Stamp today only on a move to Applied, never on an unrelated save.
           ...(status !== current.statusId &&

@@ -16,7 +16,7 @@ const router = { push: vi.fn(), replace: vi.fn(), refresh: vi.fn(), back: vi.fn(
 
 // The Library switch is tested in __tests__/skillklan/automationsLibrarySwitchPages; here it is on.
 vi.mock("@/skillklan/featureFlags", () => ({
-  getFeatureFlags: vi.fn(async () => ({ automations: true, activities: true, library: true, plans: true })),
+  getFeatureFlags: vi.fn(async () => ({ automations: true, activities: true, library: true, plans: true, tasks: true })),
 }));
 vi.mock("next/navigation", () => ({
   useRouter: () => router,
