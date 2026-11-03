@@ -344,6 +344,10 @@ export function AddJob({
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4"
               >
+                <p className="md:col-span-2 text-sm text-muted-foreground">
+                  <span className="text-destructive">*</span> {t("addJob.requiredHint")}
+                </p>
+
                 {/* Job Title */}
                 <div>
                   <FormField
@@ -351,7 +355,7 @@ export function AddJob({
                     name="title"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>{t("addJob.jobTitle")}</FormLabel>
+                        <FormLabel required>{t("addJob.jobTitle")}</FormLabel>
                         <FormControl>
                           <Combobox
                             options={jobTitles}
@@ -391,7 +395,7 @@ export function AddJob({
                     name="company"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>{t("addJob.company")}</FormLabel>
+                        <FormLabel required>{t("addJob.company")}</FormLabel>
                         <FormControl>
                           <Combobox
                             options={companies}
@@ -411,7 +415,7 @@ export function AddJob({
                     name="location"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>{t("addJob.location")}</FormLabel>
+                        <FormLabel required>{t("addJob.location")}</FormLabel>
                         <FormControl>
                           <Combobox
                             options={locations}
@@ -431,7 +435,7 @@ export function AddJob({
                     name="type"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel className="mb-2">{t("addJob.jobType")}</FormLabel>
+                        <FormLabel required className="mb-2">{t("addJob.jobType")}</FormLabel>
                         <RadioGroup
                           name="type"
                           onValueChange={field.onChange}
@@ -499,7 +503,7 @@ export function AddJob({
                     name="source"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>{t("addJob.source")}</FormLabel>
+                        <FormLabel required>{t("addJob.source")}</FormLabel>
                         <Combobox
                           options={sourceOptions}
                           field={field}
@@ -518,7 +522,7 @@ export function AddJob({
                     name="status"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>{t("addJob.status")}</FormLabel>
+                        <FormLabel required>{t("addJob.status")}</FormLabel>
                         <SelectFormCtrl
                           label="Job Status"
                           options={statusOptions}
@@ -667,7 +671,7 @@ export function AddJob({
                     name="jobDescription"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel id="job-description-label">
+                        <FormLabel required id="job-description-label">
                           {t("addJob.description")}
                         </FormLabel>
                         <FormControl>

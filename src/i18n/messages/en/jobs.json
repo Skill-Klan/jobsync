@@ -292,6 +292,7 @@
     "linked": "Contact has been linked to this job"
   },
   "addJob": {
+    "requiredHint": "required field",
     "addTitle": "Add Job",
     "addDescription": "Track a new job application.",
     "editDescription": "Update the details of this job application.",

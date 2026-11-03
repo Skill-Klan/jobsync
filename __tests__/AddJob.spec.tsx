@@ -103,6 +103,35 @@ describe("AddJob Component", () => {
     await user.click(addJobButton);
   });
 
+  // Requirement — product notes, 2026-11-03: the form must say which fields
+  // cannot be left empty. A red asterisk on exactly the ones the schema
+  // requires (title, company, location, type, source, status, description) —
+  // not on the optional ones — and one line that explains it.
+  it("marks exactly the required fields with a red asterisk, and explains it once", () => {
+    const marked = [...document.querySelectorAll("label[data-required]")].map((l) => l.textContent);
+    expect(marked).toEqual([
+      "Job Title",
+      "Company",
+      "Job Location",
+      "Job Type",
+      "Job Source",
+      "Status",
+      "Job Description",
+    ]);
+    const optional = ["Job URL", "Workplace Type", "Date Applied", "Salary Range", "Resume", "Cover Letter", "Add Skill"];
+    for (const name of optional) {
+      const label = [...document.querySelectorAll("label")].find((l) => l.textContent === name);
+      expect(label, name).toBeDefined();
+      expect(label).not.toHaveAttribute("data-required");
+    }
+    expect(screen.getAllByText("required field")).toHaveLength(1);
+  });
+
+  it("the asterisk is drawn, not typed: the label's name stays plain", () => {
+    expect(screen.getByLabelText("Job Title")).toBeInTheDocument();
+    expect(document.querySelector("label[data-required]")?.className).toContain("after:content-['*']");
+  });
+
   it("should open the dialog when clicked on add job button with title 'Add Job'", async () => {
     (getCurrentUser as any).mockResolvedValue(mockUser);
 

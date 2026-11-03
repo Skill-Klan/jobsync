@@ -84,16 +84,24 @@ const FormItem = React.forwardRef<
 })
 FormItem.displayName = "FormItem"
 
+// `required` marks a mandatory field with a red asterisk. It is drawn by CSS
+// (::after), so it is not part of the label's text: the accessible name and
+// getByLabelText stay as the plain label.
 const FormLabel = React.forwardRef<
   React.ElementRef<typeof LabelPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
->(({ className, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root> & { required?: boolean }
+>(({ className, required, ...props }, ref) => {
   const { error, formItemId } = useFormField()
 
   return (
     <Label
       ref={ref}
-      className={cn(error && "text-destructive", className)}
+      data-required={required ? "true" : undefined}
+      className={cn(
+        error && "text-destructive",
+        required && "after:ml-0.5 after:text-destructive after:content-['*']",
+        className
+      )}
       htmlFor={formItemId}
       {...props}
     />
