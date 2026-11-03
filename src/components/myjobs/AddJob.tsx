@@ -238,8 +238,14 @@ export function AddJob({
       toastError(tc("resumeSections.incompleteHint", MIN_SECTIONS));
       return;
     }
+    // "Not selected" leaves "" in the form; the server gets no resume at all.
+    const job = {
+      ...data,
+      resume: data.resume || undefined,
+      coverLetter: data.coverLetter || undefined,
+    };
     startTransition(async () => {
-      const result = editJob ? await updateJob(data) : await addJob(data);
+      const result = editJob ? await updateJob(job) : await addJob(job);
       toastActionResult(result, {
         success: editJob ? t("list.updated") : t("list.created"),
         onSuccess: () => {
@@ -555,25 +561,6 @@ export function AddJob({
                   />
                 </div>
 
-                {/* Due Date */}
-                <div>
-                  <FormField
-                    control={form.control}
-                    name="dueDate"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>{t("addJob.dueDate")}</FormLabel>
-                        <DatePicker
-                          field={field}
-                          presets={true}
-                          isEnabled={true}
-                        />
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
                 {/* Salary Range */}
                 <div>
                   <FormField
@@ -605,6 +592,7 @@ export function AddJob({
                         <FormLabel>{t("addJob.resume")}</FormLabel>
                         <SelectFormCtrl
                           label="Resume"
+                          clearable
                           options={resumes?.map((r) =>
                             hasMinResumeSections(r._count?.ResumeSections)
                               ? r
@@ -641,6 +629,7 @@ export function AddJob({
                         <FormLabel>{t("addJob.coverLetter")}</FormLabel>
                         <SelectFormCtrl
                           label="Cover Letter"
+                          clearable
                           options={coverLetters}
                           field={field}
                         />

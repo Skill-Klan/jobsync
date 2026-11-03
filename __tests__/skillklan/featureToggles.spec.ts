@@ -71,15 +71,17 @@ afterAll(async () => {
 
 const rows = () => prisma.featureToggle.findMany();
 
-const OFF = { automations: false, activities: false, library: false, plans: false };
+// The launch state: all off but Tasks, which students already have (2026-11-03).
+const OFF = { automations: false, activities: false, library: false, plans: false, tasks: true };
 
 describe("launch state", () => {
-  it("no row → Automations, Activities and the Library off for everyone", async () => {
+  it("no row → Automations, Activities and the Library off for everyone, Tasks on", async () => {
     await expect(readFeatureFlags()).resolves.toEqual(OFF);
     // What the actions ask before every change (they refuse when off).
     await expect(isFeatureOff("automations")).resolves.toBe(true);
     await expect(isFeatureOff("activities")).resolves.toBe(true);
     await expect(isFeatureOff("library")).resolves.toBe(true);
+    await expect(isFeatureOff("tasks")).resolves.toBe(false);
   });
 });
 
@@ -98,6 +100,18 @@ describe("an admin, confirmed by the backend now", () => {
     await expect(readFeatureFlags()).resolves.toEqual({ ...OFF, activities: true });
     await expect(isFeatureOff("activities")).resolves.toBe(false);
     expect(ctx.revalidate).toHaveBeenCalledWith("/dashboard", "layout");
+  });
+
+  it("turns Tasks off for everyone — that switch only, the others keep their launch state", async () => {
+    await expect(setFeatureEnabled("tasks", false)).resolves.toEqual({
+      success: true,
+      data: { ...OFF, tasks: false },
+    });
+    expect(await rows()).toMatchObject([
+      { key: "tasks", enabled: false, updatedByCabinetUserId: ADMIN_CABINET_ID },
+    ]);
+    await expect(isFeatureOff("tasks")).resolves.toBe(true);
+    await expect(isFeatureOff("plans")).resolves.toBe(true);
   });
 
   it("and back off — the same row, now false", async () => {

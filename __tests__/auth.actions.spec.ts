@@ -2,7 +2,7 @@ import { signup, authenticate } from "@/actions/auth.actions";
 import { signIn } from "@/auth";
 import prisma from "@/lib/db";
 import bcrypt from "bcryptjs";
-import { CONTACT_ROLES, JOB_SOURCES, JOB_STATUSES } from "@/lib/constants";
+import { CONTACT_ROLES, DEFAULT_SKILLS, JOB_SOURCES, JOB_STATUSES } from "@/lib/constants";
 import { canonicalizeEntityValue } from "@/lib/jobs/canonicalize";
 import { delay } from "@/utils/delay";
 import { AuthError } from "next-auth";
@@ -15,6 +15,9 @@ vi.mock("@/lib/db", () => {
       create: vi.fn(),
     },
     jobSource: {
+      createMany: vi.fn(),
+    },
+    tag: {
       createMany: vi.fn(),
     },
     contactRole: {
@@ -265,6 +268,27 @@ describe("Auth Actions", () => {
         data: CONTACT_ROLES.map((role) => ({
           label: role.label,
           value: role.value,
+          createdBy: "new-user-id",
+        })),
+      });
+    });
+
+    // Requirement — product notes, 2026-11-03: «Навички» does not start empty.
+    it("seeds the default skills for the new user", async () => {
+      (prisma.user.findUnique as any).mockResolvedValue(null);
+      (bcrypt.hash as any).mockResolvedValue("hashed");
+      (prisma.user.create as any).mockResolvedValue({ id: "new-user-id" });
+
+      await signup({
+        name: "Test User",
+        email: "test@example.com",
+        password: "Password1!",
+      });
+
+      expect(prisma.tag.createMany).toHaveBeenCalledWith({
+        data: DEFAULT_SKILLS.map((skill) => ({
+          label: skill.label,
+          value: skill.value,
           createdBy: "new-user-id",
         })),
       });

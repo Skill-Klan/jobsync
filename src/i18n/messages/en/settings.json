@@ -275,6 +275,10 @@
         "label": "Automations",
         "description": "Scheduled job search: the Automations tab, “Add automation” on the dashboard, and notifications — they are only about automations. When off, automations do not run and what they found is kept — it is just not shown."
       },
+      "tasks": {
+        "label": "Tasks",
+        "description": "Personal to-dos: the Tasks tab and “Add task” on the dashboard. When off, the tasks already written are kept — they are just not shown."
+      },
       "activities": {
         "label": "Activities",
         "description": "Time tracking: the Activities tab, the timer, “Start activity” in Tasks, and hours and the activity goal on the dashboard. When off, records are kept — they are just not shown."

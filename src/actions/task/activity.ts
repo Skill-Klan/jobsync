@@ -19,6 +19,11 @@ export const startActivityFromTask = async (
       return { success: false, message: ta("errors.switchedOff") };
     }
 
+    // Tasks switched off: the task is not there either.
+    if (await isFeatureOff("tasks")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
+
     const task = await prisma.task.findFirst({
       where: {
         id: taskId,

@@ -37,10 +37,6 @@ export function JobSummaryCard({
   const formatDate = useFormatDate();
   const types = useJobTypeLabels();
   const recommendation = matchData?.recommendation;
-  const expired =
-    job.dueDate &&
-    new Date() > new Date(job.dueDate) &&
-    currentStatus?.value === "draft";
 
   return (
     <Card>
@@ -49,17 +45,10 @@ export function JobSummaryCard({
           <div>
             <p className="text-sm text-muted-foreground">{t("summary.status")}</p>
             <div className="mt-1 flex flex-wrap items-center gap-2">
-              {expired ? (
-                <StatusBadge
-                  label={label("jobStatus", { value: "expired" })}
-                  color="amber"
-                />
-              ) : (
-                <StatusBadge
-                  label={currentStatus ? label("jobStatus", currentStatus) : ""}
-                  color={getJobStatusBadgeColor(currentStatus?.value ?? "")}
-                />
-              )}
+              <StatusBadge
+                label={currentStatus ? label("jobStatus", currentStatus) : ""}
+                color={getJobStatusBadgeColor(currentStatus?.value ?? "")}
+              />
             </div>
           </div>
           <div>

@@ -87,6 +87,7 @@
   },
   "errors": {
     "notFound": "Task not found",
+    "switchedOff": "Tasks are switched off. Reload the page.",
     "startFromClosed": "Cannot start an activity from a completed or cancelled task.",
     "startWithoutType": "Task must have an activity type to start an activity.",
     "activityRunning": "You already have a running activity. Please stop it before starting a new one.",

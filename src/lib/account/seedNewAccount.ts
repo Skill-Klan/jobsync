@@ -3,12 +3,13 @@ import type { Prisma } from "@prisma/client";
 import prisma from "@/lib/db";
 import {
   CONTACT_ROLES,
+  DEFAULT_SKILLS,
   JOB_SOURCES,
   JOB_STAGES,
   JOB_STATUSES,
 } from "@/lib/constants";
 
-// The defaults every new account starts with: job sources, contact roles,
+// The defaults every new account starts with: job sources, skills, contact roles,
 // the shared job statuses and the per-user stage types that point at them.
 // One function for every way an account is born — the cabinet login
 // (src/skillklan/cabinetUser.ts) and the dev-only signup — so a student
@@ -24,6 +25,14 @@ export async function seedNewAccount(
     data: JOB_SOURCES.map((source) => ({
       label: source.label,
       value: source.value,
+      createdBy: userId,
+    })),
+  });
+
+  await db.tag.createMany({
+    data: DEFAULT_SKILLS.map((skill) => ({
+      label: skill.label,
+      value: skill.value,
       createdBy: userId,
     })),
   });

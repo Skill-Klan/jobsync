@@ -175,7 +175,11 @@ describe("jobs list in Ukrainian", () => {
     expect(container.textContent).not.toMatch(ENGLISH);
   });
 
-  it("an expired draft and a dismissed discovered job read in Ukrainian", () => {
+  // Requirement — product notes, 2026-11-03: the «Відгукнутися до» field is gone
+  // from the job form, so nothing may keep turning a draft into «Неактуальна»
+  // by a date the student can no longer see or change. A dismissed discovered
+  // job keeps its own badge.
+  it("an old draft stays a draft; a dismissed discovered job reads in Ukrainian", () => {
     setTestLocale("uk");
     render(
       <MyJobsTable
@@ -192,7 +196,8 @@ describe("jobs list in Ukrainian", () => {
         onSort={vi.fn()}
       />,
     );
-    expect(screen.getByText("Неактуальна")).toBeInTheDocument();
+    expect(screen.queryByText("Неактуальна")).not.toBeInTheDocument();
+    expect(screen.getByText("Чернетка")).toBeInTheDocument();
     expect(screen.getByText("Відхилена")).toBeInTheDocument();
   });
 

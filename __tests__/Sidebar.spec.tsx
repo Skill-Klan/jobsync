@@ -132,7 +132,7 @@ describe("Sidebar", () => {
       "href",
       "/dashboard"
     );
-    expect(screen.getByRole("link", { name: "Jobs" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Job bank" })).toHaveAttribute(
       "href",
       "/dashboard/myjobs"
     );
@@ -222,11 +222,11 @@ describe("SidebarToggle", () => {
     const user = userEvent.setup();
     renderSidebar();
 
-    expect(screen.getByText("Jobs")).not.toHaveClass("opacity-0");
+    expect(screen.getByText("Job bank")).not.toHaveClass("opacity-0");
 
     await user.click(screen.getByRole("button", { name: "Collapse sidebar" }));
 
-    expect(screen.getByText("Jobs")).toHaveClass("opacity-0");
+    expect(screen.getByText("Job bank")).toHaveClass("opacity-0");
   });
 
   it("persists the collapsed state as a cookie", async () => {

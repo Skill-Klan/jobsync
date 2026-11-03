@@ -25,22 +25,21 @@ import {
   QUICK_ACTIONS_GRID,
 } from "./quickActionStyles";
 
-// The line above the buttons names only the ones that are shown.
-function descriptionKey(automations: boolean, activities: boolean) {
-  if (automations) {
-    return activities
-      ? "quickActions.description"
-      : "quickActions.descriptionWithoutActivities";
-  }
-  return activities
-    ? "quickActions.descriptionWithoutAutomations"
-    : "quickActions.descriptionWithoutAutomationsAndActivities";
+// The line above the buttons names only the ones that are shown: the key is
+// "description", or "descriptionWithout" plus the missing ones joined by "And".
+function descriptionKey(flags: { automations: boolean; activities: boolean; tasks: boolean }) {
+  const missing = [
+    !flags.automations && "Automations",
+    !flags.activities && "Activities",
+    !flags.tasks && "Tasks",
+  ].filter(Boolean);
+  return missing.length ? `quickActions.descriptionWithout${missing.join("And")}` : "quickActions.description";
 }
 
 export default function JobsAppliedCard() {
   const router = useRouter();
   const t = useTranslations("dashboard");
-  const { activities, automations } = useFeatures();
+  const { activities, automations, tasks } = useFeatures();
   return (
     // Activities off: the hours card beside it is gone — take the whole row.
     <Card
@@ -52,7 +51,7 @@ export default function JobsAppliedCard() {
       <CardHeader className="pb-3">
         <CardTitle className="text-lg text-green-600">{t("title")}</CardTitle>
         <CardDescription className="max-w-lg text-balance leading-relaxed">
-          {t(descriptionKey(automations, activities))}
+          {t(descriptionKey({ automations, activities, tasks }) as Parameters<typeof t>[0])}
         </CardDescription>
       </CardHeader>
       <CardFooter className={QUICK_ACTIONS_GRID}>
@@ -76,14 +75,16 @@ export default function JobsAppliedCard() {
             <span className={QUICK_ACTION_LABEL}>{t("quickActions.addAutomation")}</span>
           </Button>
         )}
-        <Button
-          variant="outline"
-          className={QUICK_ACTION_BUTTON}
-          onClick={() => router.push("/dashboard/tasks?add-task=true")}
-        >
-          <SquareCheckBig className="h-3.5 w-3.5 shrink-0" />
-          <span className={QUICK_ACTION_LABEL}>{t("quickActions.addTask")}</span>
-        </Button>
+        {tasks && (
+          <Button
+            variant="outline"
+            className={QUICK_ACTION_BUTTON}
+            onClick={() => router.push("/dashboard/tasks?add-task=true")}
+          >
+            <SquareCheckBig className="h-3.5 w-3.5 shrink-0" />
+            <span className={QUICK_ACTION_LABEL}>{t("quickActions.addTask")}</span>
+          </Button>
+        )}
         <Button
           variant="outline"
           className={QUICK_ACTION_BUTTON}

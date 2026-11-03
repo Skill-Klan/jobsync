@@ -21,7 +21,8 @@
     "notFound": "No source found!"
   },
   "select": {
-    "placeholder": "Select {item}"
+    "placeholder": "Select {item}",
+    "none": "Not selected"
   },
   "datePicker": {
     "pick": "Pick a date",

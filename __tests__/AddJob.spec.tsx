@@ -7,9 +7,10 @@ import { getCurrentUser } from "@/utils/user.utils";
 import userEvent from "@testing-library/user-event";
 import { format } from "date-fns";
 import { addJob, updateJob } from "@/actions/job.actions";
-import { toastActionResult } from "@/lib/toast";
+import { toastActionResult, toastError } from "@/lib/toast";
 import type { JobResponse } from "@/models/job.model";
 import { APP_CONSTANTS } from "@/lib/constants";
+import { getResumeList } from "@/actions/profile.actions";
 vi.mock("@/utils/user.utils", () => ({
   getCurrentUser: vi.fn(),
 }));
@@ -31,6 +32,7 @@ vi.mock("@/actions/note.actions", () => ({
 }));
 
 vi.mock("@/lib/toast", () => ({
+  toastError: vi.fn(),
   toastActionResult: vi.fn((result, opts) => {
     if (result?.success) opts.onSuccess?.(result.data);
   }),
@@ -524,6 +526,65 @@ describe("AddJob Component - Edit Mode", () => {
           status: "5e7c6e8c-83e6-46e3-bf01-db8f0b503399",
         }),
       );
+    });
+  });
+
+  // Requirement — product notes, 2026-11-03: «Відгукнутися до» told a student
+  // nothing and is gone from the form; the job keeps the date it already had.
+  it("has no due-date field, and saving still sends the date the job had", async () => {
+    await renderEditMode();
+    await screen.findByRole("dialog");
+
+    expect(screen.queryByText("Due Date")).not.toBeInTheDocument();
+
+    await userEvent.setup({ skipHover: true }).click(screen.getByTestId("save-job-btn"));
+    await waitFor(() => {
+      expect(updateJob).toHaveBeenCalledWith(
+        expect.objectContaining({ dueDate: new Date("2024-06-20") }),
+      );
+    });
+  });
+
+  // Requirement — product notes, 2026-11-03: a student whose resume was still
+  // incomplete could not save the job, and the picker had no way back to «no
+  // resume». The picker now offers «Not selected»; choosing it saves the job
+  // without a resume.
+  describe("a job with an unfinished resume", () => {
+    const unfinished = { id: "resume-1", title: "My CV", _count: { ResumeSections: 0 } };
+
+    beforeEach(() => {
+      window.HTMLElement.prototype.scrollIntoView = vi.fn();
+    });
+
+    async function open() {
+      await renderEditMode({ Resume: { id: "resume-1", title: "My CV" } } as never);
+      await screen.findByRole("dialog");
+      return userEvent.setup({ skipHover: true });
+    }
+
+    it("is refused while that resume stays chosen (the old behaviour is kept)", async () => {
+      vi.mocked(getResumeList).mockResolvedValue({ success: true, data: [unfinished] } as never);
+      const user = await open();
+      await waitFor(() => expect(getResumeList).toHaveBeenCalled());
+
+      await user.click(screen.getByTestId("save-job-btn"));
+
+      expect(toastError).toHaveBeenCalled();
+      expect(updateJob).not.toHaveBeenCalled();
+    });
+
+    it("saves once «Not selected» is chosen, with no resume sent", async () => {
+      vi.mocked(getResumeList).mockResolvedValue({ success: true, data: [unfinished] } as never);
+      const user = await open();
+      await waitFor(() => expect(getResumeList).toHaveBeenCalled());
+
+      await user.click(screen.getByRole("combobox", { name: "Select Resume" }));
+      await user.click(await screen.findByRole("option", { name: "Not selected" }));
+      expect(screen.getByRole("combobox", { name: "Select Resume" })).toHaveTextContent("Not selected");
+      await user.click(screen.getByTestId("save-job-btn"));
+
+      await waitFor(() => expect(updateJob).toHaveBeenCalledTimes(1));
+      expect(vi.mocked(updateJob).mock.calls[0][0].resume).toBeUndefined();
     });
   });
 });
