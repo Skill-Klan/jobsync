@@ -1,6 +1,7 @@
 # Cabinet sign-in and access check
 
-**Status:** in production since 2026-10-14. **Direction:** SkillKlan Job → SkillKlan backend.
+**Status:** in production since 2026-10-14; who may come in changed on 2026-11-05 (D99–D101), also in production.
+**Direction:** SkillKlan Job → SkillKlan backend.
 **Client:** `src/skillklan/cabinetApi.ts`. **Examples:** [`examples/backend-login.json`](./examples/backend-login.json).
 
 ## How sign-in works
@@ -16,8 +17,14 @@
 4. While the session lives, the app **re-checks access** at least every 5 minutes. A "no", an error or a
    timeout ends the session. An excluded student is out within 5 minutes — that is a requirement.
 
-**Who may come in** is decided by the backend only: role `student`, `admin` or `qa_moderator`, an active
-account, not on a temporary password. This app never repeats that rule; it only trusts the answer.
+**Who may come in** is decided by the backend only: role `admin` or `qa_moderator`, **or** one of the test
+accounts listed in the backend's configuration, whatever its role (D99 — a test mentor and a test student, for
+building the mentor's own view); an active account, not on a temporary password. Students come in only after the
+owner opens SkillKlan Job to them (D48) — until then the backend refuses them too (D101). The cabinet shows its
+button by the same rule (D100). This app never repeats that rule; it only trusts the answer.
+
+So `role` can be `admin`, `qa_moderator`, or the role of a test account — `mentor` or `student`. A `mentor` has
+no admin rights here (no Settings → «Функції»).
 
 Configuration: `SKILLKLAN_API_URL` (base URL), `JOBSYNC_API_SECRET` (the shared secret), `CABINET_URL` (where
 the form comes from). Any of them missing → nobody signs in.
@@ -69,4 +76,5 @@ All answers of both endpoints carry `Cache-Control: no-store`.
 
 The paths, the header name, the fields `userId`, `role`, `name`, `allowed`, the codes `JOBSYNC_CODE_INVALID` and
 `JOBSYNC_ACCESS_DENIED`, and the rule "unknown id → `allowed: false`, not 404". New roles are added on both sides
-at once; until then this app treats an unknown role as no role.
+at once; until then this app treats an unknown role as no role — so a test mentor can't sign in until this app
+knows `mentor` (the backend may ship first).

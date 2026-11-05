@@ -1,6 +1,7 @@
 # Study plans: mentors and their students (stage 1)
 
-**Status:** proposed — neither side is built. **Direction:** SkillKlan Job → SkillKlan backend.
+**Status:** the backend's side is in production (the three lists since 2026-11-04, «My students» since 2026-11-05);
+this app's side is not built yet. **Direction:** SkillKlan Job → SkillKlan backend.
 **Client (planned):** `src/skillklan/cabinetApi.ts`. Replaces the proposal in pull request #75.
 
 ## Need
@@ -38,12 +39,12 @@ have no `cabinetUserId`, so they cannot have a plan here.
 ## The viewer
 
 Every request carries the **viewer** — the `cabinetUserId` of the person looking — and the backend answers
-with what **this viewer** may see: the admin — everything above; the QA moderator — the QA part only; anyone
-else, an excluded account, an account on a temporary password, an unknown or malformed id — **empty lists**.
-This app shows the page only to a session with role `admin` or `qa_moderator`, but what is in it is the
-backend's answer, not the session's.
+with what **this viewer** may see: the admin — everything above; the QA moderator — the QA part only; **a viewer
+who is a mentor — their own students too** (D98, see «My students» below); a test account (D99) — only itself;
+anyone else, an excluded account, an account on a temporary password, an unknown or malformed id — **empty
+lists**. What is in the page is the backend's answer, not the session's.
 
-All three requests:
+All requests:
 
 | | |
 |---|---|
@@ -103,7 +104,21 @@ is in both lists.
 
 Same shape as the previous answer: `{ "students": [ { "userId", "name" } ] }`.
 
+## `GET /api/jobsync/users/:viewerId/mentor` — «My students» (D98)
+
+Is the viewer a mentor themself? For an admin or a QA moderator who mentors, and for the test mentor.
+
+```json
+{ "success": true, "data": { "mentor": { "mentorId": 1003, "name": "Аудит Тест Ментор", "direction": "QA" } }, "error": null }
+```
+
+`mentor: null` — not a mentor (or not a viewer at all). A mentor's own students: the request above with their
+own `mentorId` — open to them always, even outside the QA moderator's QA part. A test account sees nothing else:
+its list of mentors and «Без ментора» are empty.
+
 ## Budget
+
+- **Is the viewer a mentor** — once per opening of the page.
 
 - **Mentors** — once per opening of the page by the admin or the QA moderator.
 - **A mentor's students** or **without a mentor** — once per opening of that entry; one call returns the whole
@@ -132,12 +147,13 @@ No phone numbers, no emails, no groups, no payment or contract data.
 
 ## Not in this contract
 
-- Mentors signing in and seeing their own students (D89) — a separate contract when the owner opens it.
+- Mentors signing in (D89): only the test mentor comes in (D99); opening SkillKlan Job to all mentors is a
+  separate decision of the owner. The requests above already answer for any mentor who is a viewer.
 - Students whose only mentor has been excluded: they have a mentor in the records, so they are not "without
   a mentor", and an excluded mentor is not listed.
 - Changing a student's plan or progress (D92, D93).
 
 ## What must not change
 
-The paths, the header name, the fields `mentors`, `mentorId`, `direction`, `students`, `userId`, `name`, and
-the rule «unknown or not-allowed id → empty list, not 404».
+The paths, the header name, the fields `mentors`, `mentor`, `mentorId`, `direction`, `students`, `userId`,
+`name`, and the rule «unknown or not-allowed id → empty list (or `mentor: null`), not 404».
