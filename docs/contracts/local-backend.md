@@ -30,6 +30,13 @@ SkillKlan Job's `/auth/cabinet`, the way the real cabinet does.
 «Exclude» / «Restore» changes a person on the fly. A signed-in person who is excluded loses the session at
 the next access check — at most 5 minutes later.
 
+⚠️ **The stand-in is behind the real backend since 2026-11-05.** The real one lets in only the admin, the QA
+moderator and the test accounts listed in its configuration — a test mentor (`mentor`) and a test student —
+and refuses other students until D48 ([sign-in contract](./backend-login.md)). Here Test Student still comes in,
+there are no test accounts, and the «My students» request (`GET /api/jobsync/users/:viewerId/mentor`,
+[study plans](./study-plans-mentors.md)) is not answered yet. Bring the stand-in and `examples/` up to date
+together with this app's side (D102).
+
 Without `JOBSYNC_API_SECRET` the stand-in answers `503`, like the backend without its secret; a different
 secret on the two sides gives `401` — both end in «sign-in failed», never in a sign-in.
 

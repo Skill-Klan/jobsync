@@ -1,6 +1,7 @@
 # Cabinet sign-in and access check
 
-**Status:** in production since 2026-10-14. **Direction:** SkillKlan Job → SkillKlan backend.
+**Status:** in production since 2026-10-14; who may come in changed on 2026-11-05 (D99–D101), also in production.
+**Direction:** SkillKlan Job → SkillKlan backend.
 **Client:** `src/skillklan/cabinetApi.ts`. **Examples:** [`examples/backend-login.json`](./examples/backend-login.json).
 
 ## How sign-in works
