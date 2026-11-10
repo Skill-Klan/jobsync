@@ -37,10 +37,10 @@ student data into a local database.
    `npx prisma generate && npm run lint && npm test && npx tsc --noEmit`.
 3. The PR description says **what** changed, **why**, and **how you verified it** (commands and results;
    for UI — what you checked in the browser).
-4. Merge it yourself once the checks are green — unless it touches a path in
+4. Merge it yourself once the checks are green. A PR that touches a path in
    [.github/CODEOWNERS](./.github/CODEOWNERS) (instructions, docs, CI and deploy, migrations, dependencies,
-   license): then it waits for the owner's review.
-5. A merge into `main` is a release. Your merge is deployed after the owner approves it in Telegram, so keep
+   license) asks the owner for a review, but you don't have to wait for it.
+5. A merge into `main` is a release. Your merge is deployed after it is approved in Telegram, so keep
    `main` deployable.
 6. Only the newest commit of `main` is deployed. Several merges in a row queue up, and GitHub cancels the older
    runs — that is expected: the newest run deploys them all. **Do not re-run a cancelled run**; a run for an older

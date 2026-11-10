@@ -41,9 +41,9 @@ nothing is merged from upstream.
 - **A push or merge into `main` is a release.** Lint, tests and the image smoke test run in parallel; when all are
   green, the tested image is published to `ghcr.io/skill-klan/jobsync` and deployed **by digest**. The server copies
   `/data`, starts the new image and rolls back — image and data — if it is not healthy within 3 minutes.
-- **Approval:** the owner's pushes deploy right away; anyone else's merge waits for the owner's approval in Telegram
-  (no approval, no deploy). Pull requests that touch paths in [`.github/CODEOWNERS`](./.github/CODEOWNERS) need the
-  owner's review before they can be merged.
+- **Approval:** the owner's pushes deploy right away; anyone else's merge waits for an approval in Telegram
+  (no approval, no deploy). Pull requests that touch paths in [`.github/CODEOWNERS`](./.github/CODEOWNERS) ask the
+  owner for a review; it is not required to merge.
 - **Only the head of `main` is deployed.** Runs of `main` queue up; GitHub cancels the older ones, and a run whose
   commit is no longer the head — a re-run, or one that waited for the button while `main` moved on — finishes green
   without deploying. It checks before the button and again after it. Do not re-run cancelled runs.

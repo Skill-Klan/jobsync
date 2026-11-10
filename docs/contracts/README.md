@@ -38,7 +38,8 @@ backend (`__tests__/skillklan/backendStubContract.spec.ts`), and the local backe
 
 ## Asking for a new endpoint
 
-Open a pull request that adds a page here (it needs the owner's review), with:
+Open a pull request that adds a page here (the owner builds the backend side — agree the page before you merge it),
+with:
 
 - **Need** — the feature and why the existing contracts don't cover it.
 - **Request** — method, path under `/api/jobsync/`, headers, body or query, with an example.
