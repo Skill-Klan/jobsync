@@ -1,0 +1,28 @@
+{
+  "$comment": "Answers of the SkillKlan backend for docs/contracts/study-plans-mentors.md (shapes as in the contract; the backend's side is in production since 2026-11-04, «My students» since 2026-11-05). Tests check the local backend (skillklan/dev/backend-stub.mjs) against these.",
+  "mentors": {
+    "status": 200,
+    "body": {
+      "success": true,
+      "data": { "mentors": [{ "mentorId": 1004, "name": "Test Mentor", "direction": "QA" }, { "mentorId": 1002, "name": "Test Admin", "direction": "BA" }] },
+      "error": null
+    }
+  },
+  "students": {
+    "status": 200,
+    "body": {
+      "success": true,
+      "data": { "students": [{ "userId": 1001, "name": "Test Student" }, { "userId": 1006, "name": "Maria Bondar" }] },
+      "error": null
+    }
+  },
+  "noStudents": { "status": 200, "body": { "success": true, "data": { "students": [] }, "error": null } },
+  "noMentors": { "status": 200, "body": { "success": true, "data": { "mentors": [] }, "error": null } },
+  "mentor": {
+    "status": 200,
+    "body": { "success": true, "data": { "mentor": { "mentorId": 1004, "name": "Test Mentor", "direction": "QA" } }, "error": null }
+  },
+  "notAMentor": { "status": 200, "body": { "success": true, "data": { "mentor": null }, "error": null } },
+  "wrongSecret": { "status": 401, "body": { "error": "unauthorized" } },
+  "noSecretConfigured": { "status": 503, "body": { "error": "service_unavailable" } }
+}

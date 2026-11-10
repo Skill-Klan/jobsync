@@ -50,5 +50,27 @@
   },
   "remove": {
     "notFound": "This student has no such plan."
+  },
+  "mentor": {
+    "title": "Students' plans",
+    "intro": "Pick a mentor to see their students, then a student to look at their plan. You can only look: ticks and notes are the student's.",
+    "mine": "My students",
+    "noMentor": "Without a mentor",
+    "mentorsFailed": "The list of mentors could not be loaded. Try again later.",
+    "listFailed": "The list could not be loaded. Try again later.",
+    "noMentors": "There are no mentors to show.",
+    "noStudents": "This list has no students.",
+    "pickEntry": "Pick a mentor or «Without a mentor».",
+    "pickStudent": "Pick a student.",
+    "students": "Students",
+    "noName": "No name (no. {id})",
+    "studentNotAvailable": "This student's plan is not available.",
+    "noAccount": "This student has not signed in to SkillKlan Job yet, so there is no plan.",
+    "noPlans": "This student has no plan yet.",
+    "viewOnly": "View only: {name}",
+    "loading": "Loading…",
+    "back": "Back to the list",
+    "myPlan": "My own plan",
+    "pickMine": "Press «My students»."
   }
 }

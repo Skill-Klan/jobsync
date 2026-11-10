@@ -18,8 +18,9 @@
 export const CABINET_API_TIMEOUT_MS = 5000;
 
 // The roles the backend lets in (owner: students D22, the admin D23, the QA
-// moderator D81 — 2026-10-19). Any other answer is no role.
-export const CABINET_ROLES = ["student", "admin", "qa_moderator"] as const;
+// moderator D81 — 2026-10-19; the test mentor D99 — 2026-11-05). Any other
+// answer is no role. A mentor has no admin rights here (managesSkillklanJob).
+export const CABINET_ROLES = ["student", "admin", "qa_moderator", "mentor"] as const;
 export type CabinetRole = (typeof CABINET_ROLES)[number];
 
 export function isCabinetRole(value: unknown): value is CabinetRole {
@@ -110,4 +111,64 @@ export async function getCabinetAccess(userId: number): Promise<CabinetAccess> {
 
 export async function checkCabinetAccess(userId: number): Promise<boolean> {
   return (await getCabinetAccess(userId)).allowed;
+}
+
+// ---- Study plans: mentors and their students --------------------------------
+// docs/contracts/study-plans-mentors.md. The viewer is in the path, so the
+// backend decides what this viewer may see; this app never repeats its rules.
+
+export type Mentor = { mentorId: number; name: string; direction: string };
+export type MentorStudent = { userId: number; name: string };
+
+const isId = (value: unknown): value is number => Number.isSafeInteger(value) && (value as number) > 0;
+
+function mentorOf(raw: unknown): Mentor | null {
+  if (typeof raw !== "object" || raw === null) return null;
+  const m = raw as Record<string, unknown>;
+  if (!isId(m.mentorId)) return null;
+  return {
+    mentorId: m.mentorId,
+    name: typeof m.name === "string" ? m.name : "",
+    direction: typeof m.direction === "string" ? m.direction : "",
+  };
+}
+
+function studentsOf(data: unknown): MentorStudent[] | null {
+  const list = (data as { students?: unknown } | null)?.students;
+  if (!Array.isArray(list)) return null;
+  const out: MentorStudent[] = [];
+  for (const raw of list) {
+    const s = raw as Record<string, unknown> | null;
+    if (!s || typeof s !== "object" || !isId(s.userId)) continue;
+    out.push({ userId: s.userId, name: typeof s.name === "string" ? s.name : "" });
+  }
+  return out;
+}
+
+// Is the viewer a mentor themself («My students», D98)? `null` — not a mentor,
+// or the backend did not answer: both show no «My students».
+export async function getViewerMentor(viewerId: number): Promise<Mentor | null> {
+  if (!isId(viewerId)) return null;
+  const data = (await call(`/api/jobsync/users/${viewerId}/mentor`, { method: "GET" })) as { mentor?: unknown } | null;
+  return mentorOf(data?.mentor);
+}
+
+// The mentors this viewer may pick. `null` — could not be loaded.
+export async function listMentors(viewerId: number): Promise<Mentor[] | null> {
+  if (!isId(viewerId)) return null;
+  const data = (await call(`/api/jobsync/users/${viewerId}/mentors`, { method: "GET" })) as { mentors?: unknown } | null;
+  if (!data || !Array.isArray(data.mentors)) return null;
+  return data.mentors.map(mentorOf).filter((m): m is Mentor => m !== null);
+}
+
+// One mentor's students. `null` — could not be loaded.
+export async function listMentorStudents(viewerId: number, mentorId: number): Promise<MentorStudent[] | null> {
+  if (!isId(viewerId) || !isId(mentorId)) return null;
+  return studentsOf(await call(`/api/jobsync/users/${viewerId}/mentors/${mentorId}/students`, { method: "GET" }));
+}
+
+// Students without a mentor. `null` — could not be loaded.
+export async function listStudentsWithoutMentor(viewerId: number): Promise<MentorStudent[] | null> {
+  if (!isId(viewerId)) return null;
+  return studentsOf(await call(`/api/jobsync/users/${viewerId}/students-without-mentor`, { method: "GET" }));
 }

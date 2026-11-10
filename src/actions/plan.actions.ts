@@ -8,6 +8,15 @@ import { isFeatureOff } from "@/skillklan/featureFlags";
 import { assignPlan } from "@/skillklan/plans/assignPlan";
 import { PLAN_TRACKS, getPlanTemplate, TICKABLE_KINDS } from "@/skillklan/plans/template";
 import { PLAN_NOTE_MAX, buildPlanTree, type PlanItemView } from "@/skillklan/plans/tree";
+import type { MentorStudent } from "@/skillklan/cabinetApi";
+import {
+  type MentorEntry,
+  type StudentPlans,
+  loadEntryStudents,
+  loadStudentPlans,
+  parseEntry,
+  viewerCabinetId,
+} from "@/skillklan/mentorPlans";
 
 type Result<T = undefined> =
   | (T extends undefined ? { success: true } : { success: true; data: T })
@@ -154,4 +163,35 @@ export async function removeStudentPlan(userId: unknown, track: unknown): Promis
   revalidatePath("/dashboard/student-plans");
   revalidatePath("/dashboard/plan");
   return { success: true };
+}
+
+// The mentor path (D89–D93, D98): mentor → their students → a student's plan,
+// view only. Who is on a list is the backend's answer for the signed-in
+// person; the entry and the id come from the browser, the viewer never does.
+async function mentorViewer() {
+  const t = await getTranslations("plans");
+  const viewer = await viewerCabinetId();
+  return viewer === null ? ({ ok: false, message: t("errors.signedOut") } as const) : ({ ok: true, viewer, t } as const);
+}
+
+export async function getEntryStudents(entry: unknown): Promise<Result<{ students: MentorStudent[] }>> {
+  if (await isFeatureOff("plans")) return unavailable();
+  const who = await mentorViewer();
+  if (!who.ok) return { success: false, message: who.message };
+  const parsed = parseEntry(entry);
+  if (!parsed) return { success: false, message: who.t("errors.invalid") };
+  const students = await loadEntryStudents(who.viewer, parsed);
+  if (students === null) return { success: false, message: who.t("mentor.listFailed") };
+  return { success: true, data: { students } };
+}
+
+export async function getStudentPlans(entry: unknown, studentId: unknown): Promise<Result<StudentPlans>> {
+  if (await isFeatureOff("plans")) return unavailable();
+  const who = await mentorViewer();
+  if (!who.ok) return { success: false, message: who.message };
+  const parsed = parseEntry(entry);
+  if (!parsed) return { success: false, message: who.t("errors.invalid") };
+  const plans = await loadStudentPlans(who.viewer, parsed, studentId);
+  if (!plans) return { success: false, message: who.t("mentor.studentNotAvailable") };
+  return { success: true, data: plans };
 }

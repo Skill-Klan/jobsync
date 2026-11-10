@@ -24,18 +24,19 @@ SkillKlan Job's `/auth/cabinet`, the way the real cabinet does.
 | 1001 | Test Student | `student` | yes |
 | 1002 | Test Admin | `admin` | yes — manages SkillKlan Job (Settings → «Функції») |
 | 1003 | Test QA Moderator | `qa_moderator` | yes — manages SkillKlan Job too |
-| 1004 | Test Mentor | `mentor` | no — gets no code |
+| 1004 | Test Mentor | `mentor` | yes — a test account (D99); mentors the QA students 1001, 1006; has no admin rights |
 | 1005 | Excluded Student | `student`, excluded | no — gets no code |
+| 1006–1009 | Maria Bondar, Ihor Melnyk, two students without a mentor | `student` | no — students don't come in before D48 (they only appear in the mentor lists) |
 
 «Exclude» / «Restore» changes a person on the fly. A signed-in person who is excluded loses the session at
 the next access check — at most 5 minutes later.
 
-⚠️ **The stand-in is behind the real backend since 2026-11-05.** The real one lets in only the admin, the QA
-moderator and the test accounts listed in its configuration — a test mentor (`mentor`) and a test student —
-and refuses other students until D48 ([sign-in contract](./backend-login.md)). Here Test Student still comes in,
-there are no test accounts, and the «My students» request (`GET /api/jobsync/users/:viewerId/mentor`,
-[study plans](./study-plans-mentors.md)) is not answered yet. Bring the stand-in and `examples/` up to date
-together with this app's side (D102).
+The stand-in follows the real backend's rule since the study-plans PR (D99–D102): it lets in the admin, the QA
+moderator and the test accounts (`testAccounts`, by default 1001 and 1004), and refuses other students until
+D48 ([sign-in contract](./backend-login.md)). It also answers the mentor lists and «My students»
+([study plans](./study-plans-mentors.md)): the admin sees every mentor, the QA moderator the QA ones, a mentor
+their own students. Mentors and their students are `DEFAULT_MENTORS` in the stand-in; the answers match
+[`examples/study-plans-mentors.json`](./examples/study-plans-mentors.json).
 
 Without `JOBSYNC_API_SECRET` the stand-in answers `503`, like the backend without its secret; a different
 secret on the two sides gives `401` — both end in «sign-in failed», never in a sign-in.

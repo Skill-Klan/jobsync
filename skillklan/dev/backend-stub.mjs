@@ -3,8 +3,10 @@
 //   npm run dev:backend      (reads .env.local; http://127.0.0.1:3739, DEV_BACKEND_PORT to change)
 //
 // Two faces:
-//   · the backend's /api/jobsync/* that SkillKlan Job calls (docs/contracts/backend-login.md):
-//     POST /api/jobsync/login-code/exchange, GET /api/jobsync/users/:id/access;
+//   · the backend's /api/jobsync/* that SkillKlan Job calls (docs/contracts/backend-login.md,
+//     docs/contracts/study-plans-mentors.md):
+//     POST /api/jobsync/login-code/exchange, GET /api/jobsync/users/:id/access,
+//     GET /api/jobsync/users/:viewer/{mentors, mentors/:mentorId/students, students-without-mentor, mentor};
 //   · a page that plays the cabinet: pick a fake person, get a one-time code, and the page posts it to
 //     SkillKlan Job's /auth/cabinet exactly as the cabinet does — so sign-in, roles, an excluded person
 //     and the 5-minute access re-check can all be tried locally.
@@ -18,17 +20,32 @@ import crypto from "node:crypto";
 import http from "node:http";
 import { pathToFileURL } from "node:url";
 
+// `direction` of a student: the track the school put them on (QA, BA, …), for the QA moderator's part.
 export const DEFAULT_PEOPLE = Object.freeze([
-  { id: 1001, role: "student", name: "Test Student", active: true },
+  { id: 1001, role: "student", name: "Test Student", active: true, direction: "QA" },
   { id: 1002, role: "admin", name: "Test Admin", active: true },
   { id: 1003, role: "qa_moderator", name: "Test QA Moderator", active: true },
   { id: 1004, role: "mentor", name: "Test Mentor", active: true },
-  { id: 1005, role: "student", name: "Excluded Student", active: false },
+  { id: 1005, role: "student", name: "Excluded Student", active: false, direction: "QA" },
+  { id: 1006, role: "student", name: "Maria Bondar", active: true, direction: "QA" },
+  { id: 1007, role: "student", name: "Ihor Melnyk", active: true, direction: "BA" },
+  { id: 1008, role: "student", name: "Student Without Mentor", active: true, direction: "QA" },
+  { id: 1009, role: "student", name: "BA Student Without Mentor", active: true, direction: "BA" },
 ]);
 
-// The backend's rule: these roles, an active account. (It also refuses a temporary password; the stand-in
-// has no passwords.)
-const ROLES_ALLOWED = ["student", "admin", "qa_moderator"];
+// Who is a mentor is the school's records, not an account role (D89, contract: study-plans-mentors.md): the
+// test mentor and the admin both mentor here. `students` are cabinet ids; the student with no name shows
+// how an empty `name` looks.
+export const DEFAULT_MENTORS = Object.freeze([
+  { mentorId: 1004, name: "Test Mentor", direction: "QA", students: [1001, 1005, 1006] },
+  { mentorId: 1002, name: "Test Admin", direction: "BA", students: [1007] },
+]);
+
+// The backend's rule (D99–D101): the admin and the QA moderator, or a test account of any role (ids in the
+// backend's configuration); an active account. Other students do not come in before D48. (It also refuses a
+// temporary password; the stand-in has no passwords.)
+const ROLES_ALLOWED = ["admin", "qa_moderator"];
+export const DEFAULT_TEST_ACCOUNTS = Object.freeze([1001, 1004]);
 const CODE_FORMAT = /^[A-Za-z0-9_-]{43}$/;
 export const CODE_TTL_MS = 60 * 1000;
 const MAX_BODY_BYTES = 16 * 1024;
@@ -51,12 +68,15 @@ function sha256(value) {
 }
 
 /**
- * @param {{ secret?: string, people?: readonly {id: number, role: string, name: string, active: boolean}[],
- *           jobsUrl?: string, now?: () => number }} [options]
+ * @param {{ secret?: string, people?: readonly {id: number, role: string, name: string, active: boolean, direction?: string}[],
+ *           mentors?: readonly {mentorId: number, name: string, direction: string, students: number[]}[],
+ *           testAccounts?: readonly number[], jobsUrl?: string, now?: () => number }} [options]
  */
 export function createBackendStub({
   secret,
   people = DEFAULT_PEOPLE,
+  mentors = DEFAULT_MENTORS,
+  testAccounts = DEFAULT_TEST_ACCOUNTS,
   jobsUrl = "http://localhost:3737",
   now = () => Date.now(),
 } = {}) {
@@ -64,7 +84,8 @@ export function createBackendStub({
   /** code → { userId, expiresAt }; one live code per person, as on the backend */
   const codes = new Map();
 
-  const isAllowed = (person) => Boolean(person) && person.active && ROLES_ALLOWED.includes(person.role);
+  const isAllowed = (person) =>
+    Boolean(person) && person.active && (ROLES_ALLOWED.includes(person.role) || testAccounts.includes(person.id));
 
   /** The cabinet's side (POST /api/jobsync/login-code): only someone allowed gets a code. */
   function issueCode(userId) {
@@ -105,6 +126,58 @@ export function createBackendStub({
     const id = /^[1-9]\d*$/.test(rawId) ? Number(rawId) : null;
     const person = Number.isSafeInteger(id) ? byId.get(id) : undefined;
     return isAllowed(person) ? envelope({ allowed: true, role: person.role }) : envelope({ allowed: false, role: null });
+  }
+
+  // The mentor lists. The viewer is in the path and the answer is what THIS viewer may see: the admin —
+  // everything; the QA moderator — the QA part; a mentor — their own students (D98); a test account — only
+  // itself; anyone else, an excluded or unknown or malformed id — empty, never 404.
+  const parseId = (raw) => (/^[1-9]\d*$/.test(raw) && Number.isSafeInteger(Number(raw)) ? Number(raw) : null);
+  const viewerOf = (raw) => {
+    const id = parseId(raw);
+    const person = id === null ? undefined : byId.get(id);
+    return isAllowed(person) ? person : null;
+  };
+  const activeStudent = (id) => {
+    const p = byId.get(id);
+    return p && p.active && p.role === "student" ? p : null;
+  };
+  const mentorView = (m) => ({ mentorId: m.mentorId, name: m.name, direction: m.direction });
+  const sees = (viewer, mentor) =>
+    viewer.role === "admin" ||
+    (viewer.role === "qa_moderator" && mentor.direction === "QA") ||
+    mentor.mentorId === viewer.id;
+  const studentView = (p) => ({ userId: p.id, name: p.name });
+
+  function mentorsList(rawViewer) {
+    const viewer = viewerOf(rawViewer);
+    const list = viewer && ["admin", "qa_moderator"].includes(viewer.role) ? mentors.filter((m) => sees(viewer, m)) : [];
+    return envelope({ mentors: list.map(mentorView) });
+  }
+
+  function mentorStudents(rawViewer, rawMentor) {
+    const viewer = viewerOf(rawViewer);
+    const mentorId = parseId(rawMentor);
+    const mentor = mentorId === null ? undefined : mentors.find((m) => m.mentorId === mentorId);
+    const students = viewer && mentor && sees(viewer, mentor) ? mentor.students.map(activeStudent).filter(Boolean) : [];
+    return envelope({ students: students.map(studentView) });
+  }
+
+  function withoutMentor(rawViewer) {
+    const viewer = viewerOf(rawViewer);
+    const taken = new Set(mentors.flatMap((m) => m.students));
+    const students =
+      viewer && ["admin", "qa_moderator"].includes(viewer.role)
+        ? [...byId.values()].filter(
+            (p) => activeStudent(p.id) && !taken.has(p.id) && (viewer.role === "admin" || p.direction === "QA"),
+          )
+        : [];
+    return envelope({ students: students.map(studentView) });
+  }
+
+  function viewerMentor(rawViewer) {
+    const viewer = viewerOf(rawViewer);
+    const mentor = viewer ? mentors.find((m) => m.mentorId === viewer.id) : undefined;
+    return envelope({ mentor: mentor ? mentorView(mentor) : null });
   }
 
   const server = http.createServer(async (req, res) => {
@@ -156,6 +229,17 @@ export function createBackendStub({
       const refused = refuseUnlessSecret(req);
       if (refused) return refused;
       return access(decodeURIComponent(match[1]));
+    }
+    const mentorRoute =
+      /^\/api\/jobsync\/users\/([^/]+)\/(mentors|students-without-mentor|mentor|mentors\/([^/]+)\/students)$/.exec(url.pathname);
+    if (req.method === "GET" && mentorRoute) {
+      const refused = refuseUnlessSecret(req);
+      if (refused) return refused;
+      const viewer = decodeURIComponent(mentorRoute[1]);
+      if (mentorRoute[2] === "mentors") return mentorsList(viewer);
+      if (mentorRoute[2] === "mentor") return viewerMentor(viewer);
+      if (mentorRoute[2] === "students-without-mentor") return withoutMentor(viewer);
+      return mentorStudents(viewer, decodeURIComponent(mentorRoute[3]));
     }
     return { status: 404, body: { error: "not_found" } };
   }
