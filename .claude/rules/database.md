@@ -7,7 +7,7 @@ paths:
 # Database (Prisma + SQLite)
 
 - Change the schema **only with a migration** (`npx prisma migrate dev --name <what>`), never by editing an
-  applied migration. Migrations need the owner's review (CODEOWNERS) — keep them in a small PR of their own.
+  applied migration. Keep a migration in a small PR of its own — it asks the owner for a review (CODEOWNERS).
 - Every migration gets a test that runs the **real migration history with the real Prisma CLI**: a clean
   database, an upgrade of a database that already has data (nothing lost), and no drift between
   `schema.prisma` and the migrations. Pattern: `__tests__/skillklan/featureToggleMigration.spec.ts`.

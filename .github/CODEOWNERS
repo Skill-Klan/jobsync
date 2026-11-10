@@ -1,6 +1,6 @@
-# A pull request that touches any of these needs the owner's approval before it can be merged
-# (the branch rules of `main` require a code owner's review). Everything else a contributor merges
-# themselves after green checks; production still waits for the owner's approval in Telegram.
+# A pull request that touches any of these asks the owner for a review, so nothing here changes unnoticed.
+# The review is not required: a contributor merges every pull request themselves after green checks
+# (D103); production still waits for an approval in Telegram.
 
 # Instructions for people and agents
 /CLAUDE.md                @Skill-Klan

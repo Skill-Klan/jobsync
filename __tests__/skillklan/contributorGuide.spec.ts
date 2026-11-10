@@ -2,7 +2,7 @@
 //
 // Requirements for the shared instructions (owner, 2026-10-29: a second developer works here with an AI agent;
 // the instructions are read-only for that agent; changes to them, to CI/deploy, migrations and dependencies
-// need the owner's review — D84, D87):
+// ask the owner for a review — D84, D87; since D103 that review is not required to merge):
 //   G1  the shared docs leak nothing: no local machine paths, no notes folder of the owner's machine, no
 //       Telegram chat ids, no private keys or tokens — each detector is shown to catch a sample first
 //   G2  the agent may not edit its own instructions, CI or deploy files (deny rules in .claude/settings.json)

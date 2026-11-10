@@ -81,7 +81,8 @@ Only decisions that matter for code are listed.
 | D19 | Node 24 in the image and CI. |
 | D21 | The repository and the image are public during development and become private at the end. |
 | D82 | **A push into `main` is a release**: tests and the image in parallel → production. The owner's pushes deploy without a button; anyone else's wait for the owner's approval in Telegram. |
-| D84 | Contributors don't push to `main`: pull requests only. Ordinary PRs the contributor merges after green checks; PRs touching CODEOWNERS paths need the owner's review. |
+| D84 | Contributors don't push to `main`: pull requests only. Ordinary PRs the contributor merges after green checks; ~~PRs touching CODEOWNERS paths need the owner's review~~ — replaced by D103. |
 | D85 | Agent instructions, commits and PRs are in **English**. |
 | D87 | **New npm packages only with the owner's approval.** |
 | D88 | **Only the head of `main` is deployed.** A run whose commit is no longer the head of `main` deploys nothing (checked before the Telegram button and after it). A manual deploy of a digest — a deliberate redeploy or rollback — is not checked. |
+| D103 | **The contributor merges every pull request after green checks**, CODEOWNERS paths included (2026-11-10). Those PRs still ask the owner for a review, but it is not required; pushing to `main` and force-pushing stay closed. |
