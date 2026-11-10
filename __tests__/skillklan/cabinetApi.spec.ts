@@ -63,7 +63,7 @@ describe("exchangeLoginCode", () => {
     ["403 (no access any more)", 403, { error: "Forbidden", code: "JOBSYNC_ACCESS_DENIED" }],
     ["503 (secret not set on the backend)", 503, { error: "service_unavailable" }],
     ["200 without the envelope", 200, { userId: 42, role: "student" }],
-    ["200 with a role outside student/admin/qa_moderator (a mentor)", 200, { success: true, data: { userId: 42, role: "mentor", name: "x" } }],
+    ["200 with a role the app does not know (teacher)", 200, { success: true, data: { userId: 42, role: "teacher", name: "x" } }],
     ["200 with a non-integer id", 200, { success: true, data: { userId: "42", role: "student", name: "x" } }],
     // A proxy or error page that happens to carry a valid-looking envelope.
     ["500 with a valid-looking body", 500, { success: true, data: { userId: 42, role: "student", name: "x" }, error: null }],
@@ -164,7 +164,8 @@ describe("getCabinetAccess — the role", () => {
     ["admin", { allowed: true, role: "admin" }],
     ["student", { allowed: true, role: "student" }],
     ["qa_moderator", { allowed: true, role: "qa_moderator" }],
-    ["mentor", { allowed: true, role: null }],
+    ["mentor", { allowed: true, role: "mentor" }], // the test mentor, D99 — known, but manages nothing
+    ["teacher", { allowed: true, role: null }],
     ["superadmin", { allowed: true, role: null }],
     [undefined, { allowed: true, role: null }],
   ])("allowed, role %s → %o", async (role, expected) => {

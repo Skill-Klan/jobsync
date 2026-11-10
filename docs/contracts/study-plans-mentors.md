@@ -1,8 +1,9 @@
 # Study plans: mentors and their students (stage 1)
 
 **Status:** the backend's side is in production (the three lists since 2026-11-04, «My students» since 2026-11-05);
-this app's side is not built yet. **Direction:** SkillKlan Job → SkillKlan backend.
-**Client (planned):** `src/skillklan/cabinetApi.ts`. Replaces the proposal in pull request #75.
+this app's side is built (`src/skillklan/cabinetApi.ts`, `src/skillklan/mentorPlans.ts`, the page
+`/dashboard/plan`). **Direction:** SkillKlan Job → SkillKlan backend. **Examples:**
+[`examples/study-plans-mentors.json`](./examples/study-plans-mentors.json). Replaces the proposal in pull request #75.
 
 ## Need
 

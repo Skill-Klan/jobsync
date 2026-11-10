@@ -7,7 +7,7 @@ The backend lives in another repository; this folder is everything this app may 
 |---|---|---|
 | [Cabinet sign-in and access check](./backend-login.md) | this app → backend | in production; who may come in changed 2026-11-05 |
 | [Admin statistics (machine API)](./admin-stats.md) | backend → this app | this app's side deployed; backend side pending |
-| [Study plans: mentors and their students](./study-plans-mentors.md) | this app → backend | backend side in production; this app's side pending |
+| [Study plans: mentors and their students](./study-plans-mentors.md) | this app → backend | in production on both sides |
 | [Local backend for development](./local-backend.md) | — | `npm run dev:backend` |
 
 The example requests and answers in [`examples/`](./examples) are checked by tests against the local

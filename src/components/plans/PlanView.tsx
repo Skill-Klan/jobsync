@@ -31,7 +31,7 @@ function shortModuleTitle(title: string): string {
 
 type Edit = (id: string, change: (item: PlanItemView) => PlanItemView) => void;
 
-export default function PlanView({ plans }: { plans: PlanData[] }) {
+export default function PlanView({ plans, readOnly = false, title }: { plans: PlanData[]; readOnly?: boolean; title?: string }) {
   const t = useTranslations("plans");
   const [state, setState] = useState(plans);
   const edit: Edit = (id, change) =>
@@ -42,15 +42,15 @@ export default function PlanView({ plans }: { plans: PlanData[] }) {
   }
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-semibold">{t("student.title")}</h1>
+      <h1 className="text-2xl font-semibold">{title ?? t("student.title")}</h1>
       {state.map((plan) => (
-        <PlanSection key={plan.id} plan={plan} edit={edit} />
+        <PlanSection key={plan.id} plan={plan} edit={edit} readOnly={readOnly} />
       ))}
     </div>
   );
 }
 
-function PlanSection({ plan, edit }: { plan: PlanData; edit: Edit }) {
+function PlanSection({ plan, edit, readOnly }: { plan: PlanData; edit: Edit; readOnly: boolean }) {
   const t = useTranslations("plans");
   const overall = progressOf({ kind: "module", done: false, children: plan.modules });
   return (
@@ -77,7 +77,7 @@ function PlanSection({ plan, edit }: { plan: PlanData; edit: Edit }) {
           <TabsContent key={module.id} value={module.id} className="space-y-3 pt-2">
             <h3 className="font-medium">{module.title}</h3>
             {module.children.map((topic) => (
-              <Topic key={topic.id} topic={topic} edit={edit} />
+              <Topic key={topic.id} topic={topic} edit={edit} readOnly={readOnly} />
             ))}
           </TabsContent>
         ))}
@@ -91,7 +91,7 @@ function Counter({ item }: { item: PlanItemView }) {
   return <span className="text-sm text-muted-foreground">{`${done}/${total}`}</span>;
 }
 
-function Topic({ topic, edit }: { topic: PlanItemView; edit: Edit }) {
+function Topic({ topic, edit, readOnly }: { topic: PlanItemView; edit: Edit; readOnly: boolean }) {
   const t = useTranslations("plans");
   const [open, setOpen] = useState(false);
   return (
@@ -121,7 +121,7 @@ function Topic({ topic, edit }: { topic: PlanItemView; edit: Edit }) {
               <div key={child.id} className="space-y-1">
                 <h4 className="text-sm font-medium">{child.title}</h4>
                 {child.children.map((point) => (
-                  <Point key={point.id} item={point} edit={edit} />
+                  <Point key={point.id} item={point} edit={edit} readOnly={readOnly} />
                 ))}
               </div>
             );
@@ -134,7 +134,7 @@ function Topic({ topic, edit }: { topic: PlanItemView; edit: Edit }) {
                   <Counter item={child} />
                 </div>
                 {child.children.map((task) => (
-                  <Point key={task.id} item={task} edit={edit} />
+                  <Point key={task.id} item={task} edit={edit} readOnly={readOnly} />
                 ))}
               </div>
             );
@@ -146,14 +146,16 @@ function Topic({ topic, edit }: { topic: PlanItemView; edit: Edit }) {
               </p>
             );
           }
-          return <Point key={child.id} item={child} edit={edit} />;
+          return <Point key={child.id} item={child} edit={edit} readOnly={readOnly} />;
         })}
       </CollapsibleContent>
     </Collapsible>
   );
 }
 
-function Point({ item, edit }: { item: PlanItemView; edit: Edit }) {
+// readOnly: a mentor, the admin or the QA moderator looking at a student's plan
+// (D92) — the ticks are shown, never changed, and the note can only be read.
+function Point({ item, edit, readOnly }: { item: PlanItemView; edit: Edit; readOnly: boolean }) {
   const t = useTranslations("plans");
   const [, startTransition] = useTransition();
   const [editing, setEditing] = useState(false);
@@ -192,6 +194,7 @@ function Point({ item, edit }: { item: PlanItemView; edit: Edit }) {
         <input
           type="checkbox"
           checked={item.done}
+          disabled={readOnly}
           onChange={(e) => tick(e.target.checked)}
           aria-label={t("student.tickLabel", { title: item.title })}
           className="mt-1 h-4 w-4 shrink-0 accent-primary"
@@ -199,6 +202,7 @@ function Point({ item, edit }: { item: PlanItemView; edit: Edit }) {
         <span className={cn("flex-1 whitespace-pre-line text-sm", item.done && "text-muted-foreground line-through")}>
           {item.title}
         </span>
+        {!readOnly && (
         <Button
           type="button"
           variant="ghost"
@@ -209,11 +213,12 @@ function Point({ item, edit }: { item: PlanItemView; edit: Edit }) {
         >
           <StickyNote className="h-4 w-4" />
         </Button>
+        )}
       </div>
       {item.note && !editing && (
         <p className="ml-6 whitespace-pre-line rounded bg-muted px-2 py-1 text-sm">{item.note}</p>
       )}
-      {editing && (
+      {editing && !readOnly && (
         <div className="ml-6 space-y-2">
           <Textarea
             autoFocus
