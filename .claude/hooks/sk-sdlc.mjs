@@ -1,14 +1,18 @@
 #!/usr/bin/env node
 // Процес розробки SkillKlan — тонкий шар у репозиторії (джерело — база знань,
-// `_meta/sdlc/repo-layer/`; правити там, а не в репозиторії).
+// `_meta/sdlc/repo-layer/`; правити там, а не в репозиторії). Версія 2.
 //
-// Кожна зміна коду з Claude Code має задачу в Jira розробки (проєкт SKD) з коментарем
-// і статусом. Цей хук тримає це правило на машинах, де повного контуру ще немає:
+// У Jira розробки (проєкт SKD) — лише задачі з Telegram-бота (фіча, фікс, покращення).
+// Перед розробкою Claude обовʼязково перевіряє Jira: чи немає вже задачі на цю роботу.
+// Є — працює з нею (статус, коментар, ключ у комітах). Немає — у Jira нічого не створює.
 //   start   SessionStart  — нагадує процес і що налаштувати;
+//   first   PreToolUse    — першу правку файлу репозиторію не пропускає без перевірки Jira;
 //   touched PostToolUse   — запамʼятовує правлені файли цього репозиторію;
-//   jira    PostToolUse   — запамʼятовує задачі SKD, у які писали (лише сайт розробки);
-//   commit  PreToolUse    — `git commit` без ключа SKD-n → відмова;
-//   stop    Stop          — код правився, а запису в Jira немає → не завершувати.
+//   jira    PostToolUse   — пошук/читання на сайті розробки → перевірка; запис → ключ задачі;
+//   commit  PreToolUse    — сесія працює з задачею → `git commit` без її ключа → відмова;
+//   stop    Stop          — код правився, а Jira не перевірено → не завершувати.
+// Jira недоступна — людина погоджує пропуск на сьогодні: дата (РРРР-ММ-ДД) у
+// `~/.claude/sk-sdlc/jira-unavailable`.
 // Якщо на рівні користувача вже стоїть повний контур (гейт бази знань + Jira), хук
 // нічого не робить: подвійних перевірок немає.
 import crypto from "node:crypto";
@@ -23,9 +27,11 @@ export const DEV_HOST_SHA256 = "bae0cbda094bc397dededa2e2c7bd7a6f57c8c3be39e0168
 export const PROJECT_KEY = "SKD";
 const KEY_RE = new RegExp(`\\b${PROJECT_KEY}-\\d+\\b`, "g");
 const WRITE_TOOLS = /__(createJiraIssue|editJiraIssue|transitionJiraIssue|addCommentToJiraIssue|addOrEditJiraIssueComment)$/;
+const CHECK_TOOLS = /__(searchJiraIssuesUsingJql|getJiraIssue|search)$/;
 
 const home = () => process.env.HOME || os.homedir();
 const stateDir = () => path.join(home(), ".claude", "sk-sdlc");
+const today = () => new Date().toLocaleDateString("sv-SE");
 
 /** Повний контур стоїть на рівні користувача — тоді тонкий шар мовчить. */
 export function fullContourInstalled() {
@@ -59,17 +65,8 @@ export function touchedKeys(input) {
   return [...new Set(String(ti.issueIdOrKey ?? "").match(KEY_RE) ?? [])];
 }
 
-const GIT_COMMIT = /(?:^|[\s;&|(`])git((?:\s+(?:-C\s+(?:"[^"]*"|'[^']*'|[^\s;&|]+)|-c\s+(?:"[^"]*"|'[^']*'|[^\s;&|]+)|--?[\w-]+(?:=(?:"[^"]*"|'[^']*'|[^\s;&|]+))?))*)\s+commit(?![\w-])([^;&|\n]*)/g;
-
-/** null — пропустити; рядок — причина відмови. */
-export function checkCommit(command) {
-  const cmd = String(command ?? "");
-  for (const m of cmd.matchAll(GIT_COMMIT)) {
-    if (/(^|\s)--no-edit(\s|$)/.test(m[2] ?? "")) continue;
-    if (new RegExp(KEY_RE.source).test(cmd)) continue;
-    return `Коміт без ключа задачі Jira розробки. Додай ключ у повідомлення: «${PROJECT_KEY}-12: що зроблено». Задачі немає — знайди або створи її в ${PROJECT_KEY} (розділ «Процес розробки SkillKlan» у CLAUDE.md).`;
-  }
-  return null;
+export function isCheck(input) {
+  return CHECK_TOOLS.test(String(input.tool_name ?? "")) && isDevSite(input.tool_input?.cloudId);
 }
 
 function lines(f) {
@@ -85,6 +82,28 @@ function append(f, line) {
   fs.appendFileSync(f, line + "\n");
 }
 
+/** Стан сесії: ключі задач, з якими працює, і чи була перевірка Jira (або погоджений пропуск). */
+export function session(sid) {
+  const ls = sid ? lines(path.join(stateDir(), `${sid}.jira`)) : [];
+  const keys = [...new Set(ls.map((l) => l.split("\t")[0]).filter((k) => new RegExp(`^${PROJECT_KEY}-\\d+$`).test(k)))];
+  const unavailable = lines(path.join(stateDir(), "jira-unavailable")).some((l) => l.trim() === today());
+  return { keys, checked: keys.length > 0 || ls.some((l) => l.startsWith("CHECK\t")), unavailable };
+}
+
+const GIT_COMMIT = /(?:^|[\s;&|(`])git((?:\s+(?:-C\s+(?:"[^"]*"|'[^']*'|[^\s;&|]+)|-c\s+(?:"[^"]*"|'[^']*'|[^\s;&|]+)|--?[\w-]+(?:=(?:"[^"]*"|'[^']*'|[^\s;&|]+))?))*)\s+commit(?![\w-])([^;&|\n]*)/g;
+
+/** null — пропустити; рядок — причина відмови. `keys` — задачі SKD, з якими працює сесія. */
+export function checkCommit(command, keys = []) {
+  if (!keys.length) return null;
+  const cmd = String(command ?? "");
+  for (const m of cmd.matchAll(GIT_COMMIT)) {
+    if (/(^|\s)--no-edit(\s|$)/.test(m[2] ?? "")) continue;
+    if (keys.some((k) => new RegExp(`\\b${k}\\b`).test(cmd))) continue;
+    return `Сесія працює із задачею Jira розробки ${keys.join(", ")} — додай ключ у повідомлення коміту: «${keys[0]}: що зроблено».`;
+  }
+  return null;
+}
+
 export function setupText(project) {
   return [
     "Налаштування (один раз на компʼютер):",
@@ -95,7 +114,19 @@ export function setupText(project) {
     "     Сайту немає в списку — запрошення не прийняте або інший акаунт: до власника.",
     "  2) База знань SkillKlan — приватний репозиторій; доступ дає власник. Повний контур",
     "     (журнал бази + Jira) ставиться з бази, інструкція — `_meta/sdlc/ПРОЦЕС.md` у ній.",
-    `Мітка проєкту в Jira: proj-${project}.`,
+    `Задачі з бота для цього репозиторію мають мітку proj-${project}.`,
+  ].join("\n");
+}
+
+export function checkText(project) {
+  return [
+    `Перед розробкою перевір Jira розробки: чи немає вже задачі на цю роботу.`,
+    `  · searchJiraIssuesUsingJql (cloudId ${DEV_CLOUD_ID}): project = ${PROJECT_KEY} AND statusCategory != Done`,
+    `    AND text ~ "<ключові слова>" (задачі з бота мають мітку proj-${project}).`,
+    `  · Є задача — працюй із нею: статус in development, ключ у комітах, наприкінці коментар`,
+    `    (Зроблено / Коміти / Як перевірено / Відкрите) і статус (Done — лише коли зміна в main і перевірена).`,
+    `  · Немає — у Jira нічого не створюй: задачі там лише з Telegram-бота.`,
+    `  · Jira недоступна — спитай людину; з її згоди запиши сьогоднішню дату в ~/.claude/sk-sdlc/jira-unavailable.`,
   ].join("\n");
 }
 
@@ -105,18 +136,21 @@ export function stopVerdict(input, project) {
   if (!sid) return { code: 0 };
   const files = lines(path.join(stateDir(), `${sid}.files`));
   if (!files.length) return { code: 0 };
-  const keys = lines(path.join(stateDir(), `${sid}.jira`)).map((l) => l.split("\t")[0]);
-  if (keys.length) return { code: 0 };
-  const msg = [
-    `🛑 Процес розробки SkillKlan: код правився (${files.length} файл.), а запису в Jira розробки за сесію немає.`,
-    `  · Знайди задачу ${PROJECT_KEY} (JQL: project = ${PROJECT_KEY} AND labels = proj-${project} AND statusCategory != Done)`,
-    `    або створи Task під епіком «${project} — поточні роботи» (мітки proj-${project}, claude-session).`,
-    "  · Коментар: Зроблено / Коміти / Як перевірено / Відкрите (+ «Для бази знань:», якщо бази ще немає).",
-    "  · Статус: Done — лише коли зміна в main і перевірена; інакше in development / review.",
-    "",
-    setupText(project),
-  ].join("\n");
+  const s = session(sid);
+  if (s.checked || s.unavailable) return { code: 0 };
+  const msg = [`🛑 Процес розробки SkillKlan: код правився (${files.length} файл.), а Jira розробки за сесію не перевірено.`, checkText(project), "", setupText(project)].join("\n");
   return { code: 2, message: msg + "\n" };
+}
+
+/** PreToolUse Edit/Write: null — пропустити; рядок — причина відмови. */
+export function firstVerdict(input, projectDir, project) {
+  const fp = input.tool_input?.file_path ?? input.tool_input?.notebook_path;
+  if (!fp) return null;
+  const rel = path.relative(projectDir, fp);
+  if (rel.startsWith("..") || path.isAbsolute(rel)) return null;
+  const s = session(input.session_id);
+  if (s.checked || s.unavailable) return null;
+  return `${checkText(project)}\n${setupText(project)}`;
 }
 
 async function readStdin() {
@@ -137,6 +171,8 @@ function isMain() {
   }
 }
 
+const deny = (reason) => process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: reason } }));
+
 if (isMain()) {
   const [sub, project = "<проєкт>"] = process.argv.slice(2);
   const input = await readStdin();
@@ -145,22 +181,29 @@ if (isMain()) {
   const projectDir = process.env.CLAUDE_PROJECT_DIR || input.cwd || process.cwd();
   if (sub === "start") {
     const ctx = [
-      "## Процес розробки SkillKlan — Jira розробки обовʼязкова",
-      `Кожна зміна коду має задачу ${PROJECT_KEY} з коментарем і статусом; коміти — з ключем \`${PROJECT_KEY}-12: …\`.`,
+      "## Процес розробки SkillKlan — перед розробкою перевірити Jira розробки",
+      `У Jira (проєкт ${PROJECT_KEY}) — лише задачі з Telegram-бота. Є задача на цю роботу — працюй із нею; немає — нічого не створюй.`,
       "Деталі — розділ «Процес розробки SkillKlan» у CLAUDE.md репозиторію.",
+      "",
+      checkText(project),
       "",
       setupText(project),
     ].join("\n");
     process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: "SessionStart", additionalContext: ctx } }));
+  } else if (sub === "first") {
+    const reason = firstVerdict(input, projectDir, project);
+    if (reason) deny(reason);
   } else if (sub === "touched" && sid) {
     const fp = input.tool_input?.file_path ?? input.tool_input?.notebook_path;
     const rel = fp ? path.relative(projectDir, fp) : "..";
     if (fp && !rel.startsWith("..") && !path.isAbsolute(rel)) append(path.join(stateDir(), `${sid}.files`), fp);
   } else if (sub === "jira" && sid) {
-    for (const k of touchedKeys(input)) append(path.join(stateDir(), `${sid}.jira`), `${k}\t${new Date().toISOString()}`);
+    const ts = new Date().toISOString();
+    for (const k of touchedKeys(input)) append(path.join(stateDir(), `${sid}.jira`), `${k}\t${ts}`);
+    if (isCheck(input)) append(path.join(stateDir(), `${sid}.jira`), `CHECK\t${ts}`);
   } else if (sub === "commit" && input.tool_name === "Bash") {
-    const reason = checkCommit(input.tool_input?.command);
-    if (reason) process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: reason } }));
+    const reason = checkCommit(input.tool_input?.command, session(sid).keys);
+    if (reason) deny(reason);
   } else if (sub === "stop") {
     const r = stopVerdict(input, project);
     if (r.message) process.stderr.write(r.message);

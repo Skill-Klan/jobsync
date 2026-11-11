@@ -106,46 +106,48 @@ A test proves the code does the **right** thing — not that it does what it doe
 - `.claude/rules/` — rules that load when you work in their folders: integration, database, AI, automations,
   translations, tests.
 
-<!-- sk-sdlc:begin v1 — generated from the SkillKlan knowledge base (_meta/sdlc/repo-layer); edit it there -->
-## SkillKlan development process: Jira issue + knowledge base (required)
+<!-- sk-sdlc:begin v2 — generated from the SkillKlan knowledge base (_meta/sdlc/repo-layer); edit it there -->
+## SkillKlan development process: check the development Jira before you start
 
-Every code change made with Claude Code leaves two traces: **an issue in the development
-Jira** (project `SKD`) with a comment and a status, and **an entry in the SkillKlan
-knowledge base**. This step is not skipped. The hooks in `.claude/` enforce it: a commit
-without an `SKD-n` key is refused, and a session that edited code without a Jira write
-does not end.
+The development Jira (project `SKD`) holds **only issues created by the Telegram bot**:
+features, fixes, improvements. Work done directly through Claude is **not** added to
+Jira. But **before development, always check Jira** for an existing issue on this work.
+The hooks in `.claude/` enforce this:
+- the first file edit is blocked until Jira has been checked;
+- a session that edited code without the check does not end;
+- in a session working on an issue, a commit without its key is refused.
 
 **Before the first code edit:**
 1. Check the Atlassian connector: `getAccessibleAtlassianResources` must list the
-   development Jira site (cloudId `4892f50a-33f4-4893-8943-9ac212cb7b5c`) and a search
-   must see project `SKD`. **No Atlassian tools or no such site — stop and help the person
-   set it up:**
+   development Jira site (cloudId `4892f50a-33f4-4893-8943-9ac212cb7b5c`). **No Atlassian
+   tools or no such site — stop and help the person set it up:**
    - Claude Code: `claude mcp add --transport http --scope user atlassian https://mcp.atlassian.com/v2/mcp`,
      then `/mcp` → atlassian → Authenticate, signing in **with the account invited to the
      development Jira**;
    - Claude app: Settings → Connectors → Atlassian → Connect;
    - the site is not listed — the invitation is not accepted yet (an Atlassian email) or it
      is another account: ask the owner. No API keys are needed, never paste them into chat.
-2. Find the issue: a key from the person, or
-   `project = SKD AND labels = proj-jobsync AND statusCategory != Done`.
-   None — **create it yourself**: a Task under the epic «jobsync — поточні роботи» (no
-   epic — create an Epic labelled `proj-jobsync`, `поточні-роботи`); issue labels
-   `proj-jobsync`, `claude-session`. Move it to `in development`.
+2. Look for the issue: a key from the person (`getJiraIssue`) or `searchJiraIssuesUsingJql`
+   → `project = SKD AND statusCategory != Done AND text ~ "<keywords>"`. Bot issues for
+   this repository are labelled `proj-jobsync`.
+3. **An issue exists** — work on it: move it to `in development`, commits carry its key
+   (`SKD-12: what changed`; this repository's branch and pull request rules still apply).
+   **None** — create nothing in Jira, just do the work.
 
-**While working:** commits carry the key — `SKD-12: what changed` (this repository's
-branch and pull request rules still apply). A bug found on the way — a Bug; deferred tech
-debt — a Task labelled `техборг`, under the same epic.
-
-**At the end:**
+**At the end, if you worked on an issue:**
 - a comment on the issue: **Done / Commits / How verified / Knowledge base notes / Open**;
 - status: **Done only when the change is in `main` and verified**; otherwise
   `in development` or `review` with what is left (transitions are named `in development`,
   `review`, `Done`);
 - a knowledge base entry (the project journal, line `**Jira:** SKD-n — status`). No
   knowledge base on this machine yet — add a «For the knowledge base:» part to the Jira
-  comment and ask the owner for access. The full contour (knowledge base + Jira) is
-  installed from the knowledge base, see `_meta/sdlc/ПРОЦЕС.md` there.
+  comment and ask the owner for access.
 
-Write to Jira with the direct tools (`createJiraIssue`, `transitionJiraIssue`,
-`addOrEditJiraIssueComment`), not the generic `executeWrite` — the hook would not see it.
+**Jira unavailable** (an Atlassian outage) — ask the person; with their consent write
+today's date (`YYYY-MM-DD`) into `~/.claude/sk-sdlc/jira-unavailable` and the hooks skip
+the check for today. Check Jira as soon as it is back.
+
+Read and write Jira with the direct tools (`searchJiraIssuesUsingJql`, `getJiraIssue`,
+`transitionJiraIssue`, `addOrEditJiraIssueComment`), not the generic `executeRead` /
+`executeWrite` — the hook would not see them.
 <!-- sk-sdlc:end -->

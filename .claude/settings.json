@@ -45,6 +45,15 @@
     ],
     "PreToolUse": [
       {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/sk-sdlc.mjs\" first jobsync"
+          }
+        ]
+      },
+      {
         "matcher": "Bash",
         "hooks": [
           {
@@ -65,7 +74,7 @@
         ]
       },
       {
-        "matcher": "mcp__.*__(createJiraIssue|editJiraIssue|transitionJiraIssue|addCommentToJiraIssue|addOrEditJiraIssueComment)",
+        "matcher": "mcp__.*__(createJiraIssue|editJiraIssue|transitionJiraIssue|addCommentToJiraIssue|addOrEditJiraIssueComment|searchJiraIssuesUsingJql|getJiraIssue|search)",
         "hooks": [
           {
             "type": "command",
