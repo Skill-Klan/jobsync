@@ -4,12 +4,11 @@
   "children": [
     {
       "kind": "module",
-      "title": "Модуль 1. Основи тестування",
+      "title": "Модуль 1. Основи тестування (2 тижні)",
       "children": [
         {
           "kind": "topic",
           "title": "Тема 1: SDLC, STLC, Agile, Scrum",
-          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/00.-Вступ-до-тестування/SDLC-та-STLC/",
           "children": [
             {
               "kind": "group",
@@ -17,15 +16,15 @@
               "children": [
                 {
                   "kind": "item",
-                  "title": "Що таке SDLC, для чого він потрібен."
+                  "title": "Що таке SDLC, для чого потрібен"
                 },
                 {
                   "kind": "item",
-                  "title": "Основні етапи SDLC: вимоги, проєктування, розробка, тестування, впровадження, підтримка"
+                  "title": "Етапи: вимоги, проєктування, розробка, тестування, впровадження, підтримка"
                 },
                 {
                   "kind": "item",
-                  "title": "Типи моделей розробки (Waterfall, V-модель, Iterative, Agile (Scrum/Kanban)."
+                  "title": "Моделі: Waterfall, V-модель, Iterative, Agile (Scrum/Kanban)"
                 }
               ]
             },
@@ -35,15 +34,59 @@
               "children": [
                 {
                   "kind": "item",
-                  "title": "Що таке STLC, його зв’язок з SDLC."
+                  "title": "Що таке STLC, зв’язок з SDLC"
                 },
                 {
                   "kind": "item",
-                  "title": "Основні етапи STLC: планування, аналіз, створення тест-кейсів, підготовка оточення, виконання, звітність."
+                  "title": "Етапи: планування, аналіз, тест-кейси, оточення, виконання, звітність"
                 },
                 {
                   "kind": "item",
-                  "title": "Взаємодія QA з іншими ролями в STLC."
+                  "title": "Взаємодія QA з іншими ролями"
+                }
+              ]
+            },
+            {
+              "kind": "group",
+              "title": "Середовища та релізи",
+              "children": [
+                {
+                  "kind": "item",
+                  "title": "dev / stage / prod: для чого кожне, чому не тестують на prod"
+                },
+                {
+                  "kind": "item",
+                  "title": "Білд, версія, реліз; release candidate, hotfix"
+                },
+                {
+                  "kind": "item",
+                  "title": "Роль QA: smoke і regression перед релізом, smoke після деплою"
+                }
+              ]
+            },
+            {
+              "kind": "group",
+              "title": "Agile і Scrum",
+              "children": [
+                {
+                  "kind": "item",
+                  "title": "Agile Manifesto (цінності й принципи); Agile vs Waterfall"
+                },
+                {
+                  "kind": "item",
+                  "title": "Scrum: ролі (SM, PO, Developers, Stakeholders, QA, BA/SA, дизайнери, DevOps)"
+                },
+                {
+                  "kind": "item",
+                  "title": "Scrum-івенти: Daily, Planning, Refinement (Grooming), Review/Demo, Retrospective"
+                },
+                {
+                  "kind": "item",
+                  "title": "Артефакти Scrum: Product Backlog, Sprint Backlog, Increment"
+                },
+                {
+                  "kind": "item",
+                  "title": "Як тестувальник взаємодіє в Scrum-команді"
                 }
               ]
             },
@@ -53,40 +96,32 @@
               "children": [
                 {
                   "kind": "homework_task",
-                  "title": "1. Розкажи, що таке SDLC і навіщо він потрібен."
+                  "title": "1. SDLC: що це і навіщо; 6 етапів з прикладом дії тестувальника на кожному"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "2. Назви шість етапів SDLC і придумай приклад дії тестувальника для кожного етапу."
+                  "title": "2. 4 моделі (Waterfall, V, Iterative, Agile): як працює, плюс і мінус, приклад проєкту"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "3. Візьми чотири моделі розробки (Waterfall, V-модель, Iterative, Agile (Scrum/Kanban): для кожної коротко поясни, як вона працює, назви один плюс і один мінус, та придумай приклад проєкту, де вона буде доречною."
+                  "title": "3. STLC: зв’язок із SDLC, етапи з прикладами дій QA"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "3.1. Розібрати скрам-церемонії (зідзвони, які входять в спринт - daily, planning, groomimg, demo, retro та інші)"
+                  "title": "4. Agile Manifesto; Scrum: ролі, івенти (daily, planning, refinement, review/demo, retro), артефакти; що робить QA на кожному івенті"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "4. Розкажи, що таке STLC і як він пов’язаний з SDLC."
-                },
-                {
-                  "kind": "homework_task",
-                  "title": "5. Назви шість етапів STLC і додай по одному прикладу дії тестувальника на кожному етапі."
-                },
-                {
-                  "kind": "homework_task",
-                  "title": "6. Назви чотири основні ролі, з якими взаємодіє тестувальник під час STLC, і придумай приклад ситуації для кожної такої взаємодії."
+                  "title": "5. 4 ролі, з якими QA взаємодіє, і приклад ситуації для кожної"
                 }
               ]
             }
-          ]
+          ],
+          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/00.-Вступ-до-тестування/SDLC-та-STLC/"
         },
         {
           "kind": "topic",
           "title": "Тема 2: Тест-кейси, баг-репорти, чеклісти",
-          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/01.-Мануальне-тестування/Тестова-документація/",
           "children": [
             {
               "kind": "group",
@@ -94,19 +129,19 @@
               "children": [
                 {
                   "kind": "item",
-                  "title": "Що таке тест-кейс, з чого складається."
+                  "title": "Що таке тест-кейс, з чого складається"
                 },
                 {
                   "kind": "item",
-                  "title": "Правила написання якісних тест-кейсів."
+                  "title": "Правила написання якісних тест-кейсів"
                 },
                 {
                   "kind": "item",
-                  "title": "Позитивні та негативні тест-кейси."
+                  "title": "Позитивні та негативні тест-кейси"
                 },
                 {
                   "kind": "item",
-                  "title": "Використання інструментів (TestRail, Zephyr, Excel/Google Sheets)."
+                  "title": "Інструменти (TestRail, Zephyr, Excel/Google Sheets)"
                 }
               ]
             },
@@ -116,19 +151,19 @@
               "children": [
                 {
                   "kind": "item",
-                  "title": "Що таке баг, життєвий цикл багу."
+                  "title": "Що таке баг, життєвий цикл"
                 },
                 {
                   "kind": "item",
-                  "title": "Структура баг-репорту (заголовок, кроки, очікуваний/фактичний результат)."
+                  "title": "Структура баг-репорту (заголовок, кроки, очікуваний/фактичний результат)"
                 },
                 {
                   "kind": "item",
-                  "title": "Важливість скриншотів, відео, логів."
+                  "title": "Скриншоти, відео, логи"
                 },
                 {
                   "kind": "item",
-                  "title": "Робота з Jira (створення, редагування, статуси багів)."
+                  "title": "Робота з Jira (створення, редагування, статуси)"
                 }
               ]
             },
@@ -138,15 +173,15 @@
               "children": [
                 {
                   "kind": "item",
-                  "title": "Коли і як використовувати чеклісти."
+                  "title": "Коли і як використовувати"
                 },
                 {
                   "kind": "item",
-                  "title": "Відмінність чекліста від тест-кейсу."
+                  "title": "Відмінність чекліста від тест-кейсу"
                 },
                 {
                   "kind": "item",
-                  "title": "Приклади хороших та поганих чеклістів."
+                  "title": "Приклади хороших та поганих чеклістів"
                 }
               ]
             },
@@ -156,52 +191,28 @@
               "children": [
                 {
                   "kind": "homework_task",
-                  "title": "1. Розкажи, що таке тест-кейс і з чого він складається."
+                  "title": "1. Тест-кейс: структура і 3 правила якісного; написати один позитивний і один негативний для екрана авторизації"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "2. Сформулюй три правила написання якісних тест-кейсів."
+                  "title": "2. Чекліст для екрана авторизації; різниця чекліста і тест-кейсу"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "3. Напиши по одному прикладу:\n- Позитивного тест-кейсу\n- Негативного тест-кейсу"
+                  "title": "3. Баг: життєвий цикл і структура баг-репорту; створити тестовий баг у Jira (або аналозі) зі скріном/відео/логом"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "4. Вибери один інструмент для роботи з тест-кейсами (TestRail або Zephyr) і напиши, чим він зручний для тебе як тестувальника."
-                },
-                {
-                  "kind": "homework_task",
-                  "title": "5. Розкажи, що таке баг і як виглядає його життєвий цикл (від створення до закриття)."
-                },
-                {
-                  "kind": "homework_task",
-                  "title": "6. Напиши структуру якісного баг-репорту (що в нього має входити)."
-                },
-                {
-                  "kind": "homework_task",
-                  "title": "7. Поясни, чому важливо додавати скриншоти, відео та логи до баг-репортів."
-                },
-                {
-                  "kind": "homework_task",
-                  "title": "8. Зайди в Jira (або інший інструмент, якщо немає доступу до Jira), створи один тестовий баг і заскрінь його."
-                },
-                {
-                  "kind": "homework_task",
-                  "title": "9. Розкажи, що таке чекліст, і придумай свій приклад чекліста для перевірки екрану авторизації."
-                },
-                {
-                  "kind": "homework_task",
-                  "title": "10. Поясни різницю між чеклістом і тест-кейсом."
+                  "title": "4. Обрати TestRail або Zephyr і коротко описати, чим зручний"
                 }
               ]
             }
-          ]
+          ],
+          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/01.-Мануальне-тестування/Тестова-документація/"
         },
         {
           "kind": "topic",
-          "title": "Тема 3: Типи тестування",
-          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/00.-Вступ-до-тестування/Типи-тестування/",
+          "title": "Тема 3: Типи тестування та звітність",
           "children": [
             {
               "kind": "group",
@@ -209,78 +220,193 @@
               "children": [
                 {
                   "kind": "item",
-                  "title": "Smoke"
+                  "title": "Smoke, Sanity"
                 },
                 {
                   "kind": "item",
-                  "title": "Sanity"
+                  "title": "Regression і Re-testing: у чому різниця"
                 },
                 {
                   "kind": "item",
-                  "title": "Regression"
-                },
-                {
-                  "kind": "item",
-                  "title": "Re-testing"
-                },
-                {
-                  "kind": "item",
-                  "title": "End-to-End (E2E)"
-                },
-                {
-                  "kind": "item",
-                  "title": "UI testing"
-                },
-                {
-                  "kind": "item",
-                  "title": "API testing"
+                  "title": "End-to-End (E2E), UI testing, API testing"
                 }
               ]
             },
             {
-              "kind": "item",
-              "title": "Нефункціональне тестування"
+              "kind": "group",
+              "title": "Нефункціональне",
+              "children": [
+                {
+                  "kind": "item",
+                  "title": "Продуктивність, юзабіліті, безпека, сумісність, локалізація (базово)"
+                }
+              ]
             },
             {
-              "kind": "item",
-              "title": "Звітність"
+              "kind": "group",
+              "title": "Звітність",
+              "children": [
+                {
+                  "kind": "item",
+                  "title": "Тест-звіт (Test Summary Report): що містить"
+                },
+                {
+                  "kind": "item",
+                  "title": "Метрики: відсоток пройдених, дефекти за severity"
+                },
+                {
+                  "kind": "item",
+                  "title": "Ризики і висновок «можна релізити / не можна»"
+                }
+              ]
+            },
+            {
+              "kind": "homework",
+              "title": "ДЗ 3",
+              "children": [
+                {
+                  "kind": "homework_task",
+                  "title": "1. Таблиця «функціональні / нефункціональні типи»: по 4 типи з прикладом перевірки для інтернет-магазину"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "2. Пояснити різницю між smoke, sanity, regression і re-testing на прикладі одного релізу"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "3. Пояснити, чим відрізняються E2E, UI і API testing та коли що доречніше"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "4. Для екрана реєстрації придумати по 2 нефункціональні перевірки (продуктивність, юзабіліті, безпека, сумісність, локалізація)"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "5. Скласти Test Summary Report за результатами тестування з ДЗ2: що пройдено/не пройдено, дефекти за severity, ризики, висновок «релізити / не релізити»"
+                }
+              ]
             }
-          ]
+          ],
+          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/00.-Вступ-до-тестування/Типи-тестування/"
         }
       ]
     },
     {
       "kind": "module",
-      "title": "Модуль 2: Тест-дизайн (3–4 тижні)",
+      "title": "Модуль 2: Тест-дизайн та тестова документація (2 тижні)",
       "children": [
         {
           "kind": "topic",
           "title": "Тема 1: Техніки тест-дизайну",
-          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/02.-Тест-дизайн/",
           "children": [
             {
               "kind": "item",
-              "title": "Що таке тест-дизайн і навіщо він потрібен"
+              "title": "Що таке тест-дизайн і навіщо потрібен"
             },
             {
               "kind": "item",
-              "title": "Equivalence Partitioning (еквівалентні класи)"
+              "title": "Equivalence Partitioning"
             },
             {
               "kind": "item",
-              "title": "Boundary Value Analysis (аналіз граничних значень)"
+              "title": "Boundary Value Analysis"
             },
             {
               "kind": "item",
-              "title": "Decision Table Testing (таблиці рішень)"
+              "title": "Decision Table Testing"
             },
             {
               "kind": "item",
-              "title": "State Transition Testing (тестування переходів станів)"
+              "title": "State Transition Testing"
             },
             {
               "kind": "item",
-              "title": "Pairwise Testing (попарне тестування)"
+              "title": "Pairwise Testing"
+            },
+            {
+              "kind": "homework",
+              "title": "ДЗ 4",
+              "children": [
+                {
+                  "kind": "homework_task",
+                  "title": "1. Що таке тест-дизайн і навіщо він потрібен"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "2. Еквівалентні класи на прикладі розділу інтернет-магазину"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "3. Граничні значення для поля віку 18–99: конкретні значення, позитивні й негативні"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "4. Таблиця рішень для правила знижки"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "5. Переходи станів для банкомата (опис тестування)"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "6. Матриця pairwise для «Країна» і «Мова»"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "7. Тест-кейси за однією з технік у Google Sheets"
+                }
+              ]
+            }
+          ],
+          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/02.-Тест-дизайн/"
+        },
+        {
+          "kind": "topic",
+          "title": "Тема 2: Поглиблена робота з тест-кейсами та тестовою документацією",
+          "children": [
+            {
+              "kind": "group",
+              "title": "Тест-кейси",
+              "children": [
+                {
+                  "kind": "item",
+                  "title": "Як писати ефективні тест-кейси"
+                },
+                {
+                  "kind": "item",
+                  "title": "Позитивні та негативні сценарії"
+                },
+                {
+                  "kind": "item",
+                  "title": "TestRail або аналоги"
+                },
+                {
+                  "kind": "item",
+                  "title": "Взаємозв’язок тест-кейсів та багів"
+                }
+              ]
+            },
+            {
+              "kind": "group",
+              "title": "Додатково (з нотаток менторів)",
+              "children": [
+                {
+                  "kind": "item",
+                  "title": "Тест-план і тест-стратегія: що містять, хто пише"
+                },
+                {
+                  "kind": "item",
+                  "title": "Severity vs Priority (S1–S4, Blocker)"
+                },
+                {
+                  "kind": "item",
+                  "title": "User stories та Acceptance Criteria"
+                },
+                {
+                  "kind": "item",
+                  "title": "DoD / DoR"
+                }
+              ]
             },
             {
               "kind": "homework",
@@ -288,56 +414,80 @@
               "children": [
                 {
                   "kind": "homework_task",
-                  "title": "1. Розкажи, що таке тест-дизайн і навіщо він потрібен тестувальнику."
+                  "title": "1. Для обраної функції (реєстрація або кнопка «Увійти») написати мін. 7 тест-кейсів: 3 позитивні, 2 негативні, 2 за BVA"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "2. Візьми приклад з онлайн-магазину Розетка - Обери до прикладу Алкогольні напої та продукти і:\n- Розбий значення на еквівалентні класи."
+                  "title": "2. Баг-репорт за одним з негативних тест-кейсів"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "3. Візьми приклад поля вводу віку користувача від 18 до 99 років і:\n- Застосуй аналіз граничних значень, назви конкретні значення для тестування.\n- Зроби приклади позитивних і негативних значень."
+                  "title": "3. Тест-план (1 сторінка) для невеликого продукту; пояснити, чим відрізняється від тест-стратегії"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "4. Візьми правило з реального життя (наприклад, замовлення знижки при покупці) і:\n- Побудуй таблицю рішень з умовами та діями."
+                  "title": "4. User story з Acceptance Criteria для тієї ж функції; сформулювати DoR/DoD"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "5. Придумай просту систему зі станами (наприклад, банкомат: \"Очікує картку\" → \"Очікує PIN\" → \"Головне меню\") і:\n- Опиши, як би ти протестував переходи між цими станами."
-                },
-                {
-                  "kind": "homework_task",
-                  "title": "6. Згадай поле \"Країна\" та \"Мова\" у реєстраційній формі. Побудуй матрицю для попарного тестування для кількох прикладів (наприклад: Україна + Українська, Україна + Англійська, США + Англійська)."
-                },
-                {
-                  "kind": "homework_task",
-                  "title": "7. Створи тест-кейс в Google Docs або Google Sheets для будь-якої з технік, використовуючи знання з попередньої теми (структура тест-кейсу, очікуваний і фактичний результат)."
+                  "title": "5. Визначити Severity і Priority для 5 запропонованих менторів багів"
                 }
               ]
             }
-          ]
-        },
+          ],
+          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/01.-Мануальне-тестування/Тестова-документація/Тест-кейс/"
+        }
+      ]
+    },
+    {
+      "kind": "module",
+      "title": "Модуль 3: Web-основи (1 тиждень)",
+      "children": [
         {
           "kind": "topic",
-          "title": "Тема 2: Поглиблена робота з тест-кейсами",
-          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/01.-Мануальне-тестування/Тестова-документація/Тест-кейс/",
+          "title": "Тема 1: Web-основи (мануально)",
           "children": [
             {
-              "kind": "item",
-              "title": "Як писати ефективні тест-кейси"
+              "kind": "group",
+              "title": "HTML і CSS",
+              "children": [
+                {
+                  "kind": "item",
+                  "title": "Теги, атрибути, CSS-селектори"
+                },
+                {
+                  "kind": "item",
+                  "title": "DOM-дерево"
+                }
+              ]
             },
             {
-              "kind": "item",
-              "title": "Позитивні та негативні сценарії"
+              "kind": "group",
+              "title": "Chrome DevTools",
+              "children": [
+                {
+                  "kind": "item",
+                  "title": "Elements, Console, Network, Application"
+                },
+                {
+                  "kind": "item",
+                  "title": "Редагування DOM і значень у Console"
+                }
+              ]
             },
             {
-              "kind": "item",
-              "title": "Використання TestRail або аналогів"
-            },
-            {
-              "kind": "item",
-              "title": "Взаємозв’язок тест-кейсів та багів"
+              "kind": "group",
+              "title": "HTTP у браузері",
+              "children": [
+                {
+                  "kind": "item",
+                  "title": "Запит/відповідь, методи, статус-коди, headers"
+                },
+                {
+                  "kind": "item",
+                  "title": "Cookies, localStorage, sessionStorage"
+                }
+              ]
             },
             {
               "kind": "homework",
@@ -345,23 +495,23 @@
               "children": [
                 {
                   "kind": "homework_task",
-                  "title": "1. Обери один із минулих прикладів, наприклад:\n- Реєстраційна форма з полем \"Вік\" або\n- Кнопка \"Увійти\" в додатку.\n Створи мінімум 5 тест-кейсів, враховуючи:\n- 3 позитивні сценарії\n- 2 негативні сценарії."
+                  "title": "1. Обрати сайт (напр. the-internet.herokuapp.com/login): знайти елементи форми логіну, їх теги й атрибути"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "2. Вибери будь-яку техніку тест-дизайну з попереднього ДЗ (наприклад, Boundary Value Analysis) і додай ще 2 додаткових тест-кейси на її основі."
+                  "title": "2. У Network зафіксувати запит, що відправляє форма: метод, URL, headers, статус"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "3. Оформи ці тест-кейси у Google Sheets або в будь-якому інструменті, доступному тобі зараз (TestRail, Zephyr, Google Docs/Sheets)."
+                  "title": "3. В Application подивитись cookies/localStorage до й після логіну"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "4. Створи тестовий баг-репорт на основі одного з негативних тест-кейсів, де результат відрізняється від очікуваного:\n- Додай назву, кроки, очікуваний і фактичний результат."
+                  "title": "4. У Console змінити текст елемента й повторити спостереження"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "5. Поясни, чому важливо мати зв’язок між тест-кейсами і баг-репортами — дай відповідь у 2-3 реченнях своїми словами."
+                  "title": "5. Виконати вручну чекліст з 8 перевірок логіну"
                 }
               ]
             }
@@ -371,105 +521,233 @@
     },
     {
       "kind": "module",
-      "title": "Модуль 3: Тестування API — Postman (3 тижні)",
+      "title": "Модуль 4: API Testing — Postman (2 тижні)",
       "children": [
         {
           "kind": "topic",
           "title": "Тема 1: Введення в API",
-          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/03.-API-тестування/Основи-API/",
           "children": [
             {
               "kind": "item",
-              "title": "Основні типи архітектур ПЗ"
+              "title": "Типи архітектур ПЗ, клієнт-сервер"
             },
             {
               "kind": "item",
-              "title": "Основи HTTP та REST"
+              "title": "HTTP та REST; REST vs SOAP"
             },
             {
               "kind": "item",
-              "title": "JSON формат, методи HTTP (GET, POST, PUT, DELETE)"
+              "title": "JSON; методи GET, POST, PUT, PATCH, DELETE (різниця PUT/PATCH, GET/POST)"
+            },
+            {
+              "kind": "item",
+              "title": "Статус-коди 2xx/4xx/5xx; 401 vs 403"
             },
             {
               "kind": "homework",
-              "title": "ДЗ 13",
+              "title": "ДЗ 7",
               "children": [
                 {
                   "kind": "homework_task",
-                  "title": "1. Досліди своїми словами:\n- Що таке API, HTTP і REST.\n- Чим REST API корисний для автоматизації."
+                  "title": "1. Що таке API, HTTP, REST; REST vs SOAP"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "2. Розбери основні методи HTTP:\n- Напиши по одному простому прикладу для GET, POST, PUT, DELETE (приклади можуть бути з життя, без технічних деталей)."
+                  "title": "2. По одному прикладу GET, POST, PUT, PATCH, DELETE; різниця PUT і PATCH"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "3. Знайди приклад JSON-об'єкта (можеш використати цей приклад або придумати свій):\njson {\"name\":\"Angelina\",\"age\":22,\"isMarried\":false,\"lastJobs\":[\"AQA\",\"Manual QA\",\"CTO\",\"Dev\"],\"wife\":{\"gender\":\"women\",\"age\":31,\"isMarried\":true},\"children\":[{\"name\":\"Jone Dou\",\"gender\":\"women\",\"age\":17},{\"gender\":\"women\",\"age\":17}]}\n- Розбери, що означає кожна частина цього об'єкта."
+                  "title": "3. Розібрати надісланий ментором JSON: що означає кожна частина"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "4. Встанови Postman або відкрий його веб-версію.\n- Зроби GET-запит до публічного API, наприклад: https://jsonplaceholder.typicode.com/posts/1\n- Зроби скріншот відповіді в Postman."
+                  "title": "4. Postman: GET https://jsonplaceholder.typicode.com/posts/1 зі скріном"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "5. Створи Google Sheets з тест-кейсом, який описує:\n- Виконання GET-запиту,\n- Очікуваний статус-код 200,\n- Перевірку, що в тілі є id = 1."
-                },
-                {
-                  "kind": "homework_task",
-                  "title": "6. Створи баг-репорт, якщо відповідь не містить id = 1 або статус-код відрізняється від 200."
-                },
-                {
-                  "kind": "homework_task",
-                  "title": "7. Ознайомитись з поняттям клієнт-серверної архітектури"
+                  "title": "5. Пояснити 401 і 403"
                 }
               ]
             }
-          ]
+          ],
+          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/03.-API-тестування/Основи-API/"
         },
         {
           "kind": "topic",
           "title": "Тема 2: Ручне тестування API (Postman)",
-          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/03.-API-тестування/Postman/",
           "children": [
             {
               "kind": "item",
-              "title": "Встановлення та налаштування Postman"
+              "title": "Встановлення, колекції, середовища"
             },
             {
               "kind": "item",
-              "title": "Робота з колекціями, змінними, середовищами"
+              "title": "Змінні та їхні рівні, пріоритет"
+            },
+            {
+              "kind": "item",
+              "title": "Базові перевірки у Tests, експорт колекції"
             },
             {
               "kind": "homework",
-              "title": "ДЗ 14",
+              "title": "ДЗ 8",
               "children": [
                 {
                   "kind": "homework_task",
-                  "title": "1. Встанови або відкрий Postman (десктопну або веб-версію)."
+                  "title": "1. Колекція «Test API Collection» з GET і POST до jsonplaceholder"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "2. Створи нову колекцію з назвою \"Test API Collection\"."
+                  "title": "2. Environment з baseUrl; запити через {{baseUrl}}"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "3. Додай у цю колекцію 2 запити:\n - GET до https://jsonplaceholder.typicode.com/posts/1\n - POST до https://jsonplaceholder.typicode.com/posts з будь-яким тілом у форматі JSON."
+                  "title": "3. Змінні різних рівнів: показати пріоритет на прикладі"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "4. Створи середовище з базовою URL-змінною, наприклад:\n - baseUrl = https://jsonplaceholder.typicode.com\n Заміни URL в запитах на {{baseUrl}}/posts/1 і {{baseUrl}}/posts."
+                  "title": "4. Дві перевірки у вкладці Tests (статус-код і поле у відповіді)"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "5. Збережи 2 запити в одну колекцію та експортуй колекцію у файл.\n Додай скріншот або посилання на цей файл у Google Drive."
+                  "title": "5. Експорт колекції"
+                }
+              ]
+            }
+          ],
+          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/03.-API-тестування/Postman/"
+        },
+        {
+          "kind": "topic",
+          "title": "Тема 3: Swagger/OpenAPI і тест-дизайн для API",
+          "children": [
+            {
+              "kind": "group",
+              "title": "Swagger / OpenAPI",
+              "children": [
+                {
+                  "kind": "item",
+                  "title": "Читання документації: endpoints, параметри, схеми, приклади"
+                },
+                {
+                  "kind": "item",
+                  "title": "Запити зі Swagger UI (Try it out)"
+                }
+              ]
+            },
+            {
+              "kind": "group",
+              "title": "Тест-дизайн для API",
+              "children": [
+                {
+                  "kind": "item",
+                  "title": "Позитивні і негативні: обов’язкові поля, типи, межі"
+                },
+                {
+                  "kind": "item",
+                  "title": "Перевірка статус-кодів, структури відповіді, headers"
+                },
+                {
+                  "kind": "item",
+                  "title": "Авторизація: Bearer, Basic, API key"
+                },
+                {
+                  "kind": "item",
+                  "title": "Баг-репорт на API: запит, відповідь, очікуваний результат"
+                }
+              ]
+            },
+            {
+              "kind": "homework",
+              "title": "ДЗ 9",
+              "children": [
+                {
+                  "kind": "homework_task",
+                  "title": "1. Відкрити публічний Swagger (напр. petstore.swagger.io) і описати 3 endpoints: метод, параметри, приклад відповіді"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "6. Створи Google Sheets з тест-кейсом, який описує:\n - Використання змінної середовища,\n - Очікувані статус-коди для GET і POST запитів."
+                  "title": "2. Виконати GET, POST і DELETE через Try it out; зберегти скріни запитів і відповідей"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "7. Створи баг-репорт, якщо хоч один запит не повернув очікуваний статус-код 200 або 201."
+                  "title": "3. Для одного endpoint написати мін. 8 тест-кейсів: позитивні, негативні, граничні значення полів"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "4. Пояснити різницю між Bearer, Basic і API key"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "5. Оформити баг-репорт на API за одним із негативних сценаріїв: запит, відповідь, очікуваний результат"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "topic",
+          "title": "Тема 4: Мокування API (WireMock) (Optional)",
+          "children": [
+            {
+              "kind": "group",
+              "title": "Навіщо мокати",
+              "children": [
+                {
+                  "kind": "item",
+                  "title": "Стабільні тести, недоступні або платні залежності, негативні сценарії"
+                }
+              ]
+            },
+            {
+              "kind": "group",
+              "title": "WireMock",
+              "children": [
+                {
+                  "kind": "item",
+                  "title": "Stub: запит → відповідь (статус, тіло JSON, headers)"
+                },
+                {
+                  "kind": "item",
+                  "title": "Імітація помилок і затримок (500, timeout); перевірка, що запит надійшов"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "topic",
+          "title": "Тема 5: Брокери повідомлень і Kafka (основи) (Optional)",
+          "children": [
+            {
+              "kind": "group",
+              "title": "Навіщо брокери",
+              "children": [
+                {
+                  "kind": "item",
+                  "title": "Синхронна й асинхронна взаємодія; повідомлення, producer, consumer"
+                },
+                {
+                  "kind": "item",
+                  "title": "Черга vs топік (RabbitMQ як приклад черги)"
+                }
+              ]
+            },
+            {
+              "kind": "group",
+              "title": "Kafka",
+              "children": [
+                {
+                  "kind": "item",
+                  "title": "Topic, partition, offset, consumer group"
+                },
+                {
+                  "kind": "item",
+                  "title": "Що перевіряє QA: повідомлення з’явилось, формат, дублікати, порядок, поведінка consumer при помилці"
+                },
+                {
+                  "kind": "item",
+                  "title": "Перегляд топіків і повідомлень в UI-клієнті (напр. Kafka UI)"
                 }
               ]
             }
@@ -479,166 +757,178 @@
     },
     {
       "kind": "module",
-      "title": "Модуль 4: Підготовка резюме, легенди та тестові співбесіди",
+      "title": "Модуль 5: Основи баз даних",
       "children": [
         {
           "kind": "topic",
-          "title": "Тема 0: Процеси",
-          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/14.-Agile-та-робота-в-команді/Scrum/",
+          "title": "Тема 0: Базові знання про БД",
           "children": [
             {
               "kind": "group",
-              "title": "Agile",
+              "title": "Типи баз даних",
               "children": [
                 {
                   "kind": "item",
-                  "title": "Agile Manifesto (цінності й принципи)."
-                },
-                {
-                  "kind": "item",
-                  "title": "Agile vs Waterfall: відмінності, переваги й недоліки."
-                },
-                {
-                  "kind": "item",
-                  "title": "Agile Frameworks: Scrum, Kanban (базовий огляд)."
+                  "title": "Реляційна, нереляційна, документо-орієнтована, графова"
                 }
               ]
             },
             {
               "kind": "group",
-              "title": "Scrum",
+              "title": "СУБД",
               "children": [
                 {
                   "kind": "item",
-                  "title": "Що таке Scrum, ключові ролі: Scrum Master, Product Owner, Developers (програмісти), Stakeholders (зацікавлені сторони), Customers (замовники або кінцеві користувачі), тестувальники (QA Engineer, QA Automation Engineer, Manual QA), дизайнери (UI Designer, UX Designer, Product Designer), аналітики (Business Analyst, System Analyst), DevOps-інженери (DevOps Engineer, Site Reliability Engineer)."
+                  "title": "PostgreSQL, MySQL, Oracle, SQLite"
+                }
+              ]
+            },
+            {
+              "kind": "group",
+              "title": "Типи даних і ключі",
+              "children": [
+                {
+                  "kind": "item",
+                  "title": "INT, VARCHAR, DATE, BOOLEAN"
                 },
                 {
                   "kind": "item",
-                  "title": "Scrum-івенти: Daily, Sprint Planning, Sprint Review, Retrospective, Backlog Refinement (Grooming), Sprint Demo ( Sprint Review)"
+                  "title": "Primary key, Foreign key, унікальні ключі"
+                }
+              ]
+            },
+            {
+              "kind": "homework",
+              "title": "ДЗ 10",
+              "children": [
+                {
+                  "kind": "homework_task",
+                  "title": "1. Дати визначення 3 типам БД; навести типи даних для полів: ім’я, вік, дата реєстрації"
                 },
                 {
-                  "kind": "item",
-                  "title": "Артефакти Scrum: Product Backlog, Sprint Backlog, Increment."
+                  "kind": "homework_task",
+                  "title": "2. ER-діаграма «Користувачі → Замовлення → Продукти» на drawdb.app"
                 },
                 {
-                  "kind": "item",
-                  "title": "Як тестувальник взаємодіє в Scrum-команді."
+                  "kind": "homework_task",
+                  "title": "3. sql-practice.com: мін. 7 задач рівня Easy"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "4. sqlbolt.com: обов’язково Lesson 1, 2–4, 6, 8, 10–11; додатково 9, 12, 13–15"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "5. Власні запити з JOIN, GROUP BY, HAVING до учбової схеми"
                 }
               ]
             }
-          ]
+          ],
+          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/04.-Бази-даних-для-QA/Основи-баз-даних/"
         },
         {
           "kind": "topic",
-          "title": "Тема 1: Резюме",
-          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/17.-Співбесіди-та-карʼєра/Резюме-QA/",
+          "title": "Тема 1: SQL-запити (SELECT, INSERT)",
           "children": [
             {
               "kind": "item",
-              "title": "резюме Middle QA"
+              "title": "Базовий SELECT, WHERE, ORDER BY"
             },
             {
               "kind": "item",
-              "title": "Розділи: Summary, Skills, Experience, Projects"
+              "title": "JOIN (INNER, LEFT, RIGHT)"
             },
             {
               "kind": "item",
-              "title": "Поради щодо оформлення (PDF, Google Docs)"
+              "title": "INSERT INTO"
             },
             {
-              "kind": "item",
-              "title": "Посилання на LinkedIn"
+              "kind": "homework_ref",
+              "title": "ДЗ 10 — завдання в темі «Тема 0: Базові знання про БД»"
             }
-          ]
+          ],
+          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/04.-Бази-даних-для-QA/SQL/SELECT/"
         },
         {
           "kind": "topic",
-          "title": "Тема 2: Легенда кандидата",
+          "title": "Тема 2: Оновлення та видалення (UPDATE, DELETE)",
           "children": [
             {
               "kind": "item",
-              "title": "Що таке легенда та чому вона важлива"
+              "title": "UPDATE, DELETE і чому завжди з WHERE"
             },
             {
-              "kind": "item",
-              "title": "Як описати себе, якщо досвіду немає або він нетиповий"
-            },
-            {
-              "kind": "item",
-              "title": "Приклади готових легенд"
-            },
-            {
-              "kind": "item",
-              "title": "Відпрацювання відповіді \"Розкажи про себе\""
+              "kind": "homework_ref",
+              "title": "ДЗ 10 — завдання в темі «Тема 0: Базові знання про БД»"
             }
-          ]
+          ],
+          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/04.-Бази-даних-для-QA/SQL/UPDATE/"
         },
         {
           "kind": "topic",
-          "title": "Тема 3: Тестові співбесіди",
-          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/17.-Співбесіди-та-карʼєра/Mock-Interview/",
+          "title": "Тема 3: Пошук та фільтрація",
           "children": [
             {
               "kind": "item",
-              "title": "Поширені запитання по QA (manual + automation)"
+              "title": "WHERE: =, >, <, LIKE, IN, BETWEEN, IS NULL"
             },
             {
               "kind": "item",
-              "title": "Відпрацювання технічних відповідей"
+              "title": "LIMIT, OFFSET"
             },
             {
-              "kind": "item",
-              "title": "Типові практичні кейси (написати тест-кейс, знайти баг)"
-            },
-            {
-              "kind": "item",
-              "title": "Симуляція інтерв’ю (ментор–студент)"
+              "kind": "homework_ref",
+              "title": "ДЗ 10 — завдання в темі «Тема 0: Базові знання про БД»"
             }
-          ]
+          ],
+          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/04.-Бази-даних-для-QA/SQL/WHERE/"
         },
         {
           "kind": "topic",
-          "title": "Тема 4: Профіль в LinkedIn та Djini",
-          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/17.-Співбесіди-та-карʼєра/LinkedIn/",
+          "title": "Тема 4: Агрегація та групування",
           "children": [
             {
               "kind": "item",
-              "title": "Як правильно оформити профіль"
+              "title": "COUNT, AVG, SUM, MIN, MAX"
             },
             {
               "kind": "item",
-              "title": "Як вести активність, щоб отримати увагу рекрутерів"
+              "title": "GROUP BY, HAVING"
+            },
+            {
+              "kind": "homework_ref",
+              "title": "ДЗ 10 — завдання в темі «Тема 0: Базові знання про БД»"
             }
-          ]
+          ],
+          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/04.-Бази-даних-для-QA/SQL/GROUP-BY/"
         }
       ]
     },
     {
       "kind": "module",
-      "title": "Модуль 5: Основи мобільного тестування",
+      "title": "Модуль 6: Мобільне тестування + Charles (1 тиждень)",
       "children": [
         {
           "kind": "topic",
           "title": "Тема 0: Базові знання про мобільне тестування",
-          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/06.-Мобільне-тестування/Основи-мобільного-тестування/",
           "children": [
             {
               "kind": "group",
-              "title": "Типи мобільних додатків",
+              "title": "Типи додатків",
               "children": [
                 {
                   "kind": "item",
-                  "title": "Нативні, гібридні, веб-додатки."
+                  "title": "Нативні, гібридні, веб"
                 }
               ]
             },
             {
               "kind": "group",
-              "title": "Особливості мобільного тестування",
+              "title": "Особливості",
               "children": [
                 {
                   "kind": "item",
-                  "title": "Фрагментація пристроїв, обмеження ресурсів, різні версії ОС."
+                  "title": "Фрагментація пристроїв, ресурси, версії ОС"
                 }
               ]
             },
@@ -648,38 +938,38 @@
               "children": [
                 {
                   "kind": "item",
-                  "title": "Функціональне, юзабіліті, продуктивність, безпека, локалізація."
+                  "title": "Функціональне, юзабіліті, продуктивність, безпека, локалізація"
                 }
               ]
             },
             {
               "kind": "homework",
-              "title": "ДЗ 20",
+              "title": "ДЗ 11",
               "children": [
                 {
                   "kind": "homework_task",
-                  "title": "1. Розуміти і знати різницю між типами мобільних застосунків"
+                  "title": "1. Таблиця «нативні / гібридні / веб-додатки»"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "2. Вміти пояснити особливості тестування мобільних застосунків"
+                  "title": "2. 5 особливостей мобільного тестування з прикладом кожної"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "3. Знати особливості тестування на реальних пристроях / симуляторах, емуляторах / \"фермі\" девайсів"
+                  "title": "3. Емулятор vs реальний пристрій vs ферма: плюси й мінуси"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "4. Знати які варіанти встановлення тестових білдів є (Android, iOS)"
+                  "title": "4. Як встановити тестову збірку на Android (APK) і iOS"
                 }
               ]
             }
-          ]
+          ],
+          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/06.-Мобільне-тестування/Основи-мобільного-тестування/"
         },
         {
           "kind": "topic",
           "title": "Тема 1: Інструменти та середовища тестування",
-          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/06.-Мобільне-тестування/Робота-з-емуляторами/",
           "children": [
             {
               "kind": "group",
@@ -687,7 +977,7 @@
               "children": [
                 {
                   "kind": "item",
-                  "title": "Android Emulator, iOS Simulator."
+                  "title": "Android Emulator, iOS Simulator"
                 }
               ]
             },
@@ -697,17 +987,173 @@
               "children": [
                 {
                   "kind": "item",
-                  "title": "Переваги та недоліки використання реальних пристроїв."
+                  "title": "Переваги та недоліки, ферма девайсів"
                 }
               ]
             },
             {
               "kind": "group",
-              "title": "Інструменти тестування",
+              "title": "Інструменти",
               "children": [
                 {
                   "kind": "item",
-                  "title": "ADB (Android Debug Bridge), Xcode для iOS."
+                  "title": "ADB, Xcode"
+                },
+                {
+                  "kind": "item",
+                  "title": "Способи встановлення тестових збірок (Android, iOS)"
+                }
+              ]
+            },
+            {
+              "kind": "homework",
+              "title": "ДЗ 12",
+              "children": [
+                {
+                  "kind": "homework_task",
+                  "title": "1. Налаштувати Android Emulator (iOS Simulator, якщо є macOS)"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "2. Встановити тестову збірку testApp.apk через adb install"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "3. Зібрати лог через adb logcat і прикласти фрагмент до баг-репорту"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "4. Описати 3 сценарії, які краще перевіряти на реальному пристрої, а не на емуляторі"
+                }
+              ]
+            }
+          ],
+          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/06.-Мобільне-тестування/Робота-з-емуляторами/"
+        },
+        {
+          "kind": "topic",
+          "title": "Тема 2: Charles — перехоплення HTTP/HTTPS трафіку",
+          "children": [
+            {
+              "kind": "item",
+              "title": "Інсталяція, налаштування проксі"
+            },
+            {
+              "kind": "item",
+              "title": "SSL-сертифікати для HTTPS"
+            },
+            {
+              "kind": "item",
+              "title": "Перегляд і фільтрація запитів"
+            },
+            {
+              "kind": "item",
+              "title": "Підміна даних (Rewrite, Breakpoints)"
+            },
+            {
+              "kind": "item",
+              "title": "Throttling: 2G/3G/слабкий зв’язок"
+            },
+            {
+              "kind": "homework",
+              "title": "ДЗ 13",
+              "children": [
+                {
+                  "kind": "homework_task",
+                  "title": "1. Встановити Charles і налаштувати проксі на емуляторі/пристрої"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "2. Налаштувати SSL-проксіювання для HTTPS"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "3. Фільтр за URL, Breakpoint, Rewrite"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "4. Емуляція 3G/слабкого зв’язку (throttling)"
+                }
+              ]
+            }
+          ],
+          "materialUrl": "https://docs.skillklan.com.ua/Charles-Proxy/"
+        }
+      ]
+    },
+    {
+      "kind": "module",
+      "title": "Модуль 7: AI для QA — від основ до агентів (Optional)",
+      "children": [
+        {
+          "kind": "topic",
+          "title": "Тема 1: Що таке AI і LLM (базові поняття)",
+          "children": [
+            {
+              "kind": "group",
+              "title": "Хто є хто",
+              "children": [
+                {
+                  "kind": "item",
+                  "title": "AI, машинне навчання, LLM, генеративний AI — чим відрізняються"
+                },
+                {
+                  "kind": "item",
+                  "title": "Модель і продукт: чим «мозок» відрізняється від застосунку навколо нього (чат, плагін до IDE)"
+                }
+              ]
+            },
+            {
+              "kind": "group",
+              "title": "Як модель читає текст",
+              "children": [
+                {
+                  "kind": "item",
+                  "title": "Токен: що це і чому за них рахують ліміти й ціну"
+                },
+                {
+                  "kind": "item",
+                  "title": "Контекстне вікно: скільки модель «тримає в голові» за одну розмову"
+                },
+                {
+                  "kind": "item",
+                  "title": "Temperature: чому одна й та сама відповідь щоразу трохи різна"
+                }
+              ]
+            },
+            {
+              "kind": "group",
+              "title": "Обмеження моделей",
+              "children": [
+                {
+                  "kind": "item",
+                  "title": "Knowledge cutoff: чому модель може не знати свіжих подій і версій бібліотек"
+                },
+                {
+                  "kind": "item",
+                  "title": "Hallucination: коли модель упевнено вигадує"
+                }
+              ]
+            },
+            {
+              "kind": "homework",
+              "title": "ДЗ 14",
+              "children": [
+                {
+                  "kind": "homework_task",
+                  "title": "1. Пояснити своїми словами: AI, ML, LLM, модель і продукт, токен, контекстне вікно, \ntemperature, knowledge cutoff, hallucination"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "2. Запитати модель про щось свіже (нова версія бібліотеки чи нещодавня подія): спершу без веб-пошуку, потім із ним. Описати різницю і пояснити її через knowledge cutoff"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "3. Знайти приклад hallucination (напр. запитати про неіснуючий метод відомої бібліотеки) і описати, як ви це перевірили"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "4. Поставити одне й те саме питання двічі й порівняти відповіді; пояснити, чому вони відрізняються"
                 }
               ]
             }
@@ -715,54 +1161,223 @@
         },
         {
           "kind": "topic",
-          "title": "Тема 2: Навчання налаштуванню Charles для перехоплення HTTP/HTTPS трафіку",
-          "materialUrl": "https://docs.skillklan.com.ua/Charles-Proxy/",
+          "title": "Тема 2: Як спілкуватись з AI (промпти)",
           "children": [
             {
               "kind": "group",
-              "title": "Базове ознайомлення",
+              "title": "Основи промпту",
               "children": [
                 {
                   "kind": "item",
-                  "title": "Інсталяція програми."
+                  "title": "Prompt: що це; роль, контекст, задача, формат відповіді"
                 },
                 {
                   "kind": "item",
-                  "title": "Налаштування проксі для перехоплення трафіку."
-                },
-                {
-                  "kind": "item",
-                  "title": "Робота з SSL-сертифікатами для перехоплення HTTPS-трафіку."
-                },
-                {
-                  "kind": "item",
-                  "title": "Перегляд запитів та відповідей в режимі реального часу."
-                },
-                {
-                  "kind": "item",
-                  "title": "Фільтрація трафіку за URL або типами запитів."
-                },
-                {
-                  "kind": "item",
-                  "title": "Підміна даних у запитах та відповідях для перевірки поведінки системи. (Скріптинг та брейкпоінт)"
-                },
-                {
-                  "kind": "item",
-                  "title": "Перевірка продуктивності системи на різних рівнях інтернету. (2G - 3G + слабкий звязок)"
+                  "title": "System prompt: інструкції «на всю розмову»"
                 }
               ]
             },
             {
               "kind": "homework",
-              "title": "ДЗ 22",
+              "title": "ДЗ 15",
               "children": [
                 {
                   "kind": "homework_task",
-                  "title": "1. Встановіть Charles (або інший проксі) і налаштуйте проксі на емуляторі/пристрої"
+                  "title": "1. Взяти задачу (напр. «написати тест-кейси для форми реєстрації») і написати 3 версії запиту: короткий, з роллю і контекстом, з вказаним форматом відповіді; порівняти результати"
                 },
                 {
                   "kind": "homework_task",
-                  "title": "2. Ознайомитися з базовим функціоналом проксі (Breakpoints, Rewrite tools, Throtling)"
+                  "title": "2. Zero-shot проти few-shot: додати в запит 2 приклади бажаного формату тест-кейсу й порівняти відповідь"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "3. Задати інструкцію «на всю розмову» (system prompt або аналог, напр. роль «senior QA») і показати, як вона змінює відповіді"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "4. Три ітерації уточнення одного запиту з поясненням, що саме змінили"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "topic",
+          "title": "Тема 3: AI у роботі QA",
+          "children": [
+            {
+              "kind": "item",
+              "title": "Генерація тест-кейсів і тестових даних, критична перевірка результату"
+            },
+            {
+              "kind": "item",
+              "title": "Розбір stacktrace, code review, допомога з автотестами"
+            },
+            {
+              "kind": "item",
+              "title": "Де AI помиляється і як це ловити"
+            },
+            {
+              "kind": "homework",
+              "title": "ДЗ 16",
+              "children": [
+                {
+                  "kind": "homework_task",
+                  "title": "1. Згенерувати тест-кейси за user story, перевірити, виправити, позначити, що AI пропустив"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "2. Згенерувати тестові дані і перевірити їх коректність"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "3. Розібрати stacktrace з AI і перевірити діагноз самостійно"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "4. Згенерувати автотест і довести до робочого стану"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "5. Підсумок: що AI зробив добре, а що погано"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "topic",
+          "title": "Тема 4: Агенти, tools і MCP",
+          "children": [
+            {
+              "kind": "group",
+              "title": "Агенти",
+              "children": [
+                {
+                  "kind": "item",
+                  "title": "Агент vs чат; цикл: план → дія → результат"
+                }
+              ]
+            },
+            {
+              "kind": "group",
+              "title": "Дані для моделі",
+              "children": [
+                {
+                  "kind": "item",
+                  "title": "RAG простими словами: відповіді за вашими документами"
+                }
+              ]
+            },
+            {
+              "kind": "group",
+              "title": "MCP",
+              "children": [
+                {
+                  "kind": "item",
+                  "title": "Model Context Protocol: client, server"
+                },
+                {
+                  "kind": "item",
+                  "title": "Tools, resources, prompts"
+                },
+                {
+                  "kind": "item",
+                  "title": "Підключення готового MCP-сервера"
+                }
+              ]
+            },
+            {
+              "kind": "homework",
+              "title": "ДЗ 17",
+              "children": [
+                {
+                  "kind": "homework_task",
+                  "title": "1. Своїми словами: чим агент відрізняється від звичайного чату; що таке tool use на прикладі веб-пошуку"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "2. Пояснити RAG на прикладі «бот, що відповідає за документацією проєкту»"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "3. Пояснити MCP: client, server, tools/resources/prompts"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "4. Підключити один готовий MCP-сервер (файлова система, GitHub або браузер) до AI-інструмента і виконати з ним завдання; описати, які дії виконав агент"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "topic",
+          "title": "Тема 5: Skills, субагенти та інструкції проєкту",
+          "children": [
+            {
+              "kind": "item",
+              "title": "Файли інструкцій проєкту (на кшталт CLAUDE.md / AGENTS.md)"
+            },
+            {
+              "kind": "item",
+              "title": "Skills: інструкції, що підвантажуються за потреби"
+            },
+            {
+              "kind": "item",
+              "title": "Субагенти: коли доречні"
+            },
+            {
+              "kind": "homework",
+              "title": "ДЗ 18",
+              "children": [
+                {
+                  "kind": "homework_task",
+                  "title": "1. Створити файл інструкцій проєкту (стиль на кшталт CLAUDE.md/AGENTS.md) для свого тестового проєкту"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "2. Створити один skill (напр. «писати баг-репорт за шаблоном») з інструкцією і прикладом"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "3. Описати, де був би доречний субагент"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "4. Порівняти результат роботи AI з інструкціями і без них"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "topic",
+          "title": "Тема 6: Безпека і етика використання AI",
+          "children": [
+            {
+              "kind": "item",
+              "title": "Які дані не можна передавати в AI (дані роботодавця, секрети, персональні дані)"
+            },
+            {
+              "kind": "homework",
+              "title": "ДЗ 19",
+              "children": [
+                {
+                  "kind": "homework_task",
+                  "title": "1. Скласти список «що не можна вставляти в AI» (дані роботодавця, секрети, персональні дані)"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "2. Показати приклад prompt injection і як від нього захищатись"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "3. Чекліст перевірки відповіді AI перед використанням"
+                },
+                {
+                  "kind": "homework_task",
+                  "title": "4. Правило позначення використання AI у ДЗ"
                 }
               ]
             }
@@ -772,236 +1387,74 @@
     },
     {
       "kind": "module",
-      "title": "Модуль 6: Основи баз даних",
+      "title": "Модуль 8: Підготовка резюме, легенди та тестові співбесіди",
       "children": [
         {
           "kind": "topic",
-          "title": "Тема 0: Базові знання про БД",
-          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/04.-Бази-даних-для-QA/Основи-баз-даних/",
+          "title": "Тема 1: Резюме",
           "children": [
             {
-              "kind": "group",
-              "title": "Типи баз даних",
-              "children": [
-                {
-                  "kind": "item",
-                  "title": "Що таке база даних: реляційна, нереляційна, документо-орієнтована, графова"
-                }
-              ]
+              "kind": "item",
+              "title": "Резюме Middle QA; розділи: Summary, Skills, Experience, Projects"
             },
             {
-              "kind": "group",
-              "title": "Популярні СУБД",
-              "children": [
-                {
-                  "kind": "item",
-                  "title": "Поняття СУБД (DBMS): PostgreSQL, MySQL, Oracle, SQLite"
-                }
-              ]
+              "kind": "item",
+              "title": "Оформлення (PDF, Google Docs); посилання на LinkedIn"
+            }
+          ],
+          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/17.-Співбесіди-та-карʼєра/Резюме-QA/"
+        },
+        {
+          "kind": "topic",
+          "title": "Тема 2: Легенда кандидата",
+          "children": [
+            {
+              "kind": "item",
+              "title": "Що таке легенда і чому важлива"
             },
             {
-              "kind": "group",
-              "title": "Типи даних у SQL",
-              "children": [
-                {
-                  "kind": "item",
-                  "title": "Основні типи даних: INT, VARCHAR, DATE, BOOLEAN тощо"
-                }
-              ]
+              "kind": "item",
+              "title": "Як описати себе без досвіду або з нетиповим"
             },
             {
-              "kind": "group",
-              "title": "Ключі: Primary key, Foreign key",
-              "children": [
-                {
-                  "kind": "item",
-                  "title": "Первинні ключі (Primary Key), зовнішні ключі (Foreign Key), унікальні ключі"
-                }
-              ]
-            },
-            {
-              "kind": "homework",
-              "title": "ДЗ 19",
-              "children": [
-                {
-                  "kind": "homework_task",
-                  "title": "1. Дати визначення 3 типам баз даних."
-                },
-                {
-                  "kind": "homework_task",
-                  "title": "2. Навести приклади типів даних для таких полів: Ім’я, Вік, Дата реєстрації"
-                },
-                {
-                  "kind": "homework_task",
-                  "title": "3. Практика з запитами на різних тренажерах (див. нижче)\nhttps://www.drawdb.app/ \n\nСтворити ER-діаграму для системи: Користувачі → Замовлення → Продукти\nhttps://www.sql-practice.com/\n\nОбрати будь-яку таблицю (patients, admissions, doctors)\nВиконати хоча б 7 задач рівня \"Easy\"\nhttps://sqlbolt.com/\n \nБазовий рівень (обовʼязкові до проходження): Lesson 1, 2-4, 6, 8, 10-11 \nСередній рівень (рекомендовані додатково): Lesson 9, 12, 13-15 \nРівень “адмінка” (можна дати бажаючим або на потім): Lesson 16-18\nhttps://www.w3schools.com/sql/ \n\nТеорія + Практика"
-                }
-              ]
+              "kind": "item",
+              "title": "Приклади; відпрацювання «Розкажи про себе»"
             }
           ]
         },
         {
           "kind": "topic",
-          "title": "Тема 1: SQL-запити (SELECT, INSERT)",
-          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/04.-Бази-даних-для-QA/SQL/SELECT/",
+          "title": "Тема 3: Тестові співбесіди",
           "children": [
             {
-              "kind": "group",
-              "title": "Базовий SELECT",
-              "children": [
-                {
-                  "kind": "item",
-                  "title": "SELECT column_name FROM table_name"
-                }
-              ]
+              "kind": "item",
+              "title": "Поширені запитання (manual + automation)"
             },
             {
-              "kind": "group",
-              "title": "WHERE фільтрація",
-              "children": [
-                {
-                  "kind": "item",
-                  "title": "SELECT * FROM table_name WHERE condition"
-                }
-              ]
+              "kind": "item",
+              "title": "Технічні відповіді, практичні кейси"
             },
             {
-              "kind": "group",
-              "title": "ORDER BY: сортування",
-              "children": [
-                {
-                  "kind": "item",
-                  "title": "Сортування: ORDER BY"
-                }
-              ]
-            },
-            {
-              "kind": "group",
-              "title": "JOIN-запити (INNER, LEFT, RIGHT)",
-              "children": [
-                {
-                  "kind": "item",
-                  "title": "JOIN (INNER, LEFT, RIGHT)"
-                }
-              ]
-            },
-            {
-              "kind": "group",
-              "title": "INSERT INTO: додавання нових рядків",
-              "children": [
-                {
-                  "kind": "item",
-                  "title": "INSERT INTO table_name (column1, column2) VALUES (value1, value2)"
-                }
-              ]
-            },
-            {
-              "kind": "homework_ref",
-              "title": "ДЗ 19 — завдання в темі «Тема 0: Базові знання про БД»"
+              "kind": "item",
+              "title": "Симуляція інтерв’ю (ментор–студент)"
             }
-          ]
+          ],
+          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/17.-Співбесіди-та-карʼєра/Mock-Interview/"
         },
         {
           "kind": "topic",
-          "title": "Тема 2: Оновлення та видалення даних (UPDATE, DELETE)",
-          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/04.-Бази-даних-для-QA/SQL/UPDATE/",
+          "title": "Тема 4: Профіль в LinkedIn та Djinni",
           "children": [
             {
-              "kind": "group",
-              "title": "UPDATE: зміна існуючих даних",
-              "children": [
-                {
-                  "kind": "item",
-                  "title": "UPDATE table_name SET column1 = value1 WHERE condition"
-                }
-              ]
+              "kind": "item",
+              "title": "Оформлення профілю"
             },
             {
-              "kind": "group",
-              "title": "DELETE: видалення записів",
-              "children": [
-                {
-                  "kind": "item",
-                  "title": "DELETE FROM table_name WHERE condition"
-                }
-              ]
-            },
-            {
-              "kind": "homework_ref",
-              "title": "ДЗ 19 — завдання в темі «Тема 0: Базові знання про БД»"
+              "kind": "item",
+              "title": "Активність для уваги рекрутерів"
             }
-          ]
-        },
-        {
-          "kind": "topic",
-          "title": "Тема 3: Пошук та фільтрація",
-          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/04.-Бази-даних-для-QA/SQL/WHERE/",
-          "children": [
-            {
-              "kind": "group",
-              "title": "Умови фільтрації",
-              "children": [
-                {
-                  "kind": "item",
-                  "title": "WHERE з умовами (=, >, <, LIKE, IN, BETWEEN, IS NULL)"
-                }
-              ]
-            },
-            {
-              "kind": "group",
-              "title": "LIMIT i OFFSET: обмеження результатів",
-              "children": [
-                {
-                  "kind": "item",
-                  "title": "LIMIT, OFFSET"
-                }
-              ]
-            },
-            {
-              "kind": "homework_ref",
-              "title": "ДЗ 19 — завдання в темі «Тема 0: Базові знання про БД»"
-            }
-          ]
-        },
-        {
-          "kind": "topic",
-          "title": "Тема 4: Агрегація та групування",
-          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/04.-Бази-даних-для-QA/SQL/GROUP-BY/",
-          "children": [
-            {
-              "kind": "group",
-              "title": "Агрегатні функції",
-              "children": [
-                {
-                  "kind": "item",
-                  "title": "COUNT, AVG, SUM, MIN, MAX"
-                }
-              ]
-            },
-            {
-              "kind": "group",
-              "title": "Умови до агрегатів",
-              "children": [
-                {
-                  "kind": "item",
-                  "title": "HAVING"
-                }
-              ]
-            },
-            {
-              "kind": "group",
-              "title": "Групування результатів",
-              "children": [
-                {
-                  "kind": "item",
-                  "title": "GROUP BY"
-                }
-              ]
-            },
-            {
-              "kind": "homework_ref",
-              "title": "ДЗ 19 — завдання в темі «Тема 0: Базові знання про БД»"
-            }
-          ]
+          ],
+          "materialUrl": "https://docs.skillklan.com.ua/База-знань-QA/17.-Співбесіди-та-карʼєра/LinkedIn/"
         }
       ]
     }

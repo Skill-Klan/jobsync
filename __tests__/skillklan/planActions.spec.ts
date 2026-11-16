@@ -164,7 +164,7 @@ describe("reading my plan", () => {
     if (!result.success) return;
     expect(result.data).toHaveLength(1);
     expect(result.data[0]).toMatchObject({ track: "java", title: "Java" });
-    expect(result.data[0].modules).toHaveLength(8);
+    expect(result.data[0].modules).toHaveLength(9);
     expect(result.data[0].modules.every((m) => m.kind === "module")).toBe(true);
     const bobsPlan = await prisma.plan.findFirstOrThrow({ where: { userId: bob } });
     expect(result.data.map((p) => p.id)).not.toContain(bobsPlan.id);

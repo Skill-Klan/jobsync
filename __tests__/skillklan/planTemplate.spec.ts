@@ -1,12 +1,12 @@
 // @vitest-environment node
-// Requirement — product notes, 2026-11-02: a plan template is a file in the
-// repository, one per track (Java first), copied from the school's Excel
-// sheets «Шаблон» and «ДЗ»:
+// Requirement — product notes, 2026-11-02, and the updated study plans of
+// 2026-11 (the school's sheets «Шаблон плану» and «ДЗ», Jira SKD-42/SKD-43): a
+// plan template is a file in the repository, one per track, copied from the sheets:
 //   · module → topic → subtopic → point; each topic may carry a material link;
 //   · a topic's homework is a list of sub-tasks, each ticked on its own;
-//   · a homework shared by several topics (ДЗ 19, ДЗ 21) is written once, under
-//     the first topic; the others only point to it;
-//   · names stay as in Excel, only the 📱 emoji is gone;
+//   · a homework shared by several topics is written once, under the first topic;
+//     the others only point to it;
+//   · a topic with no homework (the mentor's résumé work, optional topics) has none;
 //   · a template that breaks the shape is refused when the app starts, not when
 //     a student opens it.
 import { getPlanTemplate, PLAN_TRACKS, PlanNode, validatePlanTemplate } from "@/skillklan/plans/template";
@@ -27,20 +27,31 @@ describe("the Java template", () => {
     expect(java.title).toBe("Java");
   });
 
-  it("has the eight modules in a row (the sheet skips 7), without the 📱 emoji", () => {
+  it("has the nine modules of the updated sheet in its order, GitHub Actions instead of Jenkins", () => {
     expect(java.children.map((m) => m.title.split(/[.:]/)[0])).toEqual([
-      "Модуль 1", "Модуль 2", "Модуль 3", "Модуль 4", "Модуль 5", "Модуль 6", "Модуль 7", "Модуль 8",
+      "Модуль 1", "Модуль 2", "Модуль 3", "Модуль 4", "Модуль 5", "Модуль 6", "Модуль 7", "Модуль 8", "Модуль 9",
+    ]);
+    expect(java.children.map((m) => m.title.split(/[.:]\s*/)[1].split(" (")[0])).toEqual([
+      "Основи тестування + Java Basics",
+      "Тест-дизайн та Java для QA",
+      "Web-основи + UI Automation — Selenium + TestNG",
+      "API Testing — Postman + RestAssured",
+      "CI/CD — GitHub Actions та репортинг",
+      "Основи баз даних",
+      "Мобільне тестування + Charles",
+      "AI для QA — від основ до агентів",
+      "Підготовка резюме, легенди та тестові співбесіди",
     ]);
     const titles: string[] = [];
     walk(java.children, (n) => titles.push(n.title));
-    expect(titles.filter((t) => t.includes("📱"))).toEqual([]);
+    expect(titles.filter((t) => /Jenkins|📱/.test(t))).toEqual([]);
   });
 
-  it("has 32 topics: 4+4+4+3+3+5 in the first six modules, 4 and 5 in the last two", () => {
-    expect(java.children.map((m) => m.children!.length)).toEqual([4, 4, 4, 3, 3, 5, 4, 5]);
+  it("has 39 topics, as the sheet: 4+4+6+3+3+5+4+6+4", () => {
+    expect(java.children.map((m) => m.children!.length)).toEqual([4, 4, 6, 3, 3, 5, 4, 6, 4]);
   });
 
-  it("writes each of ДЗ 1–22 once; every other mention is a pointer to a ДЗ written before it", () => {
+  it("writes each of ДЗ 1–30 once; every other mention is a pointer to a ДЗ written before it", () => {
     const written: number[] = [];
     const pointers: number[] = [];
     walk(java.children, (n) => {
@@ -51,8 +62,8 @@ describe("the Java template", () => {
         pointers.push(num);
       }
     });
-    expect([...written].sort((a, b) => a - b)).toEqual(Array.from({ length: 22 }, (_, i) => i + 1));
-    expect(pointers.sort()).toEqual([19, 19, 19, 19, 21]);
+    expect([...written].sort((a, b) => a - b)).toEqual(Array.from({ length: 30 }, (_, i) => i + 1));
+    expect(pointers.sort()).toEqual([21, 21, 21, 21, 23]);
   });
 
   it("gives every homework at least one sub-task, and a link to the material on topics only", () => {
@@ -62,23 +73,17 @@ describe("the Java template", () => {
     });
   });
 
-  it("keeps the glued sheet cells apart: ДЗ 8 extra, ДЗ 15 recap and the code sample", () => {
-    const tasks: string[] = [];
-    walk(java.children, (n) => n.kind === "homework_task" && tasks.push(n.title));
-    expect(tasks.some((t) => t.startsWith("ДОДАТКОВО:"))).toBe(true);
-    expect(tasks.some((t) => t.startsWith("Переплетення з попередніми темами:"))).toBe(true);
-    const post = tasks.find((t) => t.includes("```java"))!;
-    expect(post.match(/```/g)).toHaveLength(2);
+  it("takes the homework from the sheet «ДЗ»: ДЗ 1 has its five tasks, in the sheet's words", () => {
+    let tasks: string[] = [];
+    walk(java.children, (n) => n.title === "ДЗ 1" && (tasks = n.children!.map((c) => c.title)));
+    expect(tasks).toHaveLength(5);
+    expect(tasks[0]).toBe("1. SDLC: що це і навіщо; 6 етапів з прикладом дії тестувальника на кожному");
   });
 });
 
-// Requirement — the owner, 2026-11-03: plans for JavaScript, Python and manual
-// testing from the school's sheets, "with the numbering bug fixed" (the sheets
-// go from Module 6 to Module 8) and "the topics and homework that belong to
-// another language corrected":
-//   · every track numbers its modules 1, 2, 3 … in a row, whatever the sheet says;
-//   · a homework sub-task is numbered as in the sheet, so none is glued to the
-//     one before it; the two unnumbered extras are the only exceptions;
+// Requirement — the owner, 2026-11-03, and the updated sheets of 2026-11:
+//   · every track numbers its modules 1, 2, 3 … in a row;
+//   · a homework sub-task is numbered as in the sheet «ДЗ»;
 //   · a homework is written once; the other mentions point to it, after it;
 //   · a track holds nothing of another language: no Java tools in JavaScript or
 //     Python, no Selenium or TestNG in JavaScript, no automation in Manual QA.
@@ -101,12 +106,12 @@ describe("every track", () => {
     expect(numbers).toEqual(tracks[name].children.map((_, i) => i + 1));
   });
 
-  it.each(ALL_TRACKS)("%s: every sub-task starts with its number, but the two extras", (name) => {
+  it.each(ALL_TRACKS)("%s: every sub-task starts with its number", (name) => {
     const odd: string[] = [];
     walk(tracks[name].children, (n) => {
-      if (n.kind === "homework_task" && !/^\d+(\.\d+)*\.\s/.test(n.title)) odd.push(n.title.split(/[:\n]/)[0]);
+      if (n.kind === "homework_task" && !/^\d+(\.\d+)*\.\s/.test(n.title)) odd.push(n.title);
     });
-    expect(odd.filter((t) => t !== "ДОДАТКОВО" && t !== "Переплетення з попередніми темами")).toEqual([]);
+    expect(odd).toEqual([]);
   });
 
   it.each(ALL_TRACKS)("%s: a homework is written once; a pointer follows what it points to", (name) => {
@@ -118,98 +123,66 @@ describe("every track", () => {
   it.each(ALL_TRACKS)("%s: no empty point or leftover «?» from the sheet", (name) => {
     expect(titlesOf(tracks[name]).filter((t) => t.trim() === "" || /\s\?$/.test(t))).toEqual([]);
   });
-
-  it("Java: the getters and setters of ДЗ 7 are a task of their own, as in the sheet", () => {
-    let tasks: string[] = [];
-    walk(java.children, (n) => n.title === "ДЗ 7" && (tasks = n.children!.map((c) => c.title)));
-    expect(tasks).toHaveLength(8);
-    expect(tasks[1]).toBe("2. Додай геттери та сеттери для кожного поля.");
-    expect(tasks[0]).not.toMatch(/геттери/);
-  });
 });
 
 describe("the JavaScript track", () => {
   const js = tracks.javascript;
 
-  it("is called JavaScript and has the eight modules in a row, mobile 7 and databases 8", () => {
+  it("is called JavaScript and has the nine modules in a row, mobile 7, AI 8, the résumé 9", () => {
     expect([js.track, js.title]).toEqual(["javascript", "JavaScript"]);
-    expect(js.children.slice(-2).map((m) => m.title)).toEqual([
-      "Модуль 7: Основи мобільного тестування",
-      "Модуль 8: Основи баз даних",
+    expect(js.children).toHaveLength(9);
+    expect(js.children.slice(-3).map((m) => m.title.split(/[.:]\s*/)[1].split(" (")[0])).toEqual([
+      "Мобільне тестування + Charles",
+      "AI для QA — від основ до агентів",
+      "Підготовка резюме, легенди та тестові співбесіди",
     ]);
   });
 
-  it("writes ДЗ 1–22 once each, with the same pointers as Java", () => {
-    expect(homeworkNumbers(js, "homework").sort((a, b) => a - b)).toEqual(Array.from({ length: 22 }, (_, i) => i + 1));
-    expect(homeworkNumbers(js, "homework_ref").sort()).toEqual([19, 19, 19, 19, 21]);
+  it("writes ДЗ 1–30 once each, with the same pointers as Java", () => {
+    expect(homeworkNumbers(js, "homework").sort((a, b) => a - b)).toEqual(Array.from({ length: 30 }, (_, i) => i + 1));
+    expect(homeworkNumbers(js, "homework_ref").sort()).toEqual([21, 21, 21, 21, 23]);
   });
 
   it("teaches Playwright where Java had Selenium and TestNG, and has nothing of Java", () => {
     const all = titlesOf(js).join("\n");
     expect(all).not.toMatch(/\bJava\b|TestNG|Maven|PageFactory|RestAssured|HashSet|HashMap|ArrayList|JDK|IntelliJ|DataProvider|Selenium|ChromeDriver|@Test|SoftAssert/);
-    expect(all).toMatch(/Playwright Test runner/);
-    expect(all).toMatch(/expect\.soft/);
-  });
-
-  it("ДЗ 22 (Charles) has its seven steps as numbered tasks, ДЗ 20 no stray letter", () => {
-    let charles: string[] = [];
-    let mobile: string[] = [];
-    walk(js.children, (n) => {
-      if (n.title === "ДЗ 22") charles = n.children!.map((c) => c.title);
-      if (n.title === "ДЗ 20") mobile = n.children!.map((c) => c.title);
-    });
-    expect(charles).toHaveLength(7);
-    expect(charles[0]).toMatch(/^1\. Встановіть Charles/);
-    expect(mobile[3]).toMatch(/\(Android, iOS\)$/);
+    expect(all).toMatch(/Playwright/);
   });
 });
 
 describe("the Python track", () => {
   const py = tracks.python;
 
-  it("is called Python and has the eight modules in a row", () => {
+  it("is called Python and has the nine modules in a row", () => {
     expect([py.track, py.title]).toEqual(["python", "Python"]);
-    expect(py.children).toHaveLength(8);
+    expect(py.children).toHaveLength(9);
   });
 
-  it("writes ДЗ 1–22 once each, with the same pointers as Java", () => {
-    expect(homeworkNumbers(py, "homework").sort((a, b) => a - b)).toEqual(Array.from({ length: 22 }, (_, i) => i + 1));
-    expect(homeworkNumbers(py, "homework_ref").sort()).toEqual([19, 19, 19, 19, 21]);
+  it("writes ДЗ 1–30 once each, with the same pointers as Java", () => {
+    expect(homeworkNumbers(py, "homework").sort((a, b) => a - b)).toEqual(Array.from({ length: 30 }, (_, i) => i + 1));
+    expect(homeworkNumbers(py, "homework_ref").sort()).toEqual([21, 21, 21, 21, 23]);
   });
 
   it("has nothing of Java left: its tools, its classes, its collections", () => {
     const all = titlesOf(py).join("\n");
     expect(all).not.toMatch(/\bJava\b|TestNG|Maven|pom\.xml|PageFactory|RestAssured|HashSet|HashMap|ArrayList|JDK|IntelliJ|DataProvider|@Test|@BeforeMethod|SoftAssert|InvalidPriceException/);
   });
-
-  it("splits the language in two as the other tracks do: topic 3 the core, topic 4 files, errors and first tests", () => {
-    const [m1] = py.children;
-    const t3 = m1.children![2].children!.map((g) => g.title);
-    const t4 = m1.children![3].children!.map((g) => g.title);
-    expect(t3).toEqual(expect.arrayContaining(["Умови й цикли", "Функції та області видимості"]));
-    expect(t4).toEqual(expect.arrayContaining(["Колекції (list, tuple, set, dict)", "Обробка помилок", "Робота з файлами"]));
-    // «Робота з файлами» was in the sheet twice, and «Функції та області видимості» under two parents.
-    expect([...t3, ...t4].filter((t, i, all) => all.indexOf(t) !== i)).toEqual([]);
-  });
-
-  it("gives ДЗ 3 a match-case to go with its switch task", () => {
-    expect(titlesOf(py).some((t) => /match-case/.test(t))).toBe(true);
-  });
 });
 
 describe("the Manual QA track", () => {
   const manual = tracks.manual;
 
-  it("is called Manual QA and has six modules in a row, whichever numbers the sheet gave", () => {
+  it("is called Manual QA and has the eight modules of the updated sheet in a row", () => {
     expect([manual.track, manual.title]).toEqual(["manual", "Manual QA"]);
     expect(manual.children.map((m) => m.title.split(/[.:]/)[0])).toEqual([
-      "Модуль 1", "Модуль 2", "Модуль 3", "Модуль 4", "Модуль 5", "Модуль 6",
+      "Модуль 1", "Модуль 2", "Модуль 3", "Модуль 4", "Модуль 5", "Модуль 6", "Модуль 7", "Модуль 8",
     ]);
+    expect(manual.children.map((m) => m.children!.length)).toEqual([3, 2, 1, 5, 5, 3, 6, 4]);
   });
 
-  it("has the manual homework only: no coding, no Appium", () => {
-    expect(homeworkNumbers(manual, "homework").sort((a, b) => a - b)).toEqual([1, 2, 5, 6, 13, 14, 19, 20, 22]);
-    expect(homeworkNumbers(manual, "homework_ref")).toEqual([19, 19, 19, 19]);
+  it("has ДЗ 1–19 once each, and four pointers to ДЗ 10", () => {
+    expect(homeworkNumbers(manual, "homework").sort((a, b) => a - b)).toEqual(Array.from({ length: 19 }, (_, i) => i + 1));
+    expect(homeworkNumbers(manual, "homework_ref")).toEqual([10, 10, 10, 10]);
   });
 
   it("has no automation among its topics", () => {
