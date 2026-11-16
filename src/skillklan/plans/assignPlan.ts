@@ -20,6 +20,8 @@ function flatten(planId: string, nodes: PlanNode[], parentId: string | null, out
 const CHUNK = 200;
 
 // Gives a student their own copy of the track's template, frozen as it is now.
+// A later change of a template does not reach issued copies: only a data migration
+// does (prisma/migrations/20261116120000_plans_updated_templates, Jira SKD-43).
 // Who may call this is the caller's business (the admin screen checks the role).
 export async function assignPlan(db: PrismaClient, userId: string, track: string): Promise<AssignPlanResult> {
   const template = getPlanTemplate(track);
