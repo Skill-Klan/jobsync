@@ -15,6 +15,7 @@ import {
   loadEntryStudents,
   loadStudentPlans,
   parseEntry,
+  resolveStudent,
   viewerCabinetId,
 } from "@/skillklan/mentorPlans";
 
@@ -64,14 +65,42 @@ export async function getMyPlans(): Promise<Result<PlanView[]>> {
 
 // A point or a homework task of the person's own plan; nothing else can be
 // ticked or annotated.
-async function ownTickableItem(itemId: unknown) {
-  const user = await getCurrentUser();
-  if (!user || typeof itemId !== "string" || itemId === "") return null;
+async function tickableItemOf(userId: string, itemId: unknown) {
+  if (typeof itemId !== "string" || itemId === "") return null;
   const item = await prisma.planItem.findFirst({
-    where: { id: itemId, plan: { userId: user.id } },
+    where: { id: itemId, plan: { userId } },
     select: { id: true, kind: true },
   });
   return item && TICKABLE_KINDS.includes(item.kind as never) ? item : null;
+}
+
+async function ownTickableItem(itemId: unknown) {
+  const user = await getCurrentUser();
+  return user ? tickableItemOf(user.id, itemId) : null;
+}
+
+// Whose plan the viewer writes to: the student of the backend's list for this
+// entry, never an id the browser names on its own.
+async function viewedStudentItem(entry: unknown, studentId: unknown, itemId: unknown) {
+  const who = await mentorViewer();
+  if (!who.ok) return { ok: false, message: who.message } as const;
+  const parsed = parseEntry(entry);
+  if (!parsed) return { ok: false, message: who.t("errors.invalid") } as const;
+  const student = await resolveStudent(who.viewer, parsed, studentId);
+  const item = student?.userId ? await tickableItemOf(student.userId, itemId) : null;
+  return item ? ({ ok: true, item, t: who.t } as const) : ({ ok: false, message: who.t("errors.notFound") } as const);
+}
+
+async function writeDone(itemId: string, done: boolean, t: Awaited<ReturnType<typeof getTranslations>>): Promise<Result> {
+  try {
+    await prisma.planItem.update({ where: { id: itemId }, data: { done, doneAt: done ? new Date() : null } });
+  } catch (error) {
+    console.error("[plans] tick failed", error);
+    return { success: false, message: t("errors.saveFailed") };
+  }
+  revalidatePath("/dashboard/plan");
+  revalidatePath("/dashboard/student-plans");
+  return { success: true };
 }
 
 export async function setPlanItemDone(itemId: unknown, done: unknown): Promise<Result> {
@@ -80,35 +109,41 @@ export async function setPlanItemDone(itemId: unknown, done: unknown): Promise<R
   if (typeof done !== "boolean") return { success: false, message: t("errors.invalid") };
   const item = await ownTickableItem(itemId);
   if (!item) return { success: false, message: t("errors.notFound") };
+  return writeDone(item.id, done, t);
+}
+
+// A note: text up to the limit, trimmed; empty clears it. Returns the text to
+// store, or the refusal.
+async function checkedNote(note: unknown) {
+  const t = await getTranslations("plans");
+  if (typeof note !== "string" || note.length > PLAN_NOTE_MAX * 2) {
+    return { ok: false, message: t("errors.invalid") } as const;
+  }
+  const text = note.trim();
+  if (text.length > PLAN_NOTE_MAX) return { ok: false, message: t("errors.noteTooLong", { max: PLAN_NOTE_MAX }) } as const;
+  return { ok: true, value: text === "" ? null : text, t } as const;
+}
+
+async function writeNote(itemId: string, value: string | null, t: Awaited<ReturnType<typeof getTranslations>>): Promise<Result> {
   try {
-    await prisma.planItem.update({ where: { id: item.id }, data: { done, doneAt: done ? new Date() : null } });
+    await prisma.planItem.update({ where: { id: itemId }, data: { note: value } });
   } catch (error) {
-    console.error("[plans] tick failed", error);
+    console.error("[plans] note failed", error);
     return { success: false, message: t("errors.saveFailed") };
   }
   revalidatePath("/dashboard/plan");
+  revalidatePath("/dashboard/student-plans");
   return { success: true };
 }
 
 // An empty note clears it.
 export async function setPlanItemNote(itemId: unknown, note: unknown): Promise<Result> {
   if (await isFeatureOff("plans")) return unavailable();
-  const t = await getTranslations("plans");
-  if (typeof note !== "string" || note.length > PLAN_NOTE_MAX * 2) {
-    return { success: false, message: t("errors.invalid") };
-  }
-  const text = note.trim();
-  if (text.length > PLAN_NOTE_MAX) return { success: false, message: t("errors.noteTooLong", { max: PLAN_NOTE_MAX }) };
+  const checked = await checkedNote(note);
+  if (!checked.ok) return { success: false, message: checked.message };
   const item = await ownTickableItem(itemId);
-  if (!item) return { success: false, message: t("errors.notFound") };
-  try {
-    await prisma.planItem.update({ where: { id: item.id }, data: { note: text === "" ? null : text } });
-  } catch (error) {
-    console.error("[plans] note failed", error);
-    return { success: false, message: t("errors.saveFailed") };
-  }
-  revalidatePath("/dashboard/plan");
-  return { success: true };
+  if (!item) return { success: false, message: checked.t("errors.notFound") };
+  return writeNote(item.id, checked.value, checked.t);
 }
 
 // «Плани студентів»: who has which plan. For the admin and the QA moderator —
@@ -166,7 +201,8 @@ export async function removeStudentPlan(userId: unknown, track: unknown): Promis
 }
 
 // The mentor path (D89–D93, D98): mentor → their students → a student's plan,
-// view only. Who is on a list is the backend's answer for the signed-in
+// which the viewer may tick and annotate like the student (the student's own
+// fields, no author kept). Who is on a list is the backend's answer for the signed-in
 // person; the entry and the id come from the browser, the viewer never does.
 async function mentorViewer() {
   const t = await getTranslations("plans");
@@ -194,4 +230,22 @@ export async function getStudentPlans(entry: unknown, studentId: unknown): Promi
   const plans = await loadStudentPlans(who.viewer, parsed, studentId);
   if (!plans) return { success: false, message: who.t("mentor.studentNotAvailable") };
   return { success: true, data: plans };
+}
+
+export async function setStudentPlanItemDone(entry: unknown, studentId: unknown, itemId: unknown, done: unknown): Promise<Result> {
+  if (await isFeatureOff("plans")) return unavailable();
+  const t = await getTranslations("plans");
+  if (typeof done !== "boolean") return { success: false, message: t("errors.invalid") };
+  const target = await viewedStudentItem(entry, studentId, itemId);
+  if (!target.ok) return { success: false, message: target.message };
+  return writeDone(target.item.id, done, target.t);
+}
+
+export async function setStudentPlanItemNote(entry: unknown, studentId: unknown, itemId: unknown, note: unknown): Promise<Result> {
+  if (await isFeatureOff("plans")) return unavailable();
+  const checked = await checkedNote(note);
+  if (!checked.ok) return { success: false, message: checked.message };
+  const target = await viewedStudentItem(entry, studentId, itemId);
+  if (!target.ok) return { success: false, message: target.message };
+  return writeNote(target.item.id, checked.value, target.t);
 }

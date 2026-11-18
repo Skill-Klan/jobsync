@@ -53,7 +53,7 @@
   },
   "mentor": {
     "title": "Students' plans",
-    "intro": "Pick a mentor to see their students, then a student to look at their plan. You can only look: ticks and notes are the student's.",
+    "intro": "Pick a mentor to see their students, then a student to open their plan. You can tick points and write notes there, just as the student does.",
     "mine": "My students",
     "noMentor": "Without a mentor",
     "mentorsFailed": "The list of mentors could not be loaded. Try again later.",
@@ -67,7 +67,7 @@
     "studentNotAvailable": "This student's plan is not available.",
     "noAccount": "This student has not signed in to SkillKlan Job yet, so there is no plan.",
     "noPlans": "This student has no plan yet.",
-    "viewOnly": "View only: {name}",
+    "planOf": "Plan of {name}",
     "loading": "Loading…",
     "back": "Back to the list",
     "myPlan": "My own plan",

@@ -1,9 +1,10 @@
 // Requirement — D89–D93, D95, D98 (docs/contracts/study-plans-mentors.md):
 //   · the admin and the QA moderator pick a mentor or «Без ментора»; a mentor
 //     also has «Мої студенти»; a student has none of it (the page decides);
-//   · a mentor, then a student, then the student's plan — view only: the ticks
-//     are shown and cannot be changed, no note can be written, the notes can
-//     be read;
+//   · a mentor, then a student, then the student's plan — the viewer may tick
+//     points and write notes there like the student (product decision
+//     2026-11-18, replaces D92 view-only); each write names the chosen entry
+//     and that student;
 //   · a list that could not be loaded says so and shows no student, and is
 //     not the same as «no students»;
 //   · a student who never signed in: no plan, said so; a student with no name
@@ -34,11 +35,21 @@ vi.mock("@/actions/plan.actions", () => ({
   getStudentPlans: vi.fn(),
   setPlanItemDone: vi.fn(),
   setPlanItemNote: vi.fn(),
+  setStudentPlanItemDone: vi.fn(async () => ({ success: true })),
+  setStudentPlanItemNote: vi.fn(async () => ({ success: true })),
 }));
 
 import PlanPage from "@/app/dashboard/plan/page";
 import MentorPlans from "@/components/plans/MentorPlans";
-import { getEntryStudents, getMyPlans, getStudentPlans, setPlanItemDone } from "@/actions/plan.actions";
+import {
+  getEntryStudents,
+  getMyPlans,
+  getStudentPlans,
+  setPlanItemDone,
+  setPlanItemNote,
+  setStudentPlanItemDone,
+  setStudentPlanItemNote,
+} from "@/actions/plan.actions";
 
 const mentors = [
   { mentorId: 1004, name: "Олена Коваль", direction: "QA" },
@@ -130,24 +141,35 @@ describe("the screen", () => {
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
-  it("a student's plan is view only: ticks shown and disabled, the note readable, nothing can be written", async () => {
+  it("a student's plan can be worked in: a tick and a note go to THAT student, never to the viewer's own plan", async () => {
     render(<MentorPlans mentors={mentors} me={null} canPick />);
     const u = userEvent.setup();
     await u.click(screen.getByRole("button", { name: "Олена Коваль · QA" }));
     await u.click(await screen.findByRole("button", { name: "Марія Бондар" }));
     expect(getStudentPlans).toHaveBeenCalledWith({ kind: "mentor", mentorId: 1004 }, 1001);
 
-    expect(await screen.findByRole("heading", { name: "View only: Марія Бондар" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Plan of Марія Бондар" })).toBeInTheDocument();
     await u.click(await screen.findByText("Тема 1"));
     const boxes = await screen.findAllByRole("checkbox");
     expect(boxes).toHaveLength(2);
-    for (const box of boxes) expect(box).toBeDisabled();
+    for (const box of boxes) expect(box).toBeEnabled();
     expect(boxes[0]).toBeChecked();
     expect(boxes[1]).not.toBeChecked();
     expect(screen.getByText("Нотатка студента")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /note/i })).not.toBeInTheDocument();
+
     await u.click(boxes[1]);
+    const itemId = vi.mocked(setStudentPlanItemDone).mock.calls[0][2];
+    expect(setStudentPlanItemDone).toHaveBeenCalledWith({ kind: "mentor", mentorId: 1004 }, 1001, itemId, true);
+    expect(boxes[1]).toBeChecked();
+
+    await u.click(screen.getAllByRole("button", { name: /note/i })[1]);
+    await u.type(screen.getByRole("textbox"), "Перевірено");
+    await u.click(screen.getByRole("button", { name: /save/i }));
+    await waitFor(() =>
+      expect(setStudentPlanItemNote).toHaveBeenCalledWith({ kind: "mentor", mentorId: 1004 }, 1001, expect.any(String), "Перевірено"),
+    );
     expect(setPlanItemDone).not.toHaveBeenCalled();
+    expect(setPlanItemNote).not.toHaveBeenCalled();
   });
 
   it("a student who never signed in, a student with no plan, a plan that cannot be opened — each said, none an empty page", async () => {
@@ -174,11 +196,11 @@ describe("the screen", () => {
     const u = userEvent.setup();
     await u.click(screen.getByRole("button", { name: "Олена Коваль · QA" }));
     await u.click(await screen.findByRole("button", { name: "Марія Бондар" }));
-    await screen.findByRole("heading", { name: "View only: Марія Бондар" });
+    await screen.findByRole("heading", { name: "Plan of Марія Бондар" });
     let release: (v: never) => void = () => {};
     vi.mocked(getStudentPlans).mockReturnValueOnce(new Promise((r) => (release = r as never)));
     await u.click(screen.getByRole("button", { name: "No name (no. 1002)" }));
-    await waitFor(() => expect(screen.queryByRole("heading", { name: "View only: Марія Бондар" })).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByRole("heading", { name: "Plan of Марія Бондар" })).not.toBeInTheDocument());
     release({ success: true, data: { name: "", hasAccount: true, plans: [] } } as never);
   });
 });

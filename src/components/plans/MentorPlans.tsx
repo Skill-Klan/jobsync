@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { getEntryStudents, getStudentPlans } from "@/actions/plan.actions";
+import { getEntryStudents, getStudentPlans, setStudentPlanItemDone, setStudentPlanItemNote } from "@/actions/plan.actions";
 import type { MentorEntry, StudentPlans } from "@/skillklan/mentorPlans";
 import type { Mentor, MentorStudent } from "@/skillklan/cabinetApi";
 import { useTranslations } from "@/i18n/client";
@@ -11,7 +11,7 @@ import PlanView from "./PlanView";
 
 // «Плани студентів» for the admin, the QA moderator and a mentor: pick a mentor
 // (or «Без ментора», or «Мої студенти»), then a student, then look at their
-// plan — view only (D92). The lists are the backend's answers for the signed-in
+// plan, where they may tick points and write notes like the student. The lists are the backend's answers for the signed-in
 // person; a list that could not be loaded says so and shows nothing.
 
 type Choice = { label: string; entry: MentorEntry };
@@ -154,8 +154,11 @@ export default function MentorPlans({
               <PlanView
                 key={studentId}
                 plans={plans.plans}
-                readOnly
-                title={t("mentor.viewOnly", { name: plans.name || t("mentor.noName", { id: studentId ?? 0 }) })}
+                writer={{
+                  done: (itemId, done) => setStudentPlanItemDone(entry!.entry, studentId, itemId, done),
+                  note: (itemId, note) => setStudentPlanItemNote(entry!.entry, studentId, itemId, note),
+                }}
+                title={t("mentor.planOf", { name: plans.name || t("mentor.noName", { id: studentId ?? 0 }) })}
               />
             )}
           </div>

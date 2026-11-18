@@ -16,7 +16,8 @@ student's plan and progress** ([decisions](../decisions.md) D89–D93, D95):
 | admin | any mentor, or «Без ментора» | that mentor's students, or every student without a mentor |
 | QA moderator | a QA mentor, or «Без ментора» | that mentor's students, or QA students without a mentor |
 
-They only look: ticks and notes stay the student's (D92), and giving or taking back a plan stays on
+They may tick points and write notes in a student's plan like the student (D92; this app's SQLite only, no new
+backend call: the same lists decide whose plan they may write to), and giving or taking back a plan stays on
 «Плани студентів» (D93). Mentors don't sign in yet (D89) — **the sign-in contract does not change**: no new
 role, no new field.
 

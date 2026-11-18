@@ -6,7 +6,11 @@
 //   · the viewer is the signed-in person (never an id from the browser); no
 //     session, or an account with no cabinet id, sees nothing;
 //   · fail closed: a list that could not be loaded gives a notice and no plan;
-//   · view only: nothing here writes;
+//   · the viewer may tick points and write notes in that student's plan, the same
+//     fields the student uses (a chosen product decision, 2026-11-18, replaces
+//     D92/D93 view-only) — and only there: not a student the backend's list
+//     does not hold, not a point of another student's plan, not a module/topic;
+//   · reading a plan writes nothing;
 //   · a student who never signed in has no plan here — said so, not an error;
 //   · calls within 30 s share one answer; a failed answer is not kept;
 //   · the plans switch off → every action refuses (and on, the same call works).
@@ -39,8 +43,14 @@ vi.mock("@/skillklan/cabinetApi", async (importOriginal) => ({
   listStudentsWithoutMentor: ctx.without,
 }));
 
-import { getEntryStudents, getStudentPlans } from "@/actions/plan.actions";
+import {
+  getEntryStudents,
+  getStudentPlans,
+  setStudentPlanItemDone,
+  setStudentPlanItemNote,
+} from "@/actions/plan.actions";
 import { assignPlan } from "@/skillklan/plans/assignPlan";
+import { PLAN_NOTE_MAX } from "@/skillklan/plans/tree";
 import { ACCESS_SHARE_MS } from "@/skillklan/accessRecheck";
 
 const prisma = new PrismaClient({ datasources: { db: { url: ctx.url } } });
@@ -196,5 +206,83 @@ describe("the plans switch", () => {
     await setSwitch(true);
     expect((await getEntryStudents(mentorEntry)).success).toBe(true);
     expect((await getStudentPlans(mentorEntry, 1001)).success).toBe(true);
+  });
+});
+
+describe("a viewer ticks and annotates a student's plan", () => {
+  let bobId: string;
+  const firstOf = (userId: string, kind: string) =>
+    prisma.planItem.findFirstOrThrow({ where: { plan: { userId }, kind }, orderBy: { id: "asc" } });
+  const row = (id: string) => prisma.planItem.findUniqueOrThrow({ where: { id } });
+
+  beforeEach(async () => {
+    bobId = (await prisma.user.findFirstOrThrow({ where: { cabinetUserId: 1002 } })).id;
+    await assignPlan(prisma, bobId, "java");
+  });
+
+  it("ticks, unticks and annotates a point of a student from the backend's list", async () => {
+    const item = await firstOf(ann, "item");
+    await expect(setStudentPlanItemDone(mentorEntry, 1001, item.id, true)).resolves.toEqual({ success: true });
+    expect(await row(item.id)).toMatchObject({ done: true, doneAt: expect.any(Date) });
+    await expect(setStudentPlanItemDone(mentorEntry, 1001, item.id, false)).resolves.toEqual({ success: true });
+    expect(await row(item.id)).toMatchObject({ done: false, doneAt: null });
+    await expect(setStudentPlanItemNote(mentorEntry, 1001, item.id, "  перевірено  ")).resolves.toEqual({ success: true });
+    expect((await row(item.id)).note).toBe("перевірено");
+    await setStudentPlanItemNote(mentorEntry, 1001, item.id, "  ");
+    expect((await row(item.id)).note).toBeNull();
+  });
+
+  it("a student the backend's list does not hold — refused, nothing written", async () => {
+    const bobs = await firstOf(bobId, "item");
+    await expect(setStudentPlanItemDone(mentorEntry, 1002, bobs.id, true)).resolves.toMatchObject({ success: false });
+    await expect(setStudentPlanItemNote(mentorEntry, 1002, bobs.id, "x")).resolves.toMatchObject({ success: false });
+    expect(await row(bobs.id)).toMatchObject({ done: false, note: null });
+  });
+
+  it("a point of ANOTHER student's plan, named under an allowed student — not found", async () => {
+    const bobs = await firstOf(bobId, "item");
+    await expect(setStudentPlanItemDone(mentorEntry, 1001, bobs.id, true)).resolves.toMatchObject({ success: false });
+    await expect(setStudentPlanItemNote(mentorEntry, 1001, bobs.id, "x")).resolves.toMatchObject({ success: false });
+    expect(await row(bobs.id)).toMatchObject({ done: false, note: null });
+  });
+
+  it.each(["module", "topic", "group", "homework", "homework_ref"])("a %s cannot be ticked or annotated", async (kind) => {
+    const item = await firstOf(ann, kind);
+    await expect(setStudentPlanItemDone(mentorEntry, 1001, item.id, true)).resolves.toMatchObject({ success: false });
+    await expect(setStudentPlanItemNote(mentorEntry, 1001, item.id, "x")).resolves.toMatchObject({ success: false });
+    expect(await row(item.id)).toMatchObject({ done: false, note: null });
+  });
+
+  it("the backend did not answer — fail closed", async () => {
+    const item = await firstOf(ann, "item");
+    ctx.students.mockResolvedValue(null);
+    await expect(setStudentPlanItemDone(mentorEntry, 1001, item.id, true)).resolves.toMatchObject({ success: false });
+    expect((await row(item.id)).done).toBe(false);
+  });
+
+  it("no session, or an account without a cabinet id — nothing is written", async () => {
+    const item = await firstOf(ann, "item");
+    as(null);
+    await expect(setStudentPlanItemDone(mentorEntry, 1001, item.id, true)).resolves.toMatchObject({ success: false });
+    as((await prisma.user.findFirstOrThrow({ where: { cabinetUserId: null } })).id);
+    await expect(setStudentPlanItemNote(mentorEntry, 1001, item.id, "x")).resolves.toMatchObject({ success: false });
+    expect(await row(item.id)).toMatchObject({ done: false, note: null });
+  });
+
+  it("bad input — refused: a non-boolean tick, a note over the limit, a bad entry or student id", async () => {
+    const item = await firstOf(ann, "item");
+    await expect(setStudentPlanItemDone(mentorEntry, 1001, item.id, "yes")).resolves.toMatchObject({ success: false });
+    await expect(setStudentPlanItemNote(mentorEntry, 1001, item.id, "я".repeat(PLAN_NOTE_MAX + 1))).resolves.toMatchObject({ success: false });
+    await expect(setStudentPlanItemDone({ kind: "x" }, 1001, item.id, true)).resolves.toMatchObject({ success: false });
+    await expect(setStudentPlanItemDone(mentorEntry, "1001", item.id, true)).resolves.toMatchObject({ success: false });
+    expect(await row(item.id)).toMatchObject({ done: false, note: null });
+  });
+
+  it("the plans switch off — refused", async () => {
+    const item = await firstOf(ann, "item");
+    await setSwitch(false);
+    await expect(setStudentPlanItemDone(mentorEntry, 1001, item.id, true)).resolves.toMatchObject({ success: false });
+    await expect(setStudentPlanItemNote(mentorEntry, 1001, item.id, "x")).resolves.toMatchObject({ success: false });
+    expect((await row(item.id)).done).toBe(false);
   });
 });
