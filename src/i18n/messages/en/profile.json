@@ -66,7 +66,9 @@
     "updated": "Resume title has been updated successfully",
     "created": "Resume title has been created successfully",
     "titleLabel": "Resume Title",
-    "fileLabel": "Upload Resume (Optional)",
+    "fileLabel": "Resume file (optional)",
+    "fileHint": "PDF or DOCX. Without a file the resume starts empty and you add the sections yourself.",
+    "autoFillHint": "AI splits the file into sections. You review each item and accept the ones you want.",
     "autoFill": "Auto-fill with AI",
     "aiUnavailable": "AI unavailable —",
     "configureAi": "Configure AI under Settings"

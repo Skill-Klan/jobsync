@@ -96,7 +96,9 @@ describe("documents list (Профіль)", () => {
     expect(within(dialog).getByRole("heading", { name: "Створити резюме" })).toBeInTheDocument();
     expect(within(dialog).getByText("Створіть нове резюме для свого профілю.")).toBeInTheDocument();
     expect(within(dialog).getByText("Назва резюме")).toBeInTheDocument();
-    expect(within(dialog).getByText("Завантажити резюме (необовʼязково)")).toBeInTheDocument();
+    expect(within(dialog).getByText("Файл резюме (необовʼязково)")).toBeInTheDocument();
+    // Without a file the dialog says what happens: an empty resume, sections added by hand.
+    expect(within(dialog).getByText(/Без файлу резюме створиться порожнім/)).toBeInTheDocument();
     expect(within(dialog).getByRole("button", { name: "Скасувати" })).toBeInTheDocument();
     expect(within(dialog).getByRole("button", { name: "Зберегти" })).toBeInTheDocument();
     expect(englishLeft(document.body.textContent)).toEqual([]);
