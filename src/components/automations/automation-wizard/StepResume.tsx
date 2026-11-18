@@ -32,11 +32,10 @@ export function StepResume({
   resumes: WizardResume[];
 }) {
   const t = useTranslations("automations");
-  const selectableCount = resumes.filter((r) =>
-    hasMinResumeSections(r.sectionCount),
+  const incompleteCount = resumes.filter(
+    (r) => !hasMinResumeSections(r.sectionCount),
   ).length;
-  const incompleteCount = resumes.length - selectableCount;
-  const min = APP_CONSTANTS.MIN_RESUME_SECTIONS_FOR_SELECTION;
+  const min = APP_CONSTANTS.MIN_RESUME_SECTIONS_FOR_AI;
 
   return (
     <>
@@ -54,11 +53,7 @@ export function StepResume({
               </FormControl>
               <SelectContent>
                 {resumes.map((resume) => (
-                  <SelectItem
-                    key={resume.id}
-                    value={resume.id}
-                    disabled={!hasMinResumeSections(resume.sectionCount)}
-                  >
+                  <SelectItem key={resume.id} value={resume.id}>
                     {resume.title}
                     {hasMinResumeSections(resume.sectionCount) ? null : (
                       <IncompleteResumeHint />
@@ -81,10 +76,8 @@ export function StepResume({
       )}
       {resumes.length > 0 && incompleteCount > 0 && (
         <p className="text-sm text-orange-600 dark:text-orange-500">
-          {incompleteCount === resumes.length
-            ? t("wizard.resume.noneUsable")
-            : t("wizard.resume.someUnusable", { count: incompleteCount })}{" "}
-          {t.rich("wizard.resume.needsSections", {
+          {t.rich("wizard.resume.thinNote", {
+            count: incompleteCount,
             min,
             profile: (chunks) => (
               <Link href="/dashboard/profile" className="underline">

@@ -38,10 +38,7 @@ import { IncompleteResumeHint } from "../IncompleteResumeHint";
 import { Badge } from "../ui/badge";
 import { StatusBadge } from "../StatusBadge";
 import { DOCUMENT_TYPE_BADGE_COLORS } from "@/lib/badge-colors";
-import {
-  hasMinResumeSections,
-  useWarnInsufficientResumeSections,
-} from "@/utils/resumeSections.utils";
+import { hasMinResumeSections } from "@/lib/resumeSections";
 
 // "PP" is what the table showed before translation; Ukrainian puts the day first.
 const TABLE_DATE: DatePattern = { en: "PP", uk: "d MMM yyyy" };
@@ -66,7 +63,6 @@ function DocumentTable({
   defaultResumeId,
 }: DocumentTableProps) {
   const t = useTranslations("profile");
-  const warnInsufficientResumeSections = useWarnInsufficientResumeSections();
   const formatDate = useFormatDate();
   const [alertOpen, setAlertOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<ProfileDocument>();
@@ -103,10 +99,6 @@ function DocumentTable({
 
   const onSetDefault = (doc: ProfileDocument) => {
     if (!doc.id) return;
-    if (!hasMinResumeSections(doc.sectionCount)) {
-      warnInsufficientResumeSections("setDefault");
-      return;
-    }
     // Confirm whenever a different resume already holds the default. Decided by
     // defaultResumeId (not the loaded-docs lookup) so it fires even when the
     // current default lives on a not-yet-loaded page.
@@ -120,10 +112,6 @@ function DocumentTable({
 
   const onCopyResume = (doc: ProfileDocument) => {
     if (!doc.id) return;
-    if (!hasMinResumeSections(doc.sectionCount)) {
-      warnInsufficientResumeSections("copy");
-      return;
-    }
     copyResume(doc);
   };
 

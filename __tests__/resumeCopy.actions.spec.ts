@@ -232,7 +232,9 @@ describe("copyResume", () => {
     );
   });
 
-  it("rejects a source resume with too few sections", async () => {
+  // Requirement — the owner, 2026-11: the AI is optional, so a resume with
+  // a single section may be copied (it used to be refused below two).
+  it("copies a source resume with a single section", async () => {
     (prisma.resume.findUnique as any).mockResolvedValue({
       ...source,
       ResumeSections: [source.ResumeSections[0]],
@@ -240,8 +242,8 @@ describe("copyResume", () => {
 
     const result = await copyResume("resume-1", "Backend Resume (Copy)");
 
-    expect(result.success).toBe(false);
-    expect(prisma.$transaction).not.toHaveBeenCalled();
+    expect(result.success).toBe(true);
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
   });
 
   it("rejects a resume owned by another user", async () => {

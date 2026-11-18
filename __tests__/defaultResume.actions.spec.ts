@@ -83,9 +83,7 @@ describe("Default Resume Actions", () => {
   describe("setDefaultResume", () => {
     it("sets the pointer to a resume the user owns", async () => {
       (getCurrentUser as any).mockResolvedValue(mockUser);
-      (prisma.resume.findFirst as any).mockResolvedValue({
-        _count: { ResumeSections: 2 },
-      });
+      (prisma.resume.findFirst as any).mockResolvedValue({ id: "resume-1" });
       (prisma.user.update as any).mockResolvedValue({});
 
       const result = await setDefaultResume("resume-1");
@@ -93,7 +91,7 @@ describe("Default Resume Actions", () => {
       expect(result).toEqual({ success: true });
       expect(prisma.resume.findFirst).toHaveBeenCalledWith({
         where: { id: "resume-1", profile: { userId: mockUser.id } },
-        select: { _count: { select: { ResumeSections: true } } },
+        select: { id: true },
       });
       expect(prisma.user.update).toHaveBeenCalledWith({
         where: { id: mockUser.id },
@@ -101,19 +99,20 @@ describe("Default Resume Actions", () => {
       });
     });
 
-    it("rejects a resume below the minimum section count and leaves the pointer unchanged", async () => {
+    // Requirement — the owner, 2026-11: the AI is optional, so a resume with
+    // few sections (or only an attached file) may still be the default.
+    it("sets the pointer to a resume with few sections too", async () => {
       (getCurrentUser as any).mockResolvedValue(mockUser);
-      (prisma.resume.findFirst as any).mockResolvedValue({
-        _count: { ResumeSections: 1 },
-      });
+      (prisma.resume.findFirst as any).mockResolvedValue({ id: "sparse-resume" });
+      (prisma.user.update as any).mockResolvedValue({});
 
       const result = await setDefaultResume("sparse-resume");
 
-      expect(result).toEqual({
-        success: false,
-        message: "Add at least 2 sections before setting this resume as default.",
+      expect(result).toEqual({ success: true });
+      expect(prisma.user.update).toHaveBeenCalledWith({
+        where: { id: mockUser.id },
+        data: { defaultResumeId: "sparse-resume" },
       });
-      expect(prisma.user.update).not.toHaveBeenCalled();
     });
 
     it("rejects a resume the user does not own and leaves the pointer unchanged", async () => {

@@ -5,16 +5,16 @@ describe("hasMinResumeSections", () => {
   it("returns false below the minimum", () => {
     expect(hasMinResumeSections(0)).toBe(false);
     expect(
-      hasMinResumeSections(APP_CONSTANTS.MIN_RESUME_SECTIONS_FOR_SELECTION - 1),
+      hasMinResumeSections(APP_CONSTANTS.MIN_RESUME_SECTIONS_FOR_AI - 1),
     ).toBe(false);
   });
 
   it("returns true at or above the minimum", () => {
     expect(
-      hasMinResumeSections(APP_CONSTANTS.MIN_RESUME_SECTIONS_FOR_SELECTION),
+      hasMinResumeSections(APP_CONSTANTS.MIN_RESUME_SECTIONS_FOR_AI),
     ).toBe(true);
     expect(
-      hasMinResumeSections(APP_CONSTANTS.MIN_RESUME_SECTIONS_FOR_SELECTION + 1),
+      hasMinResumeSections(APP_CONSTANTS.MIN_RESUME_SECTIONS_FOR_AI + 1),
     ).toBe(true);
   });
 

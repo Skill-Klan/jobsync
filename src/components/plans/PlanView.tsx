@@ -8,12 +8,20 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { setPlanItemDone, setPlanItemNote, type PlanView as PlanData } from "@/actions/plan.actions";
+
+// Where a tick or a note goes: the student's own actions by default; a mentor
+// (or the admin) looking at a student's plan passes actions bound to that student.
+export type PlanWriter = {
+  done: (itemId: string, done: boolean) => ReturnType<typeof setPlanItemDone>;
+  note: (itemId: string, note: string) => ReturnType<typeof setPlanItemNote>;
+};
+const OWN_WRITER: PlanWriter = { done: setPlanItemDone, note: setPlanItemNote };
 import { useTranslations } from "@/i18n/client";
 import { toastError, toastSuccess } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { PLAN_NOTE_MAX, progressOf, type PlanItemView } from "@/skillklan/plans/tree";
 
-// «Навчальний план»: the student's own copy of a course plan — a tab per module
+// «Навчальний план»: a student's copy of a course plan — a tab per module
 // with its percent, topics that open, a tick and a note on every point and
 // homework task. The progress is counted here from the ticks, never stored.
 
@@ -31,7 +39,7 @@ function shortModuleTitle(title: string): string {
 
 type Edit = (id: string, change: (item: PlanItemView) => PlanItemView) => void;
 
-export default function PlanView({ plans, readOnly = false, title }: { plans: PlanData[]; readOnly?: boolean; title?: string }) {
+export default function PlanView({ plans, writer = OWN_WRITER, title }: { plans: PlanData[]; writer?: PlanWriter; title?: string }) {
   const t = useTranslations("plans");
   const [state, setState] = useState(plans);
   const edit: Edit = (id, change) =>
@@ -44,13 +52,13 @@ export default function PlanView({ plans, readOnly = false, title }: { plans: Pl
     <div className="space-y-8">
       <h1 className="text-2xl font-semibold">{title ?? t("student.title")}</h1>
       {state.map((plan) => (
-        <PlanSection key={plan.id} plan={plan} edit={edit} readOnly={readOnly} />
+        <PlanSection key={plan.id} plan={plan} edit={edit} writer={writer} />
       ))}
     </div>
   );
 }
 
-function PlanSection({ plan, edit, readOnly }: { plan: PlanData; edit: Edit; readOnly: boolean }) {
+function PlanSection({ plan, edit, writer }: { plan: PlanData; edit: Edit; writer: PlanWriter }) {
   const t = useTranslations("plans");
   const overall = progressOf({ kind: "module", done: false, children: plan.modules });
   return (
@@ -77,7 +85,7 @@ function PlanSection({ plan, edit, readOnly }: { plan: PlanData; edit: Edit; rea
           <TabsContent key={module.id} value={module.id} className="space-y-3 pt-2">
             <h3 className="font-medium">{module.title}</h3>
             {module.children.map((topic) => (
-              <Topic key={topic.id} topic={topic} edit={edit} readOnly={readOnly} />
+              <Topic key={topic.id} topic={topic} edit={edit} writer={writer} />
             ))}
           </TabsContent>
         ))}
@@ -91,7 +99,7 @@ function Counter({ item }: { item: PlanItemView }) {
   return <span className="text-sm text-muted-foreground">{`${done}/${total}`}</span>;
 }
 
-function Topic({ topic, edit, readOnly }: { topic: PlanItemView; edit: Edit; readOnly: boolean }) {
+function Topic({ topic, edit, writer }: { topic: PlanItemView; edit: Edit; writer: PlanWriter }) {
   const t = useTranslations("plans");
   const [open, setOpen] = useState(false);
   return (
@@ -121,7 +129,7 @@ function Topic({ topic, edit, readOnly }: { topic: PlanItemView; edit: Edit; rea
               <div key={child.id} className="space-y-1">
                 <h4 className="text-sm font-medium">{child.title}</h4>
                 {child.children.map((point) => (
-                  <Point key={point.id} item={point} edit={edit} readOnly={readOnly} />
+                  <Point key={point.id} item={point} edit={edit} writer={writer} />
                 ))}
               </div>
             );
@@ -134,7 +142,7 @@ function Topic({ topic, edit, readOnly }: { topic: PlanItemView; edit: Edit; rea
                   <Counter item={child} />
                 </div>
                 {child.children.map((task) => (
-                  <Point key={task.id} item={task} edit={edit} readOnly={readOnly} />
+                  <Point key={task.id} item={task} edit={edit} writer={writer} />
                 ))}
               </div>
             );
@@ -146,16 +154,16 @@ function Topic({ topic, edit, readOnly }: { topic: PlanItemView; edit: Edit; rea
               </p>
             );
           }
-          return <Point key={child.id} item={child} edit={edit} readOnly={readOnly} />;
+          return <Point key={child.id} item={child} edit={edit} writer={writer} />;
         })}
       </CollapsibleContent>
     </Collapsible>
   );
 }
 
-// readOnly: a mentor, the admin or the QA moderator looking at a student's plan
-// (D92) — the ticks are shown, never changed, and the note can only be read.
-function Point({ item, edit, readOnly }: { item: PlanItemView; edit: Edit; readOnly: boolean }) {
+// A student, or a mentor / the admin / the QA moderator working in a student's
+// plan, ticks and annotates the same fields; no author is kept.
+function Point({ item, edit, writer }: { item: PlanItemView; edit: Edit; writer: PlanWriter }) {
   const t = useTranslations("plans");
   const [, startTransition] = useTransition();
   const [editing, setEditing] = useState(false);
@@ -165,7 +173,7 @@ function Point({ item, edit, readOnly }: { item: PlanItemView; edit: Edit; readO
     const before = item.done;
     edit(item.id, (i) => ({ ...i, done }));
     startTransition(async () => {
-      const result = await setPlanItemDone(item.id, done).catch(() => null);
+      const result = await writer.done(item.id, done).catch(() => null);
       if (!result?.success) {
         edit(item.id, (i) => ({ ...i, done: before }));
         toastError(result?.message);
@@ -175,7 +183,7 @@ function Point({ item, edit, readOnly }: { item: PlanItemView; edit: Edit; readO
 
   const saveNote = () => {
     startTransition(async () => {
-      const result = await setPlanItemNote(item.id, draft).catch(() => null);
+      const result = await writer.note(item.id, draft).catch(() => null);
       if (result?.success) {
         const note = draft.trim() === "" ? null : draft.trim();
         edit(item.id, (i) => ({ ...i, note }));
@@ -194,7 +202,6 @@ function Point({ item, edit, readOnly }: { item: PlanItemView; edit: Edit; readO
         <input
           type="checkbox"
           checked={item.done}
-          disabled={readOnly}
           onChange={(e) => tick(e.target.checked)}
           aria-label={t("student.tickLabel", { title: item.title })}
           className="mt-1 h-4 w-4 shrink-0 accent-primary"
@@ -202,7 +209,6 @@ function Point({ item, edit, readOnly }: { item: PlanItemView; edit: Edit; readO
         <span className={cn("flex-1 whitespace-pre-line text-sm", item.done && "text-muted-foreground line-through")}>
           {item.title}
         </span>
-        {!readOnly && (
         <Button
           type="button"
           variant="ghost"
@@ -213,12 +219,11 @@ function Point({ item, edit, readOnly }: { item: PlanItemView; edit: Edit; readO
         >
           <StickyNote className="h-4 w-4" />
         </Button>
-        )}
       </div>
       {item.note && !editing && (
         <p className="ml-6 whitespace-pre-line rounded bg-muted px-2 py-1 text-sm">{item.note}</p>
       )}
-      {editing && !readOnly && (
+      {editing && (
         <div className="ml-6 space-y-2">
           <Textarea
             autoFocus

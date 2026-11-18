@@ -13,7 +13,7 @@ import { ACCESS_SHARE_MS } from "./accessRecheck";
 import { buildPlanTree } from "./plans/tree";
 
 // «Навчальний план» for the admin, the QA moderator and a mentor: mentor → their
-// students → a student's plan, view only (D89–D93, D98). Which mentors and
+// students → a student's plan (D89–D93, D98); the viewer may tick and annotate it. Which mentors and
 // which students a viewer may see is the backend's answer, asked for the viewer
 // whose session this is — never for an id the browser sends (contract:
 // docs/contracts/study-plans-mentors.md). Nothing from the backend is stored.
@@ -90,15 +90,28 @@ export type StudentPlans = {
   plans: { id: string; track: string; title: string; modules: ReturnType<typeof buildPlanTree> }[];
 };
 
-// One student's plans — only if the backend's list for this entry has them.
-// The list is asked again (it shares one answer for 30 s), so a changed
-// address cannot open the plan of someone who is not theirs.
-export async function loadStudentPlans(viewer: number, entry: MentorEntry, studentId: unknown): Promise<StudentPlans | null> {
+// The student a viewer may open — only if the backend's list for this entry has
+// them. The list is asked again (it shares one answer for 30 s), so a changed
+// address cannot open the plan of someone who is not theirs. `userId` is null
+// for a student who never signed in here.
+export async function resolveStudent(
+  viewer: number,
+  entry: MentorEntry,
+  studentId: unknown,
+): Promise<{ name: string; userId: string | null } | null> {
   if (!Number.isSafeInteger(studentId) || (studentId as number) <= 0) return null;
   const students = await loadEntryStudents(viewer, entry);
   const student = students?.find((s) => s.userId === studentId);
   if (!student) return null;
   const user = await prisma.user.findFirst({ where: { cabinetUserId: student.userId }, select: { id: true } });
+  return { name: student.name, userId: user?.id ?? null };
+}
+
+// One student's plans.
+export async function loadStudentPlans(viewer: number, entry: MentorEntry, studentId: unknown): Promise<StudentPlans | null> {
+  const student = await resolveStudent(viewer, entry, studentId);
+  if (!student) return null;
+  const user = student.userId ? { id: student.userId } : null;
   if (!user) return { name: student.name, hasAccount: false, plans: [] };
   const plans = await prisma.plan.findMany({
     where: { userId: user.id },

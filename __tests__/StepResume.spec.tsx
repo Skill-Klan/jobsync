@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { useForm } from "react-hook-form";
 import { Form } from "@/components/ui/form";
 import { StepResume } from "@/components/automations/automation-wizard/StepResume";
@@ -20,19 +21,28 @@ describe("StepResume", () => {
     expect(screen.getByText(/No resumes found/)).toBeInTheDocument();
   });
 
-  it("explains that resumes need more content when all are incomplete", () => {
+  // Requirement — the owner, 2026-11: a resume is no longer refused for having
+  // few sections; the AI is optional, so the person is told what a thin resume
+  // cannot do instead of being stopped.
+  it("keeps an incomplete resume selectable and says jobs will not be scored for it", async () => {
+    // jsdom has no pointer capture or scrolling, which Radix Select calls
+    window.HTMLElement.prototype.hasPointerCapture = vi.fn();
+    window.HTMLElement.prototype.scrollIntoView = vi.fn();
+    const user = userEvent.setup({ skipHover: true });
     render(
       <Harness resumes={[{ id: "r1", title: "Draft", sectionCount: 0 }]} />,
     );
 
     expect(screen.queryByText(/No resumes found/)).not.toBeInTheDocument();
-    expect(screen.getByText(/needs at least 2 sections/)).toBeInTheDocument();
+    expect(screen.getByText(/too few sections/)).toBeInTheDocument();
+    await user.click(screen.getByRole("combobox"));
+    expect(await screen.findByRole("option", { name: /Draft/ })).not.toHaveAttribute("aria-disabled", "true");
   });
 
   it("shows no warning when every resume is complete", () => {
     render(<Harness resumes={[{ id: "r1", title: "CV", sectionCount: 3 }]} />);
 
-    expect(screen.queryByText(/needs at least/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/too few sections/)).not.toBeInTheDocument();
     expect(screen.queryByText(/No resumes found/)).not.toBeInTheDocument();
   });
 });

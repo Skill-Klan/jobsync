@@ -67,8 +67,8 @@ Only decisions that matter for code are listed.
 | D89 | Mentors **don't sign in yet**. The first stage is for the admin and the QA moderator: mentor → their students → a student's plan. |
 | D90, D95 | The admin sees every mentor and every student without a mentor; the QA moderator — **QA mentors and QA students without a mentor only**. |
 | D91 | Students without a mentor are a separate entry, «Без ментора». |
-| D92 | The admin and the QA moderator **only look** at a student's plan; ticks and notes stay the student's. |
-| D93 | Giving and taking back a plan stays on «Плани студентів»; the mentor path is view-only. |
+| D92 | The admin, the QA moderator and a mentor **work in** a student's plan like the student: they tick points and write notes in the same fields, no author is kept (changed 2026-11-18 from view-only; usually only the mentor does it, for the student it is optional). |
+| D93 | Giving and taking back a plan stays on «Плани студентів»; the mentor path only ticks and annotates, it never gives or takes back. |
 | D98 | An admin or a QA moderator who is a mentor sees **their own students** and their plans («My students»); the test mentor too. Other mentors still don't sign in (D89). |
 | D102 | The colleague builds this app's side of «My students» and the test mentor's sign-in; the agent — the backend, the cabinet and the contracts. |
 

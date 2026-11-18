@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import DocumentTable from "@/components/profile/ResumeTable";
 const HINT =
-  "Add at least 2 sections to use this resume when adding a job or in an automation. An attached file does not count.";
+  "Fewer than 2 sections: the AI features (job match, review, cover letter) are not available for this resume. You can still use the resume without them. An attached file does not count.";
 
 vi.mock("@/actions/profile.actions", () => ({
   deleteResumeById: vi.fn(),

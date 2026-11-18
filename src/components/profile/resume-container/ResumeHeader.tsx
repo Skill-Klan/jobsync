@@ -2,10 +2,6 @@
 import type { RefObject } from "react";
 import { ArrowLeft, FileDown, MoreVertical, Sparkles, Star } from "lucide-react";
 import type { Resume } from "@/models/profile.model";
-import {
-  hasMinResumeSections,
-  useWarnInsufficientResumeSections,
-} from "@/utils/resumeSections.utils";
 import { Badge } from "../../ui/badge";
 import { Button } from "../../ui/button";
 import { CardTitle } from "../../ui/card";
@@ -39,7 +35,6 @@ export function ResumeHeader({
   onSetDefault: () => void;
 }) {
   const t = useTranslations("profile");
-  const warnInsufficientResumeSections = useWarnInsufficientResumeSections();
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-2">
@@ -94,13 +89,7 @@ export function ResumeHeader({
             {!isDefault && (
               <DropdownMenuItem
                 className="cursor-pointer"
-                onClick={() => {
-                  if (!hasMinResumeSections(resume.ResumeSections?.length)) {
-                    warnInsufficientResumeSections("setDefault");
-                    return;
-                  }
-                  onSetDefault();
-                }}
+                onClick={onSetDefault}
               >
                 <Star className="h-4 w-4 mr-2" />
                 {t("buttons.setAsDefault")}

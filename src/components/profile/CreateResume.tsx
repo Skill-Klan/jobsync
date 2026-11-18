@@ -252,6 +252,11 @@ function CreateResume({
                         }}
                       />
                     </FormControl>
+                    {!errors.file?.message && (
+                      <p className="text-xs text-muted-foreground">
+                        {t("createResume.fileHint")}
+                      </p>
+                    )}
                     <FormMessage>
                       {errors.file?.message && (
                         <span className="text-red-500">
@@ -266,21 +271,27 @@ function CreateResume({
 
             {/* AUTO-FILL TOGGLE */}
             {hasFile && (
-              <div className="md:col-span-2 flex items-center gap-3">
+              <div className="md:col-span-2 flex items-start gap-3 rounded-lg border bg-muted/40 p-4">
                 <Switch
                   id="auto-fill"
                   checked={autoFill && aiAvailable}
                   disabled={!aiAvailable}
+                  className="mt-0.5"
                   onCheckedChange={setAutoFill}
                 />
                 <label
                   htmlFor="auto-fill"
-                  className="text-sm cursor-pointer select-none"
+                  className="text-sm cursor-pointer select-none space-y-1"
                 >
-                  <span className="flex items-center gap-1">
+                  <span className="flex items-center gap-1 font-medium">
                     <Sparkles className="h-3.5 w-3.5" />
                     {t("createResume.autoFill")}
                   </span>
+                  {aiAvailable && (
+                    <span className="text-muted-foreground text-xs block">
+                      {t("createResume.autoFillHint")}
+                    </span>
+                  )}
                   {!aiAvailable && (
                     <span className="text-muted-foreground text-xs block mt-0.5">
                       {t("createResume.aiUnavailable")}{" "}
@@ -297,13 +308,12 @@ function CreateResume({
               </div>
             )}
 
-            <div className="md:col-span-2 mt-4">
-              <DialogFooter>
+            <div className="md:col-span-2 mt-2">
+              <DialogFooter className="gap-2">
                 <Button
                   type="reset"
                   variant="outline"
-                  className="mt-2 md:mt-0"
-                  onClick={closeDialog}
+                                    onClick={closeDialog}
                 >
                   {t("buttons.cancel")}
                 </Button>
