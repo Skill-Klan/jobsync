@@ -94,9 +94,7 @@
       "placeholder": "Select a resume",
       "hint": "Jobs will be matched against this resume",
       "noResumes": "No resumes found. Please create a resume with enough content in your profile first.",
-      "noneUsable": "None of your resumes can be used yet.",
-      "someUnusable": "{count} of your resumes can't be selected.",
-      "needsSections": "A resume needs at least {min} sections — an attached file does not count. Fill it in under <profile>Profile</profile>."
+      "thinNote": "{count, plural, one {# resume has} other {# resumes have}} too few sections (fewer than {min}): jobs will not be scored by AI for them. Fill them in under <profile>Profile</profile>."
     },
     "matching": {
       "label": "Match Threshold: {value}%",

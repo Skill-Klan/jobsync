@@ -57,7 +57,7 @@ import { getResumeList } from "@/actions/profile.actions";
 import { getCoverLetterList } from "@/actions/coverLetter.actions";
 import { TagInput } from "./TagInput";
 import { IncompleteResumeHint } from "../IncompleteResumeHint";
-import { hasMinResumeSections, MIN_SECTIONS } from "@/lib/resumeSections";
+import { hasMinResumeSections } from "@/lib/resumeSections";
 import { APP_CONSTANTS, APPLIED_STATUS_VALUES } from "@/lib/constants";
 import {
   getFromLocalStorage,
@@ -254,11 +254,6 @@ export function AddJob({
   };
 
   function onSubmit(data: z.infer<typeof AddJobFormSchema>) {
-    const selected = resumes.find((r) => r.id === data.resume);
-    if (selected && !hasMinResumeSections(selected._count?.ResumeSections)) {
-      toastError(tc("resumeSections.incompleteHint", MIN_SECTIONS));
-      return;
-    }
     // "Not selected" leaves "" in the form; the server gets no resume at all.
     const job = {
       ...data,
@@ -623,7 +618,6 @@ export function AddJob({
                               ? r
                               : {
                                   ...r,
-                                  disabled: true,
                                   suffix: <IncompleteResumeHint />,
                                 },
                           )}

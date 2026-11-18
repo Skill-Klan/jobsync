@@ -117,11 +117,6 @@
   },
   "genericError": "Something went wrong. Please try again.",
   "resumeSections": {
-    "notEnoughTitle": "Not enough content",
-    "notEnough": {
-      "setDefault": "Add at least {min} sections before setting this resume as default.",
-      "copy": "Add at least {min} sections before creating a copy."
-    },
-    "incompleteHint": "Add at least {min} sections to use this resume when adding a job or in an automation. An attached file does not count."
+    "incompleteHint": "Fewer than {min} sections: the AI features (job match, review, cover letter) are not available for this resume. You can still use the resume without them. An attached file does not count."
   }
 }

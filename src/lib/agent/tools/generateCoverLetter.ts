@@ -91,7 +91,7 @@ export function buildGenerateCoverLetterTool(ctx: CoverLetterContext) {
           status: "unreadable",
           what: "resume",
           title: resume.title,
-          reason: `It needs at least ${APP_CONSTANTS.MIN_RESUME_SECTIONS_FOR_SELECTION} sections with real content. Fill it in under Profile → Resumes and try again.`,
+          reason: `It needs at least ${APP_CONSTANTS.MIN_RESUME_SECTIONS_FOR_AI} sections with real content. Fill it in under Profile → Resumes and try again.`,
         };
       }
 

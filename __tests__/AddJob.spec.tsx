@@ -545,10 +545,10 @@ describe("AddJob Component - Edit Mode", () => {
     });
   });
 
-  // Requirement — product notes, 2026-11-03: a student whose resume was still
-  // incomplete could not save the job, and the picker had no way back to «no
-  // resume». The picker now offers «Not selected»; choosing it saves the job
-  // without a resume.
+  // Requirement — product notes, 2026-11-03: the picker offers «Not selected»;
+  // choosing it saves the job without a resume. Owner, 2026-11: a resume with
+  // few sections is no longer refused — the AI is optional — so a job can be
+  // saved with it too.
   describe("a job with an unfinished resume", () => {
     const unfinished = { id: "resume-1", title: "My CV", _count: { ResumeSections: 0 } };
 
@@ -562,15 +562,16 @@ describe("AddJob Component - Edit Mode", () => {
       return userEvent.setup({ skipHover: true });
     }
 
-    it("is refused while that resume stays chosen (the old behaviour is kept)", async () => {
+    it("is saved with that resume: few sections do not stop it", async () => {
       vi.mocked(getResumeList).mockResolvedValue({ success: true, data: [unfinished] } as never);
       const user = await open();
       await waitFor(() => expect(getResumeList).toHaveBeenCalled());
 
       await user.click(screen.getByTestId("save-job-btn"));
 
-      expect(toastError).toHaveBeenCalled();
-      expect(updateJob).not.toHaveBeenCalled();
+      await waitFor(() => expect(updateJob).toHaveBeenCalledTimes(1));
+      expect(vi.mocked(updateJob).mock.calls[0][0].resume).toBe("resume-1");
+      expect(toastError).not.toHaveBeenCalled();
     });
 
     it("saves once «Not selected» is chosen, with no resume sent", async () => {

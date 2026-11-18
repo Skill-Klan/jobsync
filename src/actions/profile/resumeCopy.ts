@@ -1,7 +1,6 @@
 "use server";
 import prisma from "@/lib/db";
 import { handleError } from "@/lib/utils";
-import { hasMinResumeSections, MIN_SECTIONS } from "@/lib/resumeSections";
 import { buildCopyTitle, ensureUniqueTitle } from "@/lib/resumeCopyTitle";
 import { requireUser, resumeCopySelect } from "./shared";
 import { getTranslations } from "@/i18n/server";
@@ -55,11 +54,6 @@ export const copyResume = async (
     });
     if (!source) {
       throw new Error(t("errors.resumeNotFoundOrDenied"));
-    }
-
-    if (!hasMinResumeSections(source.ResumeSections.length)) {
-      const tc = await getTranslations("common");
-      throw new Error(tc("resumeSections.notEnough.copy", MIN_SECTIONS));
     }
 
     const existing = await prisma.resume.findMany({

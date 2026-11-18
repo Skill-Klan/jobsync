@@ -31,7 +31,9 @@ export const APP_CONSTANTS = {
   MAX_QUESTION_ANSWER_LENGTH: 5000,
   MAX_SKILL_CATEGORIES: 8,
   MAX_SKILLS_PER_CATEGORY: 20,
-  MIN_RESUME_SECTIONS_FOR_SELECTION: 2,
+  // Below this a resume is too thin for the AI features (job match, review, cover
+  // letter); it can still be used for a job, an automation and as the default.
+  MIN_RESUME_SECTIONS_FOR_AI: 2,
   RESUME_PICKER_LIMIT: 100,
   ACTIVITY_MAX_DURATION_MINUTES: 8 * 60, // 8 Hours
   ACTIVITY_MAX_DURATION_MS: 8 * 60 * 60 * 1000, // 8 hours in milliseconds

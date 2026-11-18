@@ -1,7 +1,6 @@
 "use server";
 import prisma from "@/lib/db";
 import { handleError } from "@/lib/utils";
-import { hasMinResumeSections, MIN_SECTIONS } from "@/lib/resumeSections";
 import { getCurrentUser } from "@/utils/user.utils";
 import { requireUser } from "./shared";
 import { getTranslations } from "@/i18n/server";
@@ -26,19 +25,10 @@ export const setDefaultResume = async (
     // Verify ownership before pointing the user at this resume.
     const owned = await prisma.resume.findFirst({
       where: { id: resumeId, profile: { userId: user.id } },
-      select: { _count: { select: { ResumeSections: true } } },
+      select: { id: true },
     });
     if (!owned) {
       throw new Error(t("errors.resumeNotFound"));
-    }
-    if (!hasMinResumeSections(owned._count.ResumeSections)) {
-      return {
-        success: false,
-        message: (await getTranslations("common"))(
-          "resumeSections.notEnough.setDefault",
-          MIN_SECTIONS,
-        ),
-      };
     }
 
     await prisma.user.update({
