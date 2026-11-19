@@ -11,9 +11,13 @@ import {
   BookOpen,
   BriefcaseBusiness,
   CalendarClock,
+  GraduationCap,
+  List,
+  MessagesSquare,
   SquareCheckBig,
   Zap,
 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Tooltip,
@@ -44,11 +48,23 @@ function shownItems(flags: { automations: boolean; activities: boolean; tasks: b
   ].filter((item): item is string => typeof item === "string");
 }
 
+// A button with a hint on hover and on keyboard focus: what it is for.
+function Hinted({ hint, children }: { hint: string; children: React.ReactNode }) {
+  return (
+    <TooltipProvider delayDuration={200}>
+      <Tooltip>
+        <TooltipTrigger asChild>{children}</TooltipTrigger>
+        <TooltipContent className="max-w-xs">{hint}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
 export default function JobsAppliedCard() {
   const router = useRouter();
   const t = useTranslations("dashboard");
   const format = useFormatter();
-  const { activities, automations, tasks, questions, contacts } = useFeatures();
+  const { activities, automations, tasks, questions, contacts, plans } = useFeatures();
   const items = shownItems({ automations, activities, tasks, questions, contacts }).map((item) =>
     t(`quickActions.items.${item}` as Parameters<typeof t>[0]),
   );
@@ -132,6 +148,38 @@ export default function JobsAppliedCard() {
           </Button>
         )}
         {contacts && <AddContactShortcut />}
+      </CardFooter>
+      {/* Where to go next: plain links, no creating. A switched-off area has none. */}
+      <CardFooter className="flex-col items-stretch gap-2 pt-0">
+        <p className="text-sm text-muted-foreground">{t("goTo.title")}</p>
+        <div className={QUICK_ACTIONS_GRID.replace("mt-auto ", "")}>
+          <Hinted hint={t("goTo.interviewsHint")}>
+            <Button asChild variant="outline" className={QUICK_ACTION_BUTTON}>
+              <Link href="/dashboard/interviews">
+                <MessagesSquare className="h-3.5 w-3.5 shrink-0" />
+                <span className={QUICK_ACTION_LABEL}>{t("goTo.interviews")}</span>
+              </Link>
+            </Button>
+          </Hinted>
+          <Hinted hint={t("goTo.jobBankHint")}>
+            <Button asChild variant="outline" className={QUICK_ACTION_BUTTON}>
+              <Link href="/dashboard/myjobs">
+                <List className="h-3.5 w-3.5 shrink-0" />
+                <span className={QUICK_ACTION_LABEL}>{t("goTo.jobBank")}</span>
+              </Link>
+            </Button>
+          </Hinted>
+          {plans && (
+            <Hinted hint={t("goTo.planHint")}>
+              <Button asChild variant="outline" className={QUICK_ACTION_BUTTON}>
+                <Link href="/dashboard/plan">
+                  <GraduationCap className="h-3.5 w-3.5 shrink-0" />
+                  <span className={QUICK_ACTION_LABEL}>{t("goTo.plan")}</span>
+                </Link>
+              </Button>
+            </Hinted>
+          )}
+        </div>
       </CardFooter>
     </Card>
   );

@@ -18,6 +18,15 @@
     "addActivity": "Add Activity",
     "addContact": "Add Contact"
   },
+  "goTo": {
+    "title": "Go to",
+    "interviews": "Interviews",
+    "interviewsHint": "Your upcoming and past interviews, in one list.",
+    "jobBank": "Job bank",
+    "jobBankHint": "Every job you have saved, with its status.",
+    "plan": "Study plan",
+    "planHint": "Your study plan: tick off what you have done and add notes."
+  },
   "jobsActivity": {
     "title": "Jobs & Activity",
     "range7d": "7d",
