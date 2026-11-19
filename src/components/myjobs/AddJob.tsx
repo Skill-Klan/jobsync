@@ -116,7 +116,8 @@ export function AddJob({
   // The shared catalog (switch `catalog`): the pickers offer its list only, and
   // a student suggests what is missing. Without it, everything works as before.
   const catalog = useCatalog();
-  const inCatalog = useFeatures().catalog && catalog !== null;
+  const { catalog: catalogOn, coverLetters: coverLettersOn } = useFeatures();
+  const inCatalog = catalogOn && catalog !== null;
   const pickable = <T extends { id: string; label: string; value: string }>(
     kind: CatalogKind,
     own: T[],
@@ -199,13 +200,14 @@ export function AddJob({
   }, [setResumes]);
 
   const loadCoverLetters = useCallback(async () => {
+    if (!coverLettersOn) return;
     try {
       const result = await getCoverLetterList(1, 100);
       setCoverLetters(result.data);
     } catch (error) {
       console.error("Failed to load cover letters:", error);
     }
-  }, [setCoverLetters]);
+  }, [setCoverLetters, coverLettersOn]);
 
   useEffect(() => {
     if (editJob) {
@@ -638,7 +640,8 @@ export function AddJob({
                   />
                 </div>
 
-                {/* Cover Letter */}
+                {/* Cover Letter (its own switch) */}
+                {coverLettersOn && (
                 <div className="flex items-end self-start">
                   <FormField
                     control={form.control}
@@ -657,6 +660,7 @@ export function AddJob({
                     )}
                   />
                 </div>
+                )}
 
                 {/* Add Skill Tags */}
                 <div>

@@ -302,6 +302,10 @@
       "ai": {
         "label": "AI",
         "description": "Everything that uses an AI model: the AI chat, job match, resume review and structuring, cover letter generation, and the AI provider, AI usage and API keys sections of Settings. When off, saved matches and reviews are kept — they are just not shown, and calls to a model are refused."
+      },
+      "coverLetters": {
+        "label": "Cover letters",
+        "description": "Writing, editing, exporting and deleting cover letters in the profile, the cover letter choice on the job form, and the letter tab on a job (generating one included). When off, the letters already written are kept — they are just not shown."
       }
     },
     "saved": "Saved",
