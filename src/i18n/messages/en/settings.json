@@ -306,6 +306,10 @@
       "coverLetters": {
         "label": "Cover letters",
         "description": "Writing, editing, exporting and deleting cover letters in the profile, the cover letter choice on the job form, and the letter tab on a job (generating one included). When off, the letters already written are kept — they are just not shown."
+      },
+      "contacts": {
+        "label": "Add contact",
+        "description": "The “Add contact” shortcut on the dashboard. Contacts themselves (a job’s contacts tab, interviewers, the Library list) stay. When off, the shortcut is just not there."
       }
     },
     "saved": "Saved",

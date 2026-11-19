@@ -36,7 +36,7 @@ describe.each([
 
   const openPopover = async () => {
     render(
-      <FeaturesProvider value={{ automations, activities: true, library: true, plans: true, questions: true, ai: true, coverLetters: true, tasks: true, catalog: true }}>
+      <FeaturesProvider value={{ automations, activities: true, library: true, plans: true, questions: true, ai: true, coverLetters: true, contacts: true, tasks: true, catalog: true }}>
         <JobsFilterPopover statuses={statuses} facets={EMPTY_JOB_FACETS} search="" scope={{}} onApply={onApply} />
       </FeaturesProvider>,
     );

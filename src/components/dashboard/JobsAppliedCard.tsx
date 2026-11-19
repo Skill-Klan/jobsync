@@ -27,14 +27,14 @@ import {
 
 // The line above the buttons names only the ones that are shown, as a list in
 // the user's language.
-function shownItems(flags: { automations: boolean; activities: boolean; tasks: boolean; questions: boolean }) {
+function shownItems(flags: { automations: boolean; activities: boolean; tasks: boolean; questions: boolean; contacts: boolean }) {
   return [
     "jobs",
     flags.automations && "automations",
     flags.tasks && "tasks",
     flags.activities && "activities",
     flags.questions && "questions",
-    "contacts",
+    flags.contacts && "contacts",
   ].filter((item): item is string => typeof item === "string");
 }
 
@@ -42,8 +42,8 @@ export default function JobsAppliedCard() {
   const router = useRouter();
   const t = useTranslations("dashboard");
   const format = useFormatter();
-  const { activities, automations, tasks, questions } = useFeatures();
-  const items = shownItems({ automations, activities, tasks, questions }).map((item) =>
+  const { activities, automations, tasks, questions, contacts } = useFeatures();
+  const items = shownItems({ automations, activities, tasks, questions, contacts }).map((item) =>
     t(`quickActions.items.${item}` as Parameters<typeof t>[0]),
   );
   return (
@@ -115,7 +115,7 @@ export default function JobsAppliedCard() {
             <span className={QUICK_ACTION_LABEL}>{t("quickActions.addActivity")}</span>
           </Button>
         )}
-        <AddContactShortcut />
+        {contacts && <AddContactShortcut />}
       </CardFooter>
     </Card>
   );
