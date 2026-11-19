@@ -55,6 +55,11 @@ export const FEATURES = {
   // refuses. Data kept (matches, reviews, usage records). Off at launch
   // (owner 2026-11-19, SKD-55); the paid path is still being built (J4).
   ai: { default: false },
+  // Cover letters: adding, editing, exporting and deleting them in the profile,
+  // the «cover letter» choice on the job form, the letter tab and button on a job
+  // (and so generating one). Off: none of it is shown and the actions refuse.
+  // Data kept. Off at launch (owner 2026-11-19, SKD-57).
+  coverLetters: { default: false },
 } as const;
 
 export type FeatureKey = keyof typeof FEATURES;

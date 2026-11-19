@@ -116,7 +116,7 @@ function JobDetails({
   const [linkInterviewersOpen, setLinkInterviewersOpen] = useState(false);
   const [prepQuestionsOpen, setPrepQuestionsOpen] = useState(false);
   const router = useRouter();
-  const { ai } = useFeatures();
+  const { ai, coverLetters } = useFeatures();
   const [activeTab, handleTabChange] = useTabQueryParam(
     JOB_DETAIL_TABS,
     "description",
@@ -259,7 +259,7 @@ function JobDetails({
               )}
             </TabsTrigger>
             {ai && <TabsTrigger value="match">{t("details.tabs.match")}</TabsTrigger>}
-            <TabsTrigger value="letter">{t("details.tabs.letter")}</TabsTrigger>
+            {coverLetters && <TabsTrigger value="letter">{t("details.tabs.letter")}</TabsTrigger>}
             <TabsTrigger value="contacts">
               {t("details.tabs.contacts")}
               {contactLinks.length > 0 && (
@@ -315,6 +315,7 @@ function JobDetails({
               onChanged={reloadStages}
             />
           </TabsContent>
+          {coverLetters && (
           <TabsContent value="letter" className="mt-4">
             <Card className="p-6">
               <CoverLetterTab
@@ -324,6 +325,7 @@ function JobDetails({
               />
             </Card>
           </TabsContent>
+          )}
           {/* forceMount keeps ⋮ → Add a Note and the count badge working off-tab. */}
           <TabsContent
             value="notes"

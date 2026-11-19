@@ -23,6 +23,7 @@ import Loading from "../Loading";
 import DocumentTable from "./ResumeTable";
 import { toastError } from "@/lib/toast";
 import { useTranslations } from "@/i18n/client";
+import { useFeatures } from "@/context/FeaturesContext";
 import { ChevronDown, PlusCircle } from "lucide-react";
 import { Button } from "../ui/button";
 import { RecordsCount } from "../RecordsCount";
@@ -35,6 +36,7 @@ import {
 
 const ProfileContainer = () => {
   const t = useTranslations("profile");
+  const { coverLetters: coverLettersOn } = useFeatures();
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [coverLetters, setCoverLetters] = useState<CoverLetter[]>([]);
   const [resumeDialogOpen, setResumeDialogOpen] = useState(false);
@@ -79,6 +81,7 @@ const ProfileContainer = () => {
   );
 
   const loadCoverLetters = useCallback(async () => {
+    if (!coverLettersOn) return;
     const { data, total, success, message } = await getCoverLetterList(
       1,
       100,
@@ -89,7 +92,7 @@ const ProfileContainer = () => {
     } else {
       toastError(message);
     }
-  }, []);
+  }, [coverLettersOn]);
 
   const loadDefaultResumeId = useCallback(async () => {
     // allSettled, not all: contactInfo stuck at undefined would spin the
@@ -138,7 +141,7 @@ const ProfileContainer = () => {
       isDefault: r.id === defaultResumeId,
       sectionCount: r._count?.ResumeSections ?? 0,
     }));
-    const coverLetterDocs: ProfileDocument[] = coverLetters.map((cl) => ({
+    const coverLetterDocs: ProfileDocument[] = (coverLettersOn ? coverLetters : []).map((cl) => ({
       id: cl.id!,
       title: cl.title,
       type: "cover-letter" as const,
@@ -152,9 +155,9 @@ const ProfileContainer = () => {
       if (!a.isDefault && b.isDefault) return 1;
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
-  }, [resumes, coverLetters, defaultResumeId]);
+  }, [resumes, coverLetters, coverLettersOn, defaultResumeId]);
 
-  const totalDocuments = totalResumes + totalCoverLetters;
+  const totalDocuments = totalResumes + (coverLettersOn ? totalCoverLetters : 0);
 
   const createResume = () => {
     setResumeToEdit(null);
@@ -206,31 +209,40 @@ const ProfileContainer = () => {
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="sm" variant="outline" className="h-8 gap-1">
-                <PlusCircle className="h-3.5 w-3.5" />
-                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                  {t("profileContainer.new")}
-                </span>
-                <ChevronDown className="h-3.5 w-3.5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                className="cursor-pointer"
-                onClick={createResume}
-              >
+          {coverLettersOn ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline" className="h-8 gap-1">
+                  <PlusCircle className="h-3.5 w-3.5" />
+                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                    {t("profileContainer.new")}
+                  </span>
+                  <ChevronDown className="h-3.5 w-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={createResume}
+                >
+                  {t("profileContainer.addResume")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={createCoverLetter}
+                >
+                  {t("profileContainer.addCoverLetter")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button size="sm" variant="outline" className="h-8 gap-1" onClick={createResume}>
+              <PlusCircle className="h-3.5 w-3.5" />
+              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                 {t("profileContainer.addResume")}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="cursor-pointer"
-                onClick={createCoverLetter}
-              >
-                {t("profileContainer.addCoverLetter")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              </span>
+            </Button>
+          )}
           <CreateResume
             resumeDialogOpen={resumeDialogOpen}
             setResumeDialogOpen={setResumeDialogOpen}
@@ -238,13 +250,15 @@ const ProfileContainer = () => {
             resumeToEdit={resumeToEdit}
             setNewResumeId={setResumeId}
           />
-          <CreateCoverLetter
-            dialogOpen={coverLetterDialogOpen}
-            setDialogOpen={setCoverLetterDialogOpen}
-            coverLetterToEdit={coverLetterToEdit}
-            reloadDocuments={reloadDocuments}
-            contactInfo={contactInfo}
-          />
+          {coverLettersOn && (
+            <CreateCoverLetter
+              dialogOpen={coverLetterDialogOpen}
+              setDialogOpen={setCoverLetterDialogOpen}
+              coverLetterToEdit={coverLetterToEdit}
+              reloadDocuments={reloadDocuments}
+              contactInfo={contactInfo}
+            />
+          )}
           <CopyResumeDialog
             open={copyDialogOpen}
             setOpen={setCopyDialogOpen}

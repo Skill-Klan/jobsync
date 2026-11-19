@@ -377,6 +377,7 @@
     "deleteCoverLetter": "Failed to delete cover letter.",
     "coverLetterTooShort": "Generated cover letter was too short to save.",
     "noProfile": "No profile found for this user.",
-    "saveGeneratedLetter": "Failed to save generated cover letter."
+    "saveGeneratedLetter": "Failed to save generated cover letter.",
+    "coverLettersSwitchedOff": "Cover letters have been switched off by the administrator."
   }
 }

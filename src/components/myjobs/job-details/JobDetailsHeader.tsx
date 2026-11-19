@@ -55,7 +55,7 @@ export function JobDetailsHeader({
   const t = useTranslations("jobs");
   const types = useJobTypeLabels();
   // The company page is part of the Library; off — the name is plain text (D76).
-  const { library, ai } = useFeatures();
+  const { library, ai, coverLetters } = useFeatures();
   const details = [
     job.Location?.label,
     types.jobType(job.jobType),
@@ -114,7 +114,7 @@ export function JobDetailsHeader({
           </span>
         </Button>
         )}
-        {ai && (
+        {ai && coverLetters && (
         <Button
           variant="outline"
           className="cursor-pointer"

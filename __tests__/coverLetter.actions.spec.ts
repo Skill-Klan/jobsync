@@ -10,6 +10,8 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+// The cover letter switch has its own test (skillklan/coverLettersSwitch.spec.tsx).
+vi.mock("@/skillklan/featureFlags", () => ({ isFeatureOff: vi.fn(async () => false) }));
 vi.mock("@prisma/client", () => {
   const mPrismaClient = {
     coverLetter: {
