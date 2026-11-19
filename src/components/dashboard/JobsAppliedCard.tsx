@@ -15,6 +15,12 @@ import {
   Zap,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import AddContactShortcut from "./AddContactShortcut";
 import { useFormatter, useTranslations } from "@/i18n/client";
 import { useFeatures } from "@/context/FeaturesContext";
@@ -61,14 +67,24 @@ export default function JobsAppliedCard() {
         </CardDescription>
       </CardHeader>
       <CardFooter className={QUICK_ACTIONS_GRID}>
-        <Button
-          variant="outline"
-          className={QUICK_ACTION_BUTTON}
-          onClick={() => router.push("/dashboard/myjobs?add-job=true")}
-        >
-          <BriefcaseBusiness className="h-3.5 w-3.5 shrink-0" />
-          <span className={QUICK_ACTION_LABEL}>{t("quickActions.addJob")}</span>
-        </Button>
+        {/* A hint on hover and on keyboard focus: what the button is for. */}
+        <TooltipProvider delayDuration={200}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                className={QUICK_ACTION_BUTTON}
+                onClick={() => router.push("/dashboard/myjobs?add-job=true")}
+              >
+                <BriefcaseBusiness className="h-3.5 w-3.5 shrink-0" />
+                <span className={QUICK_ACTION_LABEL}>{t("quickActions.addJob")}</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">
+              {t("quickActions.addJobHint")}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         {automations && (
           <Button
             variant="outline"
