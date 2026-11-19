@@ -14,6 +14,7 @@ import { AiProvider } from "@/models/ai.model";
 import { isRetiredBoard, type JobBoard } from "@/models/automation.model";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { log } from "@/lib/telemetry";
+import { refuseWhenAiOff } from "@/skillklan/aiSwitch";
 import { isFeatureOff } from "@/skillklan/featureFlags";
 import { getTranslations } from "@/i18n/server";
 
@@ -52,6 +53,10 @@ export async function POST(
     const t = await getTranslations("automations");
     return NextResponse.json({ message: t("errors.switchedOff") }, { status: 403 });
   }
+
+  // A run matches every job with AI: the `ai` switch stops it too.
+  const aiOff = await refuseWhenAiOff();
+  if (aiOff) return aiOff;
 
   const { id: automationId } = await params;
 

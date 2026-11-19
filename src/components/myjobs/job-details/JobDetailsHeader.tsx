@@ -55,7 +55,7 @@ export function JobDetailsHeader({
   const t = useTranslations("jobs");
   const types = useJobTypeLabels();
   // The company page is part of the Library; off — the name is plain text (D76).
-  const { library } = useFeatures();
+  const { library, ai } = useFeatures();
   const details = [
     job.Location?.label,
     types.jobType(job.jobType),
@@ -100,6 +100,7 @@ export function JobDetailsHeader({
       </div>
       <div className="flex flex-wrap justify-end gap-2">
         {updateStatusMenu}
+        {ai && (
         <Button
           variant="outline"
           className="cursor-pointer"
@@ -112,6 +113,8 @@ export function JobDetailsHeader({
             {t("header.match")}
           </span>
         </Button>
+        )}
+        {ai && (
         <Button
           variant="outline"
           className="cursor-pointer"
@@ -127,6 +130,7 @@ export function JobDetailsHeader({
               : t("header.coverLetter")}
           </span>
         </Button>
+        )}
         <Button
           title={t("ui.edit")}
           variant="outline"

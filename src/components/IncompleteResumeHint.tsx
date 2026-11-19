@@ -9,9 +9,13 @@ import {
 } from "@/components/ui/tooltip";
 import { MIN_SECTIONS } from "@/lib/resumeSections";
 import { useTranslations } from "@/i18n/client";
+import { useFeatures } from "@/context/FeaturesContext";
 
 export function IncompleteResumeHint() {
   const t = useTranslations("common");
+  const { ai } = useFeatures();
+  // The hint is about AI functions; with AI switched off there is nothing to say.
+  if (!ai) return null;
   const hint = t("resumeSections.incompleteHint", MIN_SECTIONS);
   return (
     <TooltipProvider delayDuration={300}>

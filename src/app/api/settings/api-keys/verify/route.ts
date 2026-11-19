@@ -1,12 +1,16 @@
 import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { PROVIDER_VERIFIERS } from "@/lib/ai/provider-registry.server";
+import { refuseWhenAiOff } from "@/skillklan/aiSwitch";
 
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ success: false, error: "Not authenticated" }, { status: 401 });
   }
+
+  const aiOff = await refuseWhenAiOff();
+  if (aiOff) return aiOff;
 
   const { provider, key } = await req.json();
 

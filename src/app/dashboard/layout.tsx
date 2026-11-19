@@ -32,10 +32,11 @@ export default async function RootLayout({
   // Loaded here rather than in the client: avoids an empty-panel flash on
   // every load, and the race where a message sent before hydration completes
   // is merged against an empty transcript and then persisted.
-  const conversation = await getChatConversation();
-  const user = await getCurrentUser();
   // SkillKlan feature switches, read once here and handed to the browser.
   const features = await getFeatureFlags();
+  // No chat while AI is switched off: nothing to load.
+  const conversation = features.ai ? await getChatConversation() : { data: [] };
+  const user = await getCurrentUser();
   const isAdmin = await isAdminSession();
   // The shared catalog, only while its switch is on: the job form offers it.
   const catalog = features.catalog ? await listCatalog() : null;

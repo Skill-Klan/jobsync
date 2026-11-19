@@ -32,6 +32,7 @@ import { checkOllamaConnection } from "@/utils/ai.utils";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "@/i18n/client";
+import { useFeatures } from "@/context/FeaturesContext";
 
 type CreateResumeProps = {
   resumeDialogOpen: boolean;
@@ -60,6 +61,7 @@ function CreateResume({
   const [selectedModel, setSelectedModel] = useState<AiModel>(defaultModel);
   const router = useRouter();
   const t = useTranslations("profile");
+  const { ai } = useFeatures();
 
   const pageTitle = resumeToEdit
     ? t("createResume.editTitle")
@@ -104,7 +106,7 @@ function CreateResume({
 
   // Check AI availability when dialog opens
   useEffect(() => {
-    if (!resumeDialogOpen || resumeToEdit) return;
+    if (!ai || !resumeDialogOpen || resumeToEdit) return;
     const check = async () => {
       try {
         const result = await getUserSettings();
@@ -128,7 +130,7 @@ function CreateResume({
       }
     };
     check();
-  }, [resumeDialogOpen, resumeToEdit]);
+  }, [ai, resumeDialogOpen, resumeToEdit]);
 
   const closeDialog = () => setResumeDialogOpen(false);
 
@@ -162,6 +164,7 @@ function CreateResume({
       // this dialog until the stream completes.
       if (
         !resumeToEdit &&
+        ai &&
         autoFill &&
         aiAvailable &&
         data.file &&
@@ -189,7 +192,8 @@ function CreateResume({
     });
   };
 
-  const hasFile = !resumeToEdit && watchedFile instanceof File;
+  // The AI offer needs a file, and AI switched on.
+  const showAiOffer = ai && !resumeToEdit && watchedFile instanceof File;
 
   return (
     <Dialog open={resumeDialogOpen} onOpenChange={setResumeDialogOpen}>
@@ -270,7 +274,7 @@ function CreateResume({
             </div>
 
             {/* AUTO-FILL TOGGLE */}
-            {hasFile && (
+            {showAiOffer && (
               <div className="md:col-span-2 flex items-start gap-3 rounded-lg border bg-muted/40 p-4">
                 <Switch
                   id="auto-fill"

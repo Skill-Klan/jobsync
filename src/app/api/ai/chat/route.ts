@@ -48,6 +48,7 @@ import {
 } from "@/lib/telemetry";
 import { addJobSettled, AGENT_CHAT_TERMINAL_TOOLS } from "@/models/agent.model";
 import { startAiCall, usageOfSteps, type TokenUsage } from "@/lib/aiUsage/tracker";
+import { refuseWhenAiOff } from "@/skillklan/aiSwitch";
 
 // The one terminal tool whose stop condition is not "was it called" — see
 // addJobSettled.
@@ -97,6 +98,9 @@ export const POST = async (req: NextRequest) => {
   if (!session || !userId) {
     return NextResponse.json({ error: "Not Authenticated" }, { status: 401 });
   }
+
+  const aiOff = await refuseWhenAiOff();
+  if (aiOff) return aiOff;
 
   const rateLimit = checkRateLimit(userId, "chat");
   if (!rateLimit.allowed) {

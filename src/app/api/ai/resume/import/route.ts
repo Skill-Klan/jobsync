@@ -29,6 +29,7 @@ import {
   SURFACES,
 } from "@/lib/telemetry";
 import { startAiCall } from "@/lib/aiUsage/tracker";
+import { refuseWhenAiOff } from "@/skillklan/aiSwitch";
 
 export const POST = async (req: NextRequest) => {
   const session = await auth();
@@ -37,6 +38,9 @@ export const POST = async (req: NextRequest) => {
   if (!session || !userId) {
     return NextResponse.json({ message: "Not Authenticated" }, { status: 401 });
   }
+
+  const aiOff = await refuseWhenAiOff();
+  if (aiOff) return aiOff;
 
   const rateLimit = checkRateLimit(userId);
   if (!rateLimit.allowed) {

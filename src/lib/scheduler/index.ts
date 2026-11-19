@@ -30,8 +30,10 @@ export async function runDueAutomations() {
     // spent, no notifications for a hidden tab. Due automations keep their
     // nextRunAt and run on the first check after the switch is back on.
     // Uncached read: this runs outside any request.
-    if (!(await readFeatureFlags()).automations) {
-      log.info("[Scheduler] Automations switched off - skipping due automations");
+    // A run matches every job with AI, so the `ai` switch stops it too.
+    const flags = await readFeatureFlags();
+    if (!flags.automations || !flags.ai) {
+      log.info("[Scheduler] Automations or AI switched off - skipping due automations");
       return;
     }
 

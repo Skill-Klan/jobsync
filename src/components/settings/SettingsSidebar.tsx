@@ -18,10 +18,12 @@ const SETTINGS_SECTIONS: {
   label: "aiProvider" | "aiUsage" | "apiKeys" | "appearance" | "data" | "features";
   icon: typeof Bot;
   adminOnly?: boolean;
+  // Hidden while the `ai` switch is off.
+  ai?: boolean;
 }[] = [
-  { id: "ai-provider", label: "aiProvider", icon: Bot },
-  { id: "ai-usage", label: "aiUsage", icon: BarChart3 },
-  { id: "api-keys", label: "apiKeys", icon: Key },
+  { id: "ai-provider", label: "aiProvider", icon: Bot, ai: true },
+  { id: "ai-usage", label: "aiUsage", icon: BarChart3, ai: true },
+  { id: "api-keys", label: "apiKeys", icon: Key, ai: true },
   { id: "appearance", label: "appearance", icon: Palette },
   { id: "data", label: "data", icon: Database },
   // The SkillKlan feature switches — admins only (owner 2026-10-16).
@@ -32,17 +34,19 @@ interface SettingsSidebarProps {
   activeSection: SettingsSection;
   onSectionChange: (section: SettingsSection) => void;
   showFeatures?: boolean;
+  showAi?: boolean;
 }
 
 export default function SettingsSidebar({
   activeSection,
   onSectionChange,
   showFeatures = false,
+  showAi = true,
 }: SettingsSidebarProps) {
   const t = useTranslations("settings.sections");
   return (
     <nav className="flex flex-col gap-1 w-10 sm:w-48 shrink-0">
-      {SETTINGS_SECTIONS.filter((section) => !section.adminOnly || showFeatures).map((section) => {
+      {SETTINGS_SECTIONS.filter((section) => (!section.adminOnly || showFeatures) && (!section.ai || showAi)).map((section) => {
         const Icon = section.icon;
         const isActive = activeSection === section.id;
         const label = t(section.label);

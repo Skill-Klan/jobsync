@@ -60,6 +60,8 @@ const SAME_IN_BOTH = new Set<string>([
   // The professions' names: QA and BA in Ukrainian too.
   "interviews.recordings.directions.qa",
   "interviews.recordings.directions.ba",
+  // The name of the feature switch: «AI» in Ukrainian too (docs/glossary.md).
+  "settings.features.items.ai.label",
 ]);
 
 // Prompts whose English names the item ("Select stage") while the Ukrainian

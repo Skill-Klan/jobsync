@@ -12,18 +12,18 @@ import {
 } from "@/skillklan/features";
 import { SIDEBAR_LINKS, visibleSidebarLinks } from "@/lib/constants";
 
-const ALL_OFF: FeatureFlags = { automations: false, activities: false, library: false, plans: false, questions: false, tasks: false, catalog: false };
+const ALL_OFF: FeatureFlags = { automations: false, activities: false, library: false, plans: false, questions: false, ai: false, tasks: false, catalog: false };
 // What nobody has chosen yet: everything off except Tasks (2026-11-03: students
 // already have Tasks, so the admin picks the moment to close it).
 const LAUNCH: FeatureFlags = { ...ALL_OFF, tasks: true };
-const ALL_ON: FeatureFlags = { automations: true, activities: true, library: true, plans: true, questions: true, tasks: true, catalog: true };
+const ALL_ON: FeatureFlags = { automations: true, activities: true, library: true, plans: true, questions: true, ai: true, tasks: true, catalog: true };
 
 describe("resolveFeatureFlags", () => {
   it("no choice made → Automations, Activities, the Library and the study plan off, Tasks on (the launch state)", () => {
     expect(resolveFeatureFlags([])).toEqual(LAUNCH);
   });
 
-  it.each(["automations", "tasks", "activities", "library", "catalog", "plans", "questions"] as const)(
+  it.each(["automations", "tasks", "activities", "library", "catalog", "plans", "questions", "ai"] as const)(
     "the admin's choice for %s wins, both ways, and touches no other switch",
     (key) => {
       expect(resolveFeatureFlags([{ key, enabled: true }])).toEqual({ ...LAUNCH, [key]: true });
@@ -35,8 +35,8 @@ describe("resolveFeatureFlags", () => {
     expect(resolveFeatureFlags([{ key: "interviews", enabled: true }])).toEqual(LAUNCH);
   });
 
-  it("exactly these seven — a new switch is a decision, not a side effect", () => {
-    expect(Object.keys(FEATURES)).toEqual(["automations", "tasks", "activities", "library", "catalog", "plans", "questions"]);
+  it("exactly these eight — a new switch is a decision, not a side effect", () => {
+    expect(Object.keys(FEATURES)).toEqual(["automations", "tasks", "activities", "library", "catalog", "plans", "questions", "ai"]);
   });
 });
 
@@ -45,7 +45,7 @@ describe("isFeatureKey", () => {
     "%s (from the object prototype) is not a switch",
     (key) => expect(isFeatureKey(key)).toBe(false),
   );
-  it.each(["automations", "tasks", "activities", "library", "catalog", "plans", "questions"])("%s is", (key) =>
+  it.each(["automations", "tasks", "activities", "library", "catalog", "plans", "questions", "ai"])("%s is", (key) =>
     expect(isFeatureKey(key)).toBe(true),
   );
 });
