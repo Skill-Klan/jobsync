@@ -20,7 +20,6 @@ vi.mock("next/server", () => ({
 import { auth } from "@/auth";
 
 import { POST as verifyApiKey } from "@/app/api/settings/api-keys/verify/route";
-import { POST as exportJobs } from "@/app/api/jobs/export/route";
 import { POST as cancelAutomation } from "@/app/api/automations/[id]/cancel/route";
 import { POST as clearLogs } from "@/app/api/automations/[id]/logs/clear/route";
 import {
@@ -43,11 +42,6 @@ describe("API auth contract: guarded routes reject anonymous requests", () => {
 
   it("POST /api/settings/api-keys/verify -> 401", async () => {
     const res = await verifyApiKey(req());
-    expect(res.status).toBe(401);
-  });
-
-  it("POST /api/jobs/export -> 401", async () => {
-    const res = await exportJobs();
     expect(res.status).toBe(401);
   });
 

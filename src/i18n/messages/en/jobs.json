@@ -51,17 +51,10 @@
     "title": "Job bank",
     "reload": "Reload jobs",
     "search": "Search jobs...",
-    "export": "Export jobs",
-    "exportTitle": "Export jobs?",
-    "exportDescription": "This downloads your jobs as a file.",
-    "exportAction": "Export",
     "noMatches": "No jobs match these filters.",
     "created": "Job has been created successfully",
     "updated": "Job has been updated successfully",
-    "deleted": "Job has been deleted successfully",
-    "downloaded": "Downloaded successfully!",
-    "downloadFailed": "Failed to download jobs!",
-    "unknownError": "Unknown error occurred."
+    "deleted": "Job has been deleted successfully"
   },
   "table": {
     "companyLogo": "Company Logo",

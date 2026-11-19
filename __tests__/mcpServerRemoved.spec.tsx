@@ -52,7 +52,7 @@ describe("MCP server is removed (D7a)", () => {
     const covers = (p: string) =>
       middlewareConfig.matcher.some((m) => new RegExp(`^${m}$`).test(p));
     expect(covers("/api/mcp")).toBe(true);
-    expect(covers("/api/jobs/export")).toBe(true);
+    expect(covers("/api/profile/resume")).toBe(true);
     expect(covers("/api/auth/session")).toBe(false);
   });
 
