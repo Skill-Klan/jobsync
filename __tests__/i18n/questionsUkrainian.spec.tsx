@@ -20,6 +20,7 @@ vi.mock("@/actions/question.actions", () => ({
   updateQuestion: vi.fn(),
 }));
 vi.mock("@/utils/user.utils", () => ({ getCurrentUser: vi.fn() }));
+vi.mock("@/skillklan/featureFlags", () => ({ isFeatureOff: vi.fn(async () => false) }));
 vi.mock("@prisma/client", () => {
   const client = {
     question: { delete: vi.fn() },

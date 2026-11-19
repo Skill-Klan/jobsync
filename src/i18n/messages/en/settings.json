@@ -294,6 +294,10 @@
       "plans": {
         "label": "Study plan",
         "description": "Each student's own copy of a course plan: the Study plan tab, where they tick off points and add notes, and the Student plans tab, where the administrator hands plans out. When off, the plans handed out and the ticks are kept — they are just not shown."
+      },
+      "questions": {
+        "label": "Questions",
+        "description": "The interview question bank: the Questions tab and “Add question” on the dashboard. When off, the questions already written are kept — they are just not shown, and the questions on an interview prep list stay."
       }
     },
     "saved": "Saved",

@@ -42,6 +42,12 @@ export const FEATURES = {
   // page where the admin hands copies out; every action that changes a plan.
   // Off at launch.
   plans: { default: false },
+  // The Questions tab and page (the bank of interview questions) and «Add
+  // question» on the dashboard; changing or deleting a question refuses. The
+  // prep list of an interview stays: adding a question there from the form
+  // (create on the fly) stays open, as with the Library. Off at launch
+  // (owner 2026-11-19, SKD-51).
+  questions: { default: false },
 } as const;
 
 export type FeatureKey = keyof typeof FEATURES;

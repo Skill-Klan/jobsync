@@ -56,6 +56,7 @@
     "updateFailed": "Failed to update question.",
     "onPrepList": "Question cannot be deleted: it is on the prep list of {count, plural, one {# interview stage} other {# interview stages}}. Remove it from those stages first.",
     "deleteFailed": "Failed to delete question.",
-    "tagCountsFailed": "Failed to fetch tags with question counts."
+    "tagCountsFailed": "Failed to fetch tags with question counts.",
+    "switchedOff": "This action has been switched off by the administrator."
   }
 }

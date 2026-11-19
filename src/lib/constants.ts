@@ -479,6 +479,7 @@ export const SIDEBAR_LINKS: {
     icon: BookOpen,
     route: "/dashboard/questions",
     labelKey: "questions",
+    feature: "questions",
   },
   {
     icon: UserRound,
