@@ -25,7 +25,6 @@ import MyJobsGrid from "./MyJobsGrid";
 import { NoteDialog } from "./NoteDialog";
 import { useJobFilters } from "./jobs-container/useJobFilters";
 import { useJobsList } from "./jobs-container/useJobsList";
-import { downloadJobsList } from "./jobs-container/downloadJobsCsv";
 import { JobsToolbar } from "./jobs-container/JobsToolbar";
 import { EMPTY_JOB_FACETS, hasJobFacets } from "@/lib/jobs/jobFacets";
 import { Button } from "../ui/button";
@@ -166,13 +165,6 @@ function JobsContainer({
             locationValue: locationFilter || undefined,
             sourceValue: sourceFilter || undefined,
           }}
-          onDownload={() =>
-            downloadJobsList({
-              downloaded: t("list.downloaded"),
-              failed: t("list.downloadFailed"),
-              unknownError: t("list.unknownError"),
-            })
-          }
           statuses={statuses}
           companies={companies}
           titles={titles}

@@ -54,7 +54,7 @@ describe("the door", () => {
   it("is not behind the session middleware — a server calls it, not a person", () => {
     const covers = (p: string) => middlewareConfig.matcher.some((m) => new RegExp(`^${m}$`).test(p));
     // Anchor: the same check does see the session-guarded paths.
-    expect(covers("/api/jobs/export")).toBe(true);
+    expect(covers("/api/profile/resume")).toBe(true);
     expect(covers("/skillklan/admin/stats")).toBe(false);
     expect(covers("/skillklan/admin/stats/7")).toBe(false);
   });

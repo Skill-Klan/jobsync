@@ -1,11 +1,9 @@
 "use client";
-import { useState } from "react";
-import { Download, RefreshCw, X } from "lucide-react";
+import { RefreshCw, X } from "lucide-react";
 import { CardHeader, CardTitle } from "../../ui/card";
 import { Button } from "../../ui/button";
 import { SearchInput } from "../../SearchInput";
 import { RecordsCount } from "../../RecordsCount";
-import { DeleteAlertDialog } from "../../DeleteAlertDialog";
 import { JobsViewToggle } from "../JobsViewToggle";
 import { AddJob } from "../AddJob";
 import { JobsFilterPopover } from "./JobsFilterPopover";
@@ -25,7 +23,7 @@ import {
 import { useTranslations } from "@/i18n/client";
 
 // Presentational: the Jobs card header — title/count, active filter chips,
-// view toggle, search, filter popover, export and Add Job.
+// view toggle, search, filter popover and Add Job.
 export function JobsToolbar({
   jobsCount,
   totalJobs,
@@ -46,7 +44,6 @@ export function JobsToolbar({
   facets,
   onApplyFacets,
   scope,
-  onDownload,
   statuses,
   companies,
   titles,
@@ -76,7 +73,6 @@ export function JobsToolbar({
   facets: JobFacets;
   onApplyFacets: (facets: JobFacets) => void;
   scope: JobListScope;
-  onDownload: () => void;
   statuses: JobStatus[];
   companies: Company[];
   titles: JobTitle[];
@@ -88,7 +84,6 @@ export function JobsToolbar({
   addJobInitialOpen: boolean;
 }) {
   const t = useTranslations("jobs");
-  const [exportOpen, setExportOpen] = useState(false);
 
   return (
     <CardHeader className="flex-row flex-wrap justify-between items-center gap-3">
@@ -161,17 +156,6 @@ export function JobsToolbar({
           scope={scope}
           onApply={onApplyFacets}
         />
-        <Button
-          size="sm"
-          variant="outline"
-          className="h-8 w-8 p-0"
-          disabled={initialLoading}
-          title={t("list.export")}
-          onClick={() => setExportOpen(true)}
-        >
-          <Download className="h-3.5 w-3.5" />
-          <span className="sr-only">{t("list.export")}</span>
-        </Button>
         <AddJob
           jobStatuses={statuses}
           companies={companies}
@@ -184,16 +168,6 @@ export function JobsToolbar({
           initialOpen={addJobInitialOpen}
         />
       </div>
-      <DeleteAlertDialog
-        pageTitle={t("deleteItem.jobs")}
-        open={exportOpen}
-        onOpenChange={setExportOpen}
-        onDelete={onDownload}
-        alertTitle={t("list.exportTitle")}
-        alertDescription={t("list.exportDescription")}
-        actionLabel={t("list.exportAction")}
-        actionVariant="default"
-      />
       <JobsFilterChips
         statuses={statuses}
         facets={facets}
