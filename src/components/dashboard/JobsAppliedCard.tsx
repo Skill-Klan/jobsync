@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import AddContactShortcut from "./AddContactShortcut";
-import { useTranslations } from "@/i18n/client";
+import { useFormatter, useTranslations } from "@/i18n/client";
 import { useFeatures } from "@/context/FeaturesContext";
 import { cn } from "@/lib/utils";
 import {
@@ -25,21 +25,27 @@ import {
   QUICK_ACTIONS_GRID,
 } from "./quickActionStyles";
 
-// The line above the buttons names only the ones that are shown: the key is
-// "description", or "descriptionWithout" plus the missing ones joined by "And".
-function descriptionKey(flags: { automations: boolean; activities: boolean; tasks: boolean }) {
-  const missing = [
-    !flags.automations && "Automations",
-    !flags.activities && "Activities",
-    !flags.tasks && "Tasks",
-  ].filter(Boolean);
-  return missing.length ? `quickActions.descriptionWithout${missing.join("And")}` : "quickActions.description";
+// The line above the buttons names only the ones that are shown, as a list in
+// the user's language.
+function shownItems(flags: { automations: boolean; activities: boolean; tasks: boolean; questions: boolean }) {
+  return [
+    "jobs",
+    flags.automations && "automations",
+    flags.tasks && "tasks",
+    flags.activities && "activities",
+    flags.questions && "questions",
+    "contacts",
+  ].filter((item): item is string => typeof item === "string");
 }
 
 export default function JobsAppliedCard() {
   const router = useRouter();
   const t = useTranslations("dashboard");
-  const { activities, automations, tasks } = useFeatures();
+  const format = useFormatter();
+  const { activities, automations, tasks, questions } = useFeatures();
+  const items = shownItems({ automations, activities, tasks, questions }).map((item) =>
+    t(`quickActions.items.${item}` as Parameters<typeof t>[0]),
+  );
   return (
     // Activities off: the hours card beside it is gone — take the whole row.
     <Card
@@ -51,7 +57,7 @@ export default function JobsAppliedCard() {
       <CardHeader className="pb-3">
         <CardTitle className="text-lg text-green-600">{t("title")}</CardTitle>
         <CardDescription className="max-w-lg text-balance leading-relaxed">
-          {t(descriptionKey({ automations, activities, tasks }) as Parameters<typeof t>[0])}
+          {t("quickActions.description", { items: format.list(items, { type: "conjunction" }) })}
         </CardDescription>
       </CardHeader>
       <CardFooter className={QUICK_ACTIONS_GRID}>
@@ -85,16 +91,18 @@ export default function JobsAppliedCard() {
             <span className={QUICK_ACTION_LABEL}>{t("quickActions.addTask")}</span>
           </Button>
         )}
-        <Button
-          variant="outline"
-          className={QUICK_ACTION_BUTTON}
-          onClick={() =>
-            router.push("/dashboard/questions?add-question=true")
-          }
-        >
-          <BookOpen className="h-3.5 w-3.5 shrink-0" />
-          <span className={QUICK_ACTION_LABEL}>{t("quickActions.addQuestion")}</span>
-        </Button>
+        {questions && (
+          <Button
+            variant="outline"
+            className={QUICK_ACTION_BUTTON}
+            onClick={() =>
+              router.push("/dashboard/questions?add-question=true")
+            }
+          >
+            <BookOpen className="h-3.5 w-3.5 shrink-0" />
+            <span className={QUICK_ACTION_LABEL}>{t("quickActions.addQuestion")}</span>
+          </Button>
+        )}
         {activities && (
           <Button
             variant="outline"

@@ -1,14 +1,15 @@
 {
   "title": "Головна",
   "quickActions": {
-    "description": "Додавайте вакансії, автопошук, завдання, активності, питання й контакти.",
-    "descriptionWithoutActivities": "Додавайте вакансії, автопошук, завдання, питання й контакти.",
-    "descriptionWithoutAutomations": "Додавайте вакансії, завдання, активності, питання й контакти.",
-    "descriptionWithoutAutomationsAndActivities": "Додавайте вакансії, завдання, питання й контакти.",
-    "descriptionWithoutTasks": "Додавайте вакансії, автопошук, активності, питання й контакти.",
-    "descriptionWithoutAutomationsAndTasks": "Додавайте вакансії, активності, питання й контакти.",
-    "descriptionWithoutActivitiesAndTasks": "Додавайте вакансії, автопошук, питання й контакти.",
-    "descriptionWithoutAutomationsAndActivitiesAndTasks": "Додавайте вакансії, питання й контакти.",
+    "description": "Додавайте {items}.",
+    "items": {
+      "jobs": "вакансії",
+      "automations": "автопошук",
+      "tasks": "завдання",
+      "activities": "активності",
+      "questions": "питання",
+      "contacts": "контакти"
+    },
     "addJob": "Додати вакансію",
     "addAutomation": "Додати автопошук",
     "addTask": "Додати завдання",

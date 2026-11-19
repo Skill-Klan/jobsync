@@ -6,6 +6,7 @@ import { requireUser } from "./shared";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { z } from "zod";
 import { getLabel, getTranslations } from "@/i18n/server";
+import { isFeatureOff } from "@/skillklan/featureFlags";
 
 // Questions on one interview round's prep list, owned through the job
 function stagePrepLinks(stageId: string, userId: string) {
@@ -156,6 +157,11 @@ export const updateQuestion = async (
   const t = await getTranslations("questions");
   try {
     const user = await requireUser();
+    // Changed only on the Questions page; a page opened before the switch went
+    // off still has its buttons — refuse here too.
+    if (await isFeatureOff("questions")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
 
     if (!data.id) throw new Error(t("errors.idRequired"));
 
@@ -185,6 +191,11 @@ export const deleteQuestion = async (
   const t = await getTranslations("questions");
   try {
     const user = await requireUser();
+    // Changed only on the Questions page; a page opened before the switch went
+    // off still has its buttons — refuse here too.
+    if (await isFeatureOff("questions")) {
+      return { success: false, message: t("errors.switchedOff") };
+    }
 
     // Silently erasing the record that a question was asked in a real
     // interview is worse than a delete that fails with a reason.

@@ -31,6 +31,8 @@ vi.mock("@prisma/client", () => {
   return { PrismaClient: vi.fn(function() { return mPrismaClient; }) };
 });
 
+// The Questions switch has its own test (skillklan/questionsSwitch.spec.tsx).
+vi.mock("@/skillklan/featureFlags", () => ({ isFeatureOff: vi.fn(async () => false) }));
 vi.mock("@/utils/user.utils", () => ({
   getCurrentUser: vi.fn(),
 }));

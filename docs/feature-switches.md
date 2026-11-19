@@ -29,6 +29,7 @@ Code: [`src/skillklan/features.ts`](../src/skillklan/features.ts), [`src/skillkl
 | `library` | off | no Library («Довідники») tab, company pages answer 404, company names in job lists are plain text; the actions only the Library uses (edit, delete, watch) refuse. Creating a company, title, skill, role or activity type on the fly from a form stays open |
 | `catalog` | off | no «Каталог» menu item (admin, QA moderator); the page answers 404; every catalog action refuses. Off, the job form lets a student create a skill, company, title, location or source on the fly as before; on, the pickers show the catalog only and a missing name is suggested to the admin |
 | `plans` | off | no «Навчальний план» (student) and «Плани студентів» (admin, QA moderator) menu items; both pages answer 404; every plan action refuses (tick, note, hand out). Plans already handed out stay in the database and come back when the switch is on |
+| `questions` | off | no «Питання» menu item; the page answers 404; no «Add question» on the dashboard (its sentence stops naming questions); editing and deleting a question refuse. Reading, and adding a question from an interview's prep list (create on the fly), stay open, like the Library. Questions already written stay in the database and come back when the switch is on |
 
 ## Adding a switch
 
