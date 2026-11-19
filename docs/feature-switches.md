@@ -19,6 +19,15 @@ Code: [`src/skillklan/features.ts`](../src/skillklan/features.ts), [`src/skillkl
 - The scheduler runs outside a request: it reads `readFeatureFlags()`, not `getFeatureFlags()`, and does nothing while
   `automations` is off.
 
+## The catalog in Settings
+
+Settings → «Функції» is grouped (`FEATURE_GROUPS` in `features.ts`; each switch names its `group`): **Jobs and search**
+(automations, catalog, library, contacts, cover letters), **Preparation and study** (tasks, activities, plans, questions),
+**AI**. A group shows how many of its switches are on; a switch shows a one-line summary, and the longer text
+(what it turns on, what is hidden, what is kept) opens under «Докладніше». Texts live in `settings.features.items.<key>`
+(`label`, `summary`, `description`) in both languages; `__tests__/skillklan/featureCatalog.spec.tsx` fails when a switch
+lacks a group or any of the three texts.
+
 ## The switches
 
 | Switch | Default | Off means |
@@ -36,7 +45,7 @@ Code: [`src/skillklan/features.ts`](../src/skillklan/features.ts), [`src/skillkl
 
 ## Adding a switch
 
-1. Add the key and its default to `FEATURES`; texts for Settings → «Функції» in both languages.
+1. Add the key, its default and its `group` to `FEATURES`; `label`, `summary` and `description` for Settings → «Функції» in both languages.
 2. Hide the menu items and page blocks, answer 404 on its pages, and make **every** server action that changes the
    area refuse while it is off.
 3. Tests: "off" switches off **only this key** (the others on), with a paired "on" case — a mock that answers "off"

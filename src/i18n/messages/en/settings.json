@@ -273,48 +273,65 @@
     "items": {
       "automations": {
         "label": "Automations",
+        "summary": "Scheduled job search and notifications about what it found.",
         "description": "Scheduled job search: the Automations tab, “Add automation” on the dashboard, and notifications — they are only about automations. When off, automations do not run and what they found is kept — it is just not shown."
       },
       "tasks": {
         "label": "Tasks",
+        "summary": "A student’s personal to-dos.",
         "description": "Personal to-dos: the Tasks tab and “Add task” on the dashboard. When off, the tasks already written are kept — they are just not shown."
       },
       "activities": {
         "label": "Activities",
+        "summary": "Job-search time tracking: timer, hours, goal.",
         "description": "Time tracking: the Activities tab, the timer, “Start activity” in Tasks, and hours and the activity goal on the dashboard. When off, records are kept — they are just not shown."
       },
       "catalog": {
         "label": "Catalog",
+        "summary": "Shared lists of skills, companies and titles kept by the administrator.",
         "description": "One shared list of skills, companies, job titles, locations and job sources, changed only by the administrator and the QA moderator. When on, the job form offers only the list and students suggest what is missing; the Catalog tab holds the lists and the requests. When off, everyone creates their own as before."
       },
       "library": {
         "label": "Library",
+        "summary": "Lists of companies, titles, locations and skills.",
         "description": "Lists of companies, job titles, locations, skills, contacts and more: the Library tab and company pages. When off, the lists still fill up from forms, but there is nowhere to view or clean them up."
       },
       "plans": {
         "label": "Study plan",
+        "summary": "A copy of the course plan with ticks and notes for each student.",
         "description": "Each student's own copy of a course plan: the Study plan tab, where they tick off points and add notes, and the Student plans tab, where the administrator hands plans out. When off, the plans handed out and the ticks are kept — they are just not shown."
       },
       "questions": {
         "label": "Questions",
+        "summary": "A bank of interview questions.",
         "description": "The interview question bank: the Questions tab and “Add question” on the dashboard. When off, the questions already written are kept — they are just not shown, and the questions on an interview prep list stay."
       },
       "ai": {
         "label": "AI",
+        "summary": "AI chat, job match, resume review, letter generation.",
         "description": "Everything that uses an AI model: the AI chat, job match, resume review and structuring, cover letter generation, and the AI provider, AI usage and API keys sections of Settings. When off, saved matches and reviews are kept — they are just not shown, and calls to a model are refused."
       },
       "coverLetters": {
         "label": "Cover letters",
+        "summary": "Cover letters in the profile and on a job.",
         "description": "Writing, editing, exporting and deleting cover letters in the profile, the cover letter choice on the job form, and the letter tab on a job (generating one included). When off, the letters already written are kept — they are just not shown."
       },
       "contacts": {
         "label": "Add contact",
+        "summary": "The “Add contact” button on the dashboard.",
         "description": "The “Add contact” shortcut on the dashboard. Contacts themselves (a job’s contacts tab, interviewers, the Library list) stay. When off, the shortcut is just not there."
       }
     },
     "saved": "Saved",
     "saveFailed": "Couldn't save. Try again.",
     "adminOnly": "Only the administrator and the QA moderator can change features.",
-    "invalid": "There is no such feature."
+    "invalid": "There is no such feature.",
+    "groups": {
+      "jobs": "Jobs and search",
+      "prep": "Preparation and study",
+      "ai": "AI"
+    },
+    "enabledCount": "{on} of {total} on",
+    "details": "Details"
   }
 }
