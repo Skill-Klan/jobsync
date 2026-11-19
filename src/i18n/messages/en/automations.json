@@ -393,6 +393,7 @@
     "resumeMissing": "Automation resume is missing",
     "prepareFailed": "Failed to prepare match inputs",
     "noScore": "AI did not return a match score",
-    "analyzeFailed": "Failed to analyze discovered job"
+    "analyzeFailed": "Failed to analyze discovered job",
+    "aiSwitchedOff": "AI has been switched off by the administrator."
   }
 }

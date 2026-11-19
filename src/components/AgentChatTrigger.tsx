@@ -4,10 +4,13 @@ import { MessageSquare, PanelRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAgentChat } from "@/components/agent/AgentChatProvider";
 import { useTranslations } from "@/i18n/client";
+import { useFeatures } from "@/context/FeaturesContext";
 
 export function AgentChatTrigger() {
   const t = useTranslations("agent.trigger");
   const { isOpen, open, close, approvalPending } = useAgentChat();
+  const { ai } = useFeatures();
+  if (!ai) return null;
 
   return (
     <Button

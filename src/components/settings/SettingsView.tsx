@@ -9,13 +9,18 @@ import DisplaySettings from "@/components/settings/DisplaySettings";
 import FeatureSettings from "@/components/settings/FeatureSettings";
 import SettingsSidebar, { type SettingsSection } from "@/components/settings/SettingsSidebar";
 import { useTranslations } from "@/i18n/client";
+import { useFeatures } from "@/context/FeaturesContext";
 import type { FeatureFlags } from "@/skillklan/features";
 
 // `features` — only for an admin (app/dashboard/settings/page.tsx decides);
 // everyone else gets null, and «Функції» is not there at all.
 function SettingsView({ features }: { features: FeatureFlags | null }) {
   const t = useTranslations("settings");
-  const [activeSection, setActiveSection] = useState<SettingsSection>("ai-provider");
+  const { ai } = useFeatures();
+  // The AI sections are not there while the `ai` switch is off.
+  const [chosen, setActiveSection] = useState<SettingsSection>("ai-provider");
+  const aiSection = chosen === "ai-provider" || chosen === "ai-usage" || chosen === "api-keys";
+  const activeSection: SettingsSection = !ai && aiSection ? "appearance" : chosen;
 
   return (
     <div className="flex flex-col col-span-3">
@@ -27,6 +32,7 @@ function SettingsView({ features }: { features: FeatureFlags | null }) {
           activeSection={activeSection}
           onSectionChange={setActiveSection}
           showFeatures={features !== null}
+          showAi={ai}
         />
         <div className="flex-1 min-w-0">
           {activeSection === "ai-provider" && <AiSettings />}

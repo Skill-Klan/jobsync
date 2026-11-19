@@ -1,6 +1,7 @@
 // Tests for POST /api/settings/api-keys/verify: validation, provider lookup,
 // verifier success, and connection-error message shaping.
 
+vi.mock("@/skillklan/aiSwitch", () => ({ refuseWhenAiOff: vi.fn(async () => null) })); // the switch has its own test (skillklan/aiSwitch.spec.tsx)
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
 
 vi.mock("next/server", () => ({

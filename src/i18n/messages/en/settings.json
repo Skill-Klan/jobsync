@@ -298,6 +298,10 @@
       "questions": {
         "label": "Questions",
         "description": "The interview question bank: the Questions tab and “Add question” on the dashboard. When off, the questions already written are kept — they are just not shown, and the questions on an interview prep list stay."
+      },
+      "ai": {
+        "label": "AI",
+        "description": "Everything that uses an AI model: the AI chat, job match, resume review and structuring, cover letter generation, and the AI provider, AI usage and API keys sections of Settings. When off, saved matches and reviews are kept — they are just not shown, and calls to a model are refused."
       }
     },
     "saved": "Saved",

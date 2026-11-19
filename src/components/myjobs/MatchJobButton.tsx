@@ -4,12 +4,16 @@ import { Sparkles } from "lucide-react";
 import { Button } from "../ui/button";
 import { useAgentChat } from "@/components/agent/AgentChatProvider";
 import { useTranslations } from "@/i18n/client";
+import { useFeatures } from "@/context/FeaturesContext";
 
 // Shown in place of the score when a job has none. The match flag is read by
 // useAutoMatch on the details page, which fires the AI match on arrival.
 export function MatchJobButton({ jobId }: { jobId: string }) {
   const { busy } = useAgentChat();
   const t = useTranslations("jobs");
+  const { ai } = useFeatures();
+
+  if (!ai) return null;
 
   // One shared conversation: a second match would clear the running one, so
   // the link is swapped for a dead button rather than left navigable.

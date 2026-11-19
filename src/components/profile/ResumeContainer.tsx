@@ -33,6 +33,7 @@ import {
 import { useResumeImport } from "./resume-container/useResumeImport";
 import { useResumePdfExport } from "./resume-container/useResumePdfExport";
 import { useTranslations } from "@/i18n/client";
+import { useFeatures } from "@/context/FeaturesContext";
 
 function ResumeContainer({
   resume,
@@ -43,6 +44,7 @@ function ResumeContainer({
 }) {
   const router = useRouter();
   const t = useTranslations("profile");
+  const { ai } = useFeatures();
   const goBack = () => router.back();
   const isDefault = !!resume?.id && resume.id === defaultResumeId;
   const [setDefaultConfirmOpen, setSetDefaultConfirmOpen] = useState(false);
@@ -183,7 +185,7 @@ function ResumeContainer({
   const isEmptyResume =
     !ContactInfo && (!ResumeSections || ResumeSections.length === 0);
   const showStructureWithAI =
-    isEmptyResume && !!resume.File?.filePath && aiReady && !importMode;
+    ai && isEmptyResume && !!resume.File?.filePath && aiReady && !importMode;
 
   const handleSetDefault = async () => {
     if (!resume?.id) return;

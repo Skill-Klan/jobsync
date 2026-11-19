@@ -2,8 +2,11 @@ import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { resolveApiKey } from "@/lib/api-key-resolver";
 import { log } from "@/lib/telemetry";
+import { refuseWhenAiOff } from "@/skillklan/aiSwitch";
 
 export async function GET() {
+  const aiOff = await refuseWhenAiOff();
+  if (aiOff) return aiOff;
   try {
     const session = await auth();
     const userId = session?.user?.id;

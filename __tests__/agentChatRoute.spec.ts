@@ -1,3 +1,4 @@
+vi.mock("@/skillklan/aiSwitch", () => ({ refuseWhenAiOff: vi.fn(async () => null) })); // the switch has its own test (skillklan/aiSwitch.spec.tsx)
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
 vi.mock("next/server", () => ({
   NextResponse: {
@@ -52,6 +53,7 @@ vi.mock("ai", async (importOriginal) => {
 });
 
 import { POST } from "@/app/api/ai/chat/route";
+import { refuseWhenAiOff } from "@/skillklan/aiSwitch";
 import { auth } from "@/auth";
 import { checkRateLimit } from "@/lib/ai/rate-limiter";
 import { getModel } from "@/lib/ai/providers";
@@ -97,6 +99,28 @@ describe("POST /api/ai/chat", () => {
   it("returns 401 without a session", async () => {
     (auth as any).mockResolvedValue(null);
     expect((await POST(req({ messages: [] }))).status).toBe(401);
+  });
+
+  // SKD-55: the `ai` switch off — no model is asked. Signing in comes first, so
+  // an anonymous request still gets its 401.
+  it("AI switched off → the switch's refusal, and no model, limit or save is touched", async () => {
+    const refusal = { status: 403 };
+    (refuseWhenAiOff as any).mockResolvedValueOnce(refusal);
+    expect(await POST(req({ messages: [] }))).toBe(refusal);
+    expect(getModel).not.toHaveBeenCalled();
+    expect(checkRateLimit).not.toHaveBeenCalled();
+    expect(saveChatConversation).not.toHaveBeenCalled();
+  });
+
+  it("AI switched off but nobody signed in → still 401, the switch is not even asked", async () => {
+    (auth as any).mockResolvedValue(null);
+    (refuseWhenAiOff as any).mockResolvedValue({ status: 403 });
+    try {
+      expect((await POST(req({ messages: [] }))).status).toBe(401);
+      expect(refuseWhenAiOff).not.toHaveBeenCalled();
+    } finally {
+      (refuseWhenAiOff as any).mockResolvedValue(null);
+    }
   });
 
   it("returns 429 using the chat bucket, not the shared one", async () => {

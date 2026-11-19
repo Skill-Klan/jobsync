@@ -44,6 +44,10 @@ export async function analyzeDiscoveredJob(jobId: string): Promise<{
     if (await isFeatureOff("automations")) {
       return { success: false, message: t("errors.switchedOff") };
     }
+    // The match is an AI call.
+    if (await isFeatureOff("ai")) {
+      return { success: false, message: t("errors.aiSwitchedOff") };
+    }
 
     const job = await db.job.findFirst({
       where: { id: jobId, userId: user.id, automationId: { not: null } },

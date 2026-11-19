@@ -2,6 +2,7 @@
 // requests. This locks in the defense-in-depth `auth()` check each handler
 // performs on top of the middleware matcher (see src/middleware.ts).
 
+vi.mock("@/skillklan/aiSwitch", () => ({ refuseWhenAiOff: vi.fn(async () => null) })); // the switch has its own test (skillklan/aiSwitch.spec.tsx)
 vi.mock("@/auth", () => ({
   auth: vi.fn(),
 }));

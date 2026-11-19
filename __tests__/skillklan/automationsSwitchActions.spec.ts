@@ -142,3 +142,22 @@ describe("pair: Automations on (Activities and the Library off)", () => {
     expect(db.calls.some((c) => c.startsWith("notification."))).toBe(true);
   });
 });
+
+// SKD-55: a found job's match is an AI call, so the `ai` switch stops it on its
+// own (Automations on). The pair: AI on, the call goes on to the database.
+describe("AI switched off, Automations on", () => {
+  it("analyze a found job → refused saying AI is off, the database untouched", async () => {
+    flags.off = new Set(["ai"]);
+    await expect(analyzeDiscoveredJob("job-1")).resolves.toEqual({
+      success: false,
+      message: "AI has been switched off by the administrator.",
+    });
+    expect(db.calls).toEqual([]);
+  });
+
+  it("pair: AI on → it goes on to the database", async () => {
+    flags.off = new Set();
+    await analyzeDiscoveredJob("job-1");
+    expect(db.calls.length).toBeGreaterThan(0);
+  });
+});

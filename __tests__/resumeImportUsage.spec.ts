@@ -1,4 +1,5 @@
 // @vitest-environment node
+vi.mock("@/skillklan/aiSwitch", () => ({ refuseWhenAiOff: vi.fn(async () => null) })); // the switch has its own test (skillklan/aiSwitch.spec.tsx)
 vi.mock("@/auth", () => ({ auth: vi.fn(async () => ({ user: { id: "user-1" } })) }));
 vi.mock("next/server", () => ({
   NextResponse: { json: (data: unknown, init?: { status?: number }) => ({ status: init?.status ?? 200, json: async () => data }) },
@@ -38,6 +39,8 @@ vi.mock("ai", async (importOriginal) => {
 });
 
 import { POST } from "@/app/api/ai/resume/import/route";
+import { refuseWhenAiOff } from "@/skillklan/aiSwitch";
+import { getModel } from "@/lib/ai/providers";
 
 const req = () =>
   ({
@@ -52,6 +55,15 @@ async function drain(res: Response) {
 
 describe("resume import usage", () => {
   beforeEach(() => vi.clearAllMocks());
+
+  // SKD-55: the `ai` switch off — no model is asked and no usage is recorded.
+  it("AI switched off → the switch's refusal, no model, no usage record", async () => {
+    const refusal = { status: 403 };
+    vi.mocked(refuseWhenAiOff).mockResolvedValueOnce(refusal as never);
+    expect(await POST(req())).toBe(refusal);
+    expect(getModel).not.toHaveBeenCalled();
+    expect(startAiCall).not.toHaveBeenCalled();
+  });
 
   it("records one resume_import call and marks the first snapshot", async () => {
     const res = await POST(req());

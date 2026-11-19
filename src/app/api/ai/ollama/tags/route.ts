@@ -3,8 +3,11 @@ import { getOllamaBaseUrl } from "@/actions/apiKey.actions";
 import { NextResponse } from "next/server";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { log } from "@/lib/telemetry";
+import { refuseWhenAiOff } from "@/skillklan/aiSwitch";
 
 export async function GET() {
+  const aiOff = await refuseWhenAiOff();
+  if (aiOff) return aiOff;
   try {
     const session = await auth();
     if (!session?.user?.id) {

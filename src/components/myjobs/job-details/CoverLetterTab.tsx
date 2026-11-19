@@ -7,6 +7,7 @@ import type { CoverLetter } from "@/models/profile.model";
 import { JobTabEmptyState } from "./JobTabEmptyState";
 import { useFormatDate, useTranslations } from "@/i18n/client";
 import { JOB_DATE } from "../useJobTypeLabels";
+import { useFeatures } from "@/context/FeaturesContext";
 
 type CoverLetterTabProps = {
   letter?: CoverLetter;
@@ -21,14 +22,17 @@ export function CoverLetterTab({
 }: CoverLetterTabProps) {
   const t = useTranslations("jobs");
   const formatDate = useFormatDate();
+  const { ai } = useFeatures();
+  // Generating a letter is AI: with AI off a letter already written is shown,
+  // and none can be asked for.
   if (!letter) {
     return (
       <JobTabEmptyState
         icon={FileText}
         title={t("coverLetter.emptyTitle")}
         description={t("coverLetter.emptyDescription")}
-        actionLabel={t("coverLetter.generate")}
-        onAction={onGenerate}
+        actionLabel={ai ? t("coverLetter.generate") : undefined}
+        onAction={ai ? onGenerate : undefined}
         actionDisabled={!!blockedReason}
         actionTitle={blockedReason}
       />
@@ -47,6 +51,7 @@ export function CoverLetterTab({
               date: formatDate(new Date(generatedAt), JOB_DATE),
             })}`}
         </span>
+        {ai && (
         <Button
           variant="outline"
           size="sm"
@@ -58,6 +63,7 @@ export function CoverLetterTab({
           <Sparkles className="h-4 w-4 mr-2" />
           {t("coverLetter.regenerate")}
         </Button>
+        )}
       </div>
       <TipTapContentViewer content={letter.content} />
     </div>

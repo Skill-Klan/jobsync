@@ -13,6 +13,7 @@ import { Badge } from "../ui/badge";
 import { Card } from "../ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Sparkles } from "lucide-react";
+import { useFeatures } from "@/context/FeaturesContext";
 import { useRouter } from "next/navigation";
 import { useTabQueryParam } from "@/hooks/useTabQueryParam";
 import { useAgentChat } from "@/components/agent/AgentChatProvider";
@@ -115,6 +116,7 @@ function JobDetails({
   const [linkInterviewersOpen, setLinkInterviewersOpen] = useState(false);
   const [prepQuestionsOpen, setPrepQuestionsOpen] = useState(false);
   const router = useRouter();
+  const { ai } = useFeatures();
   const [activeTab, handleTabChange] = useTabQueryParam(
     JOB_DETAIL_TABS,
     "description",
@@ -164,7 +166,8 @@ function JobDetails({
   const onCoverLetter = () =>
     requestChat(`Write a cover letter for ${jobLabel}`);
 
-  useAutoMatch(onMatch);
+  // A link armed for a match does nothing while AI is switched off.
+  useAutoMatch(ai ? onMatch : () => {});
 
   // Doubles as the busy gate: the header button, the empty state and
   // Regenerate all key on this one reason.
@@ -255,7 +258,7 @@ function JobDetails({
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="match">{t("details.tabs.match")}</TabsTrigger>
+            {ai && <TabsTrigger value="match">{t("details.tabs.match")}</TabsTrigger>}
             <TabsTrigger value="letter">{t("details.tabs.letter")}</TabsTrigger>
             <TabsTrigger value="contacts">
               {t("details.tabs.contacts")}
@@ -279,6 +282,7 @@ function JobDetails({
               <TipTapContentViewer content={job?.description} />
             </Card>
           </TabsContent>
+          {ai && (
           <TabsContent value="match" className="mt-4">
             <Card className="p-6">
               {parsedMatchData && parsedMatchData.analyzed !== false ? (
@@ -296,6 +300,7 @@ function JobDetails({
               )}
             </Card>
           </TabsContent>
+          )}
           <TabsContent value="timeline" className="mt-4">
             <JobTimelineTab
               stages={stages}

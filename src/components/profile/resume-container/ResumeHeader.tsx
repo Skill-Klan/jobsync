@@ -13,6 +13,7 @@ import {
 } from "../../ui/dropdown-menu";
 import AddResumeSection, { AddResumeSectionRef } from "../AddResumeSection";
 import { DownloadFileButton } from "../DownloadFileButton";
+import { useFeatures } from "@/context/FeaturesContext";
 import { useTranslations } from "@/i18n/client";
 
 export function ResumeHeader({
@@ -35,6 +36,7 @@ export function ResumeHeader({
   onSetDefault: () => void;
 }) {
   const t = useTranslations("profile");
+  const { ai } = useFeatures();
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-2">
@@ -64,6 +66,7 @@ export function ResumeHeader({
       </div>
       <div className="flex items-center gap-2 flex-wrap">
         <AddResumeSection resume={resume} ref={resumeSectionRef} />
+        {ai && (
         <Button
           className="h-8 gap-1 cursor-pointer"
           onClick={onReview}
@@ -75,6 +78,7 @@ export function ResumeHeader({
             {t("resumePage.review")}
           </span>
         </Button>
+        )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button size="sm" variant="outline">

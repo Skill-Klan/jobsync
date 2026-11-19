@@ -21,6 +21,7 @@ import type { WizardResume } from "./wizardConfig";
 import Link from "next/link";
 import { hasMinResumeSections } from "@/lib/resumeSections";
 import { APP_CONSTANTS } from "@/lib/constants";
+import { useFeatures } from "@/context/FeaturesContext";
 import { IncompleteResumeHint } from "@/components/IncompleteResumeHint";
 import { useTranslations } from "@/i18n/client";
 
@@ -32,6 +33,7 @@ export function StepResume({
   resumes: WizardResume[];
 }) {
   const t = useTranslations("automations");
+  const { ai } = useFeatures();
   const incompleteCount = resumes.filter(
     (r) => !hasMinResumeSections(r.sectionCount),
   ).length;
@@ -74,7 +76,7 @@ export function StepResume({
           {t("wizard.resume.noResumes")}
         </p>
       )}
-      {resumes.length > 0 && incompleteCount > 0 && (
+      {ai && resumes.length > 0 && incompleteCount > 0 && (
         <p className="text-sm text-orange-600 dark:text-orange-500">
           {t.rich("wizard.resume.thinNote", {
             count: incompleteCount,

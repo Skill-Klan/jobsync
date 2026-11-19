@@ -9,7 +9,7 @@
 // runs what is due.
 import { NextRequest } from "next/server";
 
-const flags = vi.hoisted(() => ({ automations: false }));
+const flags = vi.hoisted(() => ({ automations: false, ai: true }));
 const db = vi.hoisted(() => ({
   automation: { findFirst: vi.fn(), findMany: vi.fn() },
   automationRun: { findFirst: vi.fn(), create: vi.fn(), updateMany: vi.fn() },
@@ -17,9 +17,12 @@ const db = vi.hoisted(() => ({
 const scraper = vi.hoisted(() => ({ runAutomation: vi.fn() }));
 
 vi.mock("@/skillklan/featureFlags", () => ({
-  isFeatureOff: vi.fn(async (key: string) => key === "automations" && !flags.automations),
+  isFeatureOff: vi.fn(async (key: string) =>
+    key === "automations" ? !flags.automations : key === "ai" ? !flags.ai : false,
+  ),
   readFeatureFlags: vi.fn(async () => ({
     automations: flags.automations,
+    ai: flags.ai,
     activities: true,
     library: true,
   })),
@@ -55,6 +58,7 @@ const dbCalls = () =>
   Object.values(db).flatMap((model) => Object.values(model).flatMap((fn) => fn.mock.calls));
 
 beforeEach(() => {
+  flags.ai = true;
   db.automation.findFirst.mockResolvedValue(null);
   db.automation.findMany.mockResolvedValue([]);
 });
@@ -74,6 +78,35 @@ describe("routes", () => {
     // No such automation in the fake database — the route's own answer.
     expect(res.status).toBe(404);
     expect(db.automation.findFirst).toHaveBeenCalled();
+  });
+});
+
+// A run matches every job with AI (rules/automations.md), so the `ai` switch
+// stops it on its own: Automations on, AI off.
+describe("AI off, Automations on", () => {
+  it("run now → 403 and the database untouched; cancel and clear-log, which use no AI, go on", async () => {
+    flags.automations = true;
+    flags.ai = false;
+    const res = await call(run);
+    expect(res.status).toBe(403);
+    await expect(res.json()).resolves.toMatchObject({ message: "AI is switched off by the administrator." });
+    expect(dbCalls()).toEqual([]);
+
+    await call(cancel);
+    expect(db.automation.findFirst).toHaveBeenCalled();
+  });
+
+  it("the scheduler runs nothing and does not look for due automations; pair: AI on → it runs", async () => {
+    flags.automations = true;
+    flags.ai = false;
+    db.automation.findMany.mockResolvedValue([]);
+    await runDueAutomations();
+    expect(db.automation.findMany).not.toHaveBeenCalled();
+    expect(scraper.runAutomation).not.toHaveBeenCalled();
+
+    flags.ai = true;
+    await runDueAutomations();
+    expect(db.automation.findMany).toHaveBeenCalled();
   });
 });
 

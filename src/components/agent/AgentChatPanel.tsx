@@ -9,6 +9,7 @@ import { AgentChatMessages } from "@/components/agent/AgentChatMessages";
 import { useAgentChat } from "@/components/agent/AgentChatProvider";
 import { AiProvider } from "@/models/ai.model";
 import { useTranslations } from "@/i18n/client";
+import { useFeatures } from "@/context/FeaturesContext";
 
 export function AgentChatPanel() {
   const t = useTranslations("agent.panel");
@@ -23,6 +24,7 @@ export function AgentChatPanel() {
     togglePanelExpand,
     preflight,
   } = useAgentChat();
+  const { ai } = useFeatures();
 
   // Status icon for the terminal header bar — same shape the other AI
   // surfaces use for their provider preflight.
@@ -41,6 +43,8 @@ export function AgentChatPanel() {
   const providerLabel = preflight.provider
     ? preflight.provider.charAt(0).toUpperCase() + preflight.provider.slice(1)
     : "";
+
+  if (!ai) return null;
 
   return (
     <Sheet
