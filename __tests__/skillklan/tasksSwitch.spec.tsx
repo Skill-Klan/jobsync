@@ -60,7 +60,7 @@ import { createTask, deleteTaskById, updateTask, updateTaskStatus } from "@/acti
 import { startActivityFromTask } from "@/actions/task/activity";
 import { getActivityTypesWithTaskCounts } from "@/actions/task.actions";
 
-const ON: FeatureFlags = { automations: true, activities: true, library: true, plans: true, questions: true, ai: true, coverLetters: true, tasks: true, catalog: true };
+const ON: FeatureFlags = { automations: true, activities: true, library: true, plans: true, questions: true, ai: true, coverLetters: true, contacts: true, tasks: true, catalog: true };
 
 beforeEach(() => {
   flags.value = { ...ON };
@@ -78,6 +78,7 @@ describe("the default", () => {
       questions: false,
       ai: false,
       coverLetters: false,
+      contacts: false,
       tasks: true,
       catalog: false,
     });
@@ -97,7 +98,7 @@ describe("the page", () => {
   });
 
   it("on → the page, even with every other switch off", async () => {
-    flags.value = { automations: false, activities: false, library: false, plans: false, questions: false, ai: false, coverLetters: false, tasks: true, catalog: false };
+    flags.value = { automations: false, activities: false, library: false, plans: false, questions: false, ai: false, coverLetters: false, contacts: false, tasks: true, catalog: false };
     render(await TasksPage());
     expect(screen.getByTestId("tasks")).toBeInTheDocument();
   });

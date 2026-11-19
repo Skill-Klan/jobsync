@@ -60,6 +60,11 @@ export const FEATURES = {
   // (and so generating one). Off: none of it is shown and the actions refuse.
   // Data kept. Off at launch (owner 2026-11-19, SKD-57).
   coverLetters: { default: false },
+  // The «Додати контакт» shortcut on the dashboard and its mention in the
+  // sentence above the shortcuts. Contacts themselves (a job's contacts tab,
+  // interviewers, the Library list) are not touched. Off at launch (owner
+  // 2026-11-19, SKD-52).
+  contacts: { default: false },
 } as const;
 
 export type FeatureKey = keyof typeof FEATURES;
