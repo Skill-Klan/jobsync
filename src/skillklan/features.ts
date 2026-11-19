@@ -17,60 +17,71 @@ export const FEATURES = {
   // the dashboard, the scheduler's runs, and notifications — the bell, the
   // Notifications page and its menu item, since every notification is about
   // an automation run (owner 2026-10-18, D75). Off at launch (D74).
-  automations: { default: false },
+  automations: { default: false, group: "jobs" },
   // Tasks: the «Завдання» tab and page, «Add task» on the dashboard, and every
   // action that changes a task. On at launch: it is the one switch that closes
   // something students already have, so the admin chooses when.
-  tasks: { default: true },
+  tasks: { default: true, group: "prep" },
   // Time tracking: the Activities tab and page, the running-activity banner,
   // "start activity" in Tasks, and the dashboard's hours, activity chart,
   // activity calendar, activity goal and recent activities. Off at launch.
-  activities: { default: false },
+  activities: { default: false, group: "prep" },
   // The Library tab (/dashboard/admin) and company pages; company names in
   // job lists and details stop being links (D76). The lists themselves keep
   // filling up from forms — creating on the fly stays open. Off at launch (D74).
-  library: { default: false },
+  library: { default: false, group: "jobs" },
   // The shared catalog: one list of skills, companies, job titles, locations
   // and job sources, changed only by the admin and the QA moderator. On: the
   // job form offers only the catalog and a student asks for what is missing
   // («Запропонувати»); the «Каталог» page (admin) holds the lists and the
   // requests. Off: the form lets everybody create their own on the fly, as
   // before. Off at launch.
-  catalog: { default: false },
+  catalog: { default: false, group: "jobs" },
   // The study plan: the «Навчальний план» tab and page where a student ticks
   // off and annotates their copy of a course plan, and the «Плани студентів»
   // page where the admin hands copies out; every action that changes a plan.
   // Off at launch.
-  plans: { default: false },
+  plans: { default: false, group: "prep" },
   // The Questions tab and page (the bank of interview questions) and «Add
   // question» on the dashboard; changing or deleting a question refuses. The
   // prep list of an interview stays: adding a question there from the form
   // (create on the fly) stays open, as with the Library. Off at launch
   // (owner 2026-11-19, SKD-51).
-  questions: { default: false },
+  questions: { default: false, group: "prep" },
   // Everything that calls an AI model: the AI chat, job match, resume review
   // and «Структурувати з AI», cover letter generation, the hints about AI
   // functions, and the AI, usage and API-key sections of Settings. Off: none of
   // it is shown and every server route and action that would call a model
   // refuses. Data kept (matches, reviews, usage records). Off at launch
   // (owner 2026-11-19, SKD-55); the paid path is still being built (J4).
-  ai: { default: false },
+  ai: { default: false, group: "ai" },
   // Cover letters: adding, editing, exporting and deleting them in the profile,
   // the «cover letter» choice on the job form, the letter tab and button on a job
   // (and so generating one). Off: none of it is shown and the actions refuse.
   // Data kept. Off at launch (owner 2026-11-19, SKD-57).
-  coverLetters: { default: false },
+  coverLetters: { default: false, group: "jobs" },
   // The «Додати контакт» shortcut on the dashboard and its mention in the
   // sentence above the shortcuts. Contacts themselves (a job's contacts tab,
   // interviewers, the Library list) are not touched. Off at launch (owner
   // 2026-11-19, SKD-52).
-  contacts: { default: false },
+  contacts: { default: false, group: "jobs" },
 } as const;
+
+// Settings → «Функції» shows the switches in these groups, in this order, so a
+// long list stays readable: job search and its lists, preparation and study,
+// AI. Every switch names its group above; a test keeps the two in step.
+export const FEATURE_GROUPS = ["jobs", "prep", "ai"] as const;
+export type FeatureGroup = (typeof FEATURE_GROUPS)[number];
 
 export type FeatureKey = keyof typeof FEATURES;
 export type FeatureFlags = Record<FeatureKey, boolean>;
 
 export const FEATURE_KEYS = Object.keys(FEATURES) as FeatureKey[];
+
+// The switches of one group, in menu order.
+export function featuresInGroup(group: FeatureGroup): FeatureKey[] {
+  return FEATURE_KEYS.filter((key) => FEATURES[key].group === group);
+}
 
 // Own keys only: `"toString" in FEATURES` is true through the prototype.
 export function isFeatureKey(value: unknown): value is FeatureKey {

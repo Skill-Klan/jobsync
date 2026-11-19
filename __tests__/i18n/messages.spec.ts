@@ -62,6 +62,7 @@ const SAME_IN_BOTH = new Set<string>([
   "interviews.recordings.directions.ba",
   // The name of the feature switch: «AI» in Ukrainian too (docs/glossary.md).
   "settings.features.items.ai.label",
+  "settings.features.groups.ai",
 ]);
 
 // Prompts whose English names the item ("Select stage") while the Ukrainian
