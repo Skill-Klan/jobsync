@@ -11,6 +11,7 @@
       "contacts": "contacts"
     },
     "addJob": "Add Job",
+    "addJobHint": "Save a job you want to apply to or have applied to: track its status, notes and contacts in one place.",
     "addAutomation": "Add Automation",
     "addTask": "Add Task",
     "addQuestion": "Add Question",
