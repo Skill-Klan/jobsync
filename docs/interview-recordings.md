@@ -2,13 +2,14 @@
 
 «Співбесіди» is a library of every reviewed interview recording students uploaded through the SkillKlan Telegram
 bot — for everyone SkillKlan Job lets in (an excluded student is out within 5 minutes). Owner's decisions D57–D70,
-D77–D80.
+D77–D80; transcripts D104–D107.
 
 Code: [`src/skillklan/interviewRecordings.ts`](../src/skillklan/interviewRecordings.ts),
 [`src/skillklan/recordingName.ts`](../src/skillklan/recordingName.ts),
 [`src/skillklan/recordingsLibrary.ts`](../src/skillklan/recordingsLibrary.ts),
 [`src/skillklan/recordingAttachments.ts`](../src/skillklan/recordingAttachments.ts),
 [`src/skillklan/attachmentContent.ts`](../src/skillklan/attachmentContent.ts),
+[`src/skillklan/transcripts/`](../src/skillklan/transcripts/),
 [`src/app/api/skillklan/interview-recordings/`](../src/app/api/skillklan/interview-recordings/).
 
 ## Rules
@@ -40,6 +41,21 @@ Code: [`src/skillklan/interviewRecordings.ts`](../src/skillklan/interviewRecordi
   draws pictures and PDF pages on a canvas. Spreadsheets, presentations, archives are listed, not shown.
   `GET /api/skillklan/interview-recordings/attachments/:id` answers only the page (`x-skillklan-viewer: 1`, without
   it 400), always `inline`, `nosniff`, `CSP: sandbox`.
+- **Transcripts** (D104–D107), behind the «Транскрибація» switch (off at launch; it costs money). «Транскрибувати»
+  beside a recording queues it; the page asks for its state every 5 s; when it is done the panel below opens by itself
+  with the text by speaker («Спікер 1 · 00:00») and «Копіювати». One transcript per recording, shared by everyone
+  (`RecordingTranscript`): pressing a recording that is made or being made only shows it — nobody pays twice.
+  - **The queue** runs in this server, one recording at a time, outside any request (Cloudflare would cut a request
+    waiting minutes). The audio streams from Drive straight into one ElevenLabs request (`scribe_v3`, `diarize`) —
+    never held whole in memory. A restart puts a job left «running» back in the queue.
+  - **Limits:** one waiting job per person (a second → 409, «Спершу дочекайтеся…»). The provider out of credits
+    (402, or 401 `quota_exceeded`), refusing the key or too busy: the job **stays queued**, the queue pauses (an hour;
+    a minute when busy) and new requests get 503 «Транскрибація тимчасово недоступна». Any other failure fails the job;
+    pressing again queues it anew. Silence → done with no text.
+  - **Routes:** `GET|POST /api/skillklan/interview-recordings/:id/transcript` — a session, a library recording, the
+    switch on (otherwise 404). The list adds `transcription: { available, states }` only with the switch on.
+  - **Not built yet (D104):** the Telegram alert when the credits left cover about two interviews, and reading the
+    balance from ElevenLabs. Until then the hard ceiling is the key's own credit quota in ElevenLabs.
 - **Not configured** → the page says «Записи співбесід ще не підключено.» A person's own interview stages are on each
   job's «Етапи» tab.
 
@@ -65,3 +81,13 @@ Code: [`src/skillklan/interviewRecordings.ts`](../src/skillklan/interviewRecordi
 
 Replacing the key later is the same: new key into `app.env`, redeploy the running digest, then delete the old key in
 Google Cloud.
+
+### Transcripts: the key (the owner)
+
+1. ElevenLabs → API keys: a new key allowed only **Speech to Text**, with a **credit quota** — the ceiling even if
+   something here goes wrong. The account's own overage (usage-based billing) decides whether running out stops the
+   queue or spends money: switch it off to have a stop.
+2. `app.env` on the server: `ELEVENLABS_API_KEY=<the key>` — typed in, never pasted into a chat or a file in git.
+3. Redeploy the running digest (as above), then switch «Транскрибація» on in Settings → «Функції».
+4. Check: one short recording — «Транскрибувати», the text appears with speakers; ElevenLabs' usage page shows what it
+   cost (the credit price per hour is unclear in their docs — measure it on this first one).

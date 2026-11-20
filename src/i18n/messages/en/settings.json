@@ -306,6 +306,11 @@
         "summary": "A bank of interview questions.",
         "description": "The interview question bank: the Questions tab and “Add question” on the dashboard. When off, the questions already written are kept — they are just not shown, and the questions on an interview prep list stay."
       },
+      "transcripts": {
+        "label": "Transcription",
+        "summary": "Text of interview recordings through ElevenLabs.",
+        "description": "The “Transcribe” button beside the recordings in Interviews: the recording is transcribed by ElevenLabs, the text with speaker labels is kept for everyone and can be copied. Paid for every hour of audio. When off, there is no button and no new recording is transcribed; the texts already made are kept — they are just not shown."
+      },
       "ai": {
         "label": "AI",
         "summary": "AI chat, job match, resume review, letter generation.",

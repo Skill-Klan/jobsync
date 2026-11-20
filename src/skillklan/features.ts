@@ -48,6 +48,12 @@ export const FEATURES = {
   // (create on the fly) stays open, as with the Library. Off at launch
   // (owner 2026-11-19, SKD-51).
   questions: { default: false, group: "prep" },
+  // Transcripts of the interview recordings: «Транскрибувати» beside a recording
+  // in «Співбесіди», the queue that sends recordings to ElevenLabs, and the
+  // text panel with «Копіювати» (owner 2026-11-20, D104–D106). It costs money
+  // (rules §4.1): off, there is no button, the server refuses to queue and the
+  // queue sends nothing; transcripts already made are kept. Off at launch.
+  transcripts: { default: false, group: "prep" },
   // Everything that calls an AI model: the AI chat, job match, resume review
   // and «Структурувати з AI», cover letter generation, the hints about AI
   // functions, and the AI, usage and API-key sections of Settings. Off: none of

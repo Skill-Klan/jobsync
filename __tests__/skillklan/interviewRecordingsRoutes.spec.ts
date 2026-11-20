@@ -31,6 +31,14 @@ vi.mock("@/skillklan/interviewRecordings", () => ({
   findAttachment: ctx.findAttachment,
   AttachmentTooLargeError: ctx.errors.TooLarge,
 }));
+// Transcripts (D104–D106) have their own spec (transcriptRoutes.spec.ts); here
+// their switch is off, as at launch, so the library answers as before.
+vi.mock("@/skillklan/featureFlags", () => ({ getFeatureFlags: async () => ({ transcripts: false }) }));
+vi.mock("@/skillklan/transcripts/service", () => ({
+  transcriptQueue: () => {
+    throw new Error("the transcript queue is not used while its switch is off");
+  },
+}));
 vi.mock("@/skillklan/attachmentContent", () => ({
   attachmentContent: ctx.content,
   AttachmentUnviewableError: ctx.errors.Unviewable,
