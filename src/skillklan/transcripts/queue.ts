@@ -2,6 +2,7 @@ import "server-only";
 import type { PrismaClient } from "@prisma/client";
 import { parseSegments, segmentsFromWords, type TranscriptSegment } from "./segments";
 import { TranscribeError, type ProviderTranscript, type TranscribeFailure } from "./elevenLabs";
+import type { CreditWatch } from "./creditWatch";
 
 // The transcription queue (owner 2026-11-20): anyone presses «Транскрибувати»
 // on a recording; the transcript is made once and kept — pressing again opens
@@ -20,6 +21,10 @@ import { TranscribeError, type ProviderTranscript, type TranscribeFailure } from
 //   — «Транскрибація тимчасово недоступна» instead of a failure mid-way.
 // · Anything else fails the job; asking again queues it anew.
 // · A restart finds jobs left «running» and queues them again (resume).
+// · The account's credits (D104, D109): nearly out or overage billing on — no
+//   new job is queued or started (creditWatch.ts); before and after each job
+//   the balance is read, and the credits it took go to the log (the price of an
+//   hour is not known yet — D104).
 
 export type TranscriptStatus = "queued" | "running" | "done" | "failed";
 const WAITING: TranscriptStatus[] = ["queued", "running"];
@@ -42,6 +47,8 @@ export type QueueDeps = {
   openAudio: (id: string) => Promise<ReadableStream<Uint8Array> | null>;
   transcribe: (args: { key: string; audio: ReadableStream<Uint8Array>; mimeType: string }) => Promise<ProviderTranscript>;
   model: string;
+  // The credits watch (D104, D108–D112); absent — no credit checks.
+  credits?: Pick<CreditWatch, "check" | "blocked">;
   now?: () => number;
   log?: (message: string) => void;
 };
@@ -72,7 +79,7 @@ export function createTranscriptQueue(deps: QueueDeps) {
 
   async function availability(): Promise<Availability> {
     if (!(await deps.isOn())) return "off";
-    return deps.key() && !paused() ? "on" : "unavailable";
+    return deps.key() && !paused() && !deps.credits?.blocked() ? "on" : "unavailable";
   }
 
   // recordingId → status, for the library page (one read, no per-row calls).
@@ -97,7 +104,7 @@ export function createTranscriptQueue(deps: QueueDeps) {
       void kick();
       return { ok: true, status: existing.status as TranscriptStatus };
     }
-    if (!deps.key() || paused()) return { ok: false, reason: "unavailable" };
+    if (!deps.key() || paused() || deps.credits?.blocked()) return { ok: false, reason: "unavailable" };
     const mine = await db.recordingTranscript.count({ where: { requestedById: userId, status: { in: WAITING } } });
     if (mine > 0) return { ok: false, reason: "busy" };
 
@@ -117,15 +124,22 @@ export function createTranscriptQueue(deps: QueueDeps) {
     return { ok: true, status: (row?.status ?? "queued") as TranscriptStatus };
   }
 
-  async function run(recordingId: string, key: string): Promise<void> {
+  // Returns the seconds of audio transcribed, when it was.
+  async function run(recordingId: string, key: string): Promise<number | null> {
     const finish = (data: Record<string, unknown>) =>
       db.recordingTranscript.updateMany({ where: { recordingId, status: "running" }, data: { ...data, finishedAt: new Date(now()) } });
     const fail = (failure: string) => finish({ status: "failed", failure });
 
     const recording = await deps.inLibrary(recordingId).catch(() => null);
-    if (!recording) return void (await fail("source"));
+    if (!recording) {
+      await fail("source");
+      return null;
+    }
     const audio = await deps.openAudio(recordingId).catch(() => null);
-    if (!audio) return void (await fail("source"));
+    if (!audio) {
+      await fail("source");
+      return null;
+    }
 
     let result: ProviderTranscript;
     try {
@@ -137,10 +151,11 @@ export function createTranscriptQueue(deps: QueueDeps) {
         pausedUntil = now() + PAUSE_MS[code];
         log(`provider can't take work (${code}), the queue pauses`);
         await db.recordingTranscript.updateMany({ where: { recordingId, status: "running" }, data: { status: "queued", startedAt: null } });
-        return;
+        return null;
       }
       log(`a job failed (${code})`);
-      return void (await fail(code));
+      await fail(code);
+      return null;
     }
     // Silence or music only: done, with no text — asking again would pay for the same.
     await finish({
@@ -151,6 +166,7 @@ export function createTranscriptQueue(deps: QueueDeps) {
       model: deps.model,
       failure: null,
     });
+    return result.durationSecs;
   }
 
   async function drain(): Promise<void> {
@@ -160,11 +176,18 @@ export function createTranscriptQueue(deps: QueueDeps) {
       if (!key) return;
       const job = await db.recordingTranscript.findFirst({ where: { status: "queued" }, orderBy: { createdAt: "asc" } });
       if (!job) return;
+      const before = deps.credits ? await deps.credits.check() : null;
+      if (deps.credits?.blocked()) return;
       const claimed = await db.recordingTranscript.updateMany({
         where: { recordingId: job.recordingId, status: "queued" },
         data: { status: "running", startedAt: new Date(now()) },
       });
-      if (claimed.count === 1) await run(job.recordingId, key);
+      if (claimed.count !== 1) continue;
+      const seconds = await run(job.recordingId, key);
+      const after = deps.credits ? await deps.credits.check() : null;
+      if (seconds !== null && before?.known && after?.known) {
+        log(`a job took ${before.remaining - after.remaining} credits for ${Math.round(seconds)} s of audio`);
+      }
     }
   }
 

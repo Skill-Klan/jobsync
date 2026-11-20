@@ -3,9 +3,11 @@ export async function register() {
     const { syncSchedulerState } = await import("@/lib/scheduler");
     await syncSchedulerState();
     // Transcripts left «running» by a restart go back to the queue (D104).
-    const { transcriptQueue } = await import("@/skillklan/transcripts/service");
+    const { checkCreditsOnStart, transcriptQueue } = await import("@/skillklan/transcripts/service");
     await transcriptQueue()
       .resume()
       .catch((error) => console.error("[transcripts] resume failed", error instanceof Error ? error.name : "unknown"));
+    // The ElevenLabs credits: the first look now, then once an hour (D104).
+    void checkCreditsOnStart().catch(() => {});
   }
 }
