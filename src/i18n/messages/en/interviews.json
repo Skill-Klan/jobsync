@@ -127,6 +127,23 @@
       "tooLarge": "The file is too large to view.",
       "failed": "Couldn't open the file. Try again later.",
       "truncated": "Showing the beginning — the file is too long."
+    },
+    "transcript": {
+      "transcribe": "Transcribe",
+      "working": "Transcribing…",
+      "text": "Text",
+      "title": "Transcript",
+      "copy": "Copy",
+      "copied": "Copied",
+      "copyFailed": "Couldn't copy",
+      "collapse": "Collapse",
+      "speaker": "Speaker {n}",
+      "waiting": "Transcribing the recording — usually a few minutes. You can close the page: the text will be kept.",
+      "busy": "Wait for your previous recording first — it is still being transcribed.",
+      "unavailable": "Transcription is unavailable for now. Try again later.",
+      "failed": "Couldn't transcribe the recording. Try again.",
+      "noSpeech": "No speech was recognized in this recording.",
+      "automatic": "Transcribed automatically — names and terms may be wrong."
     }
   }
 }

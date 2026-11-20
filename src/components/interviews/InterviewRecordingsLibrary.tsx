@@ -43,6 +43,13 @@ import {
 } from "@/skillklan/recordingsLibrary";
 import type { Attachment } from "@/skillklan/recordingAttachments";
 import { AttachmentsButton } from "./RecordingAttachments";
+import {
+  TranscriptButton,
+  TranscriptNotice,
+  TranscriptPanel,
+  useRecordingTranscript,
+  type TranscriptStatus,
+} from "./RecordingTranscript";
 
 // The interview recordings library (owner 2026-10-16): every reviewed
 // recording, for everyone to listen to — and only to listen: no download
@@ -58,6 +65,9 @@ import { AttachmentsButton } from "./RecordingAttachments";
 // The files lying next to the recordings (owner 2026-10-19): beside their
 // recording when that is certain, otherwise on their folder — viewed, not
 // downloaded (RecordingAttachments.tsx).
+//
+// Transcripts (owner 2026-11-20, D104–D106), with the «Транскрибація» switch on:
+// «Транскрибувати» beside a recording, the text below it (RecordingTranscript.tsx).
 
 const API = "/api/skillklan/interview-recordings";
 
@@ -65,6 +75,10 @@ function displayDate(iso: string): string {
   const [y, m, d] = iso.split("-");
   return `${d}.${m}.${y}`;
 }
+
+// From the list: which recordings have a transcript (or one on the way) and
+// whether a new one can be asked for now. Absent — the switch is off.
+type Transcription = { available: boolean; states: Record<string, TranscriptStatus> };
 
 const toggled = <T,>(items: readonly T[], item: T) =>
   items.includes(item) ? items.filter((i) => i !== item) : [...items, item];
@@ -78,6 +92,7 @@ export default function InterviewRecordingsLibrary() {
   );
   const [recordings, setRecordings] = useState<LibraryRecording[] | null>(null);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [transcription, setTranscription] = useState<Transcription | null>(null);
   const [failed, setFailed] = useState(false);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [unplayable, setUnplayable] = useState<string | null>(null);
@@ -88,10 +103,15 @@ export default function InterviewRecordingsLibrary() {
     fetch(API, { cache: "no-store" })
       .then(async (res) => {
         if (!res.ok) throw new Error(String(res.status));
-        const body = (await res.json()) as { recordings: LibraryRecording[]; attachments?: Attachment[] };
+        const body = (await res.json()) as {
+          recordings: LibraryRecording[];
+          attachments?: Attachment[];
+          transcription?: Transcription;
+        };
         if (!alive) return;
         setRecordings(body.recordings);
         setAttachments(body.attachments ?? []);
+        setTranscription(body.transcription ?? null);
       })
       .catch(() => alive && setFailed(true));
     return () => {
@@ -140,6 +160,7 @@ export default function InterviewRecordingsLibrary() {
             : null
       }
       attachments={places.byRecording.get(r.id) ?? []}
+      transcript={transcription && { status: transcription.states[r.id], available: transcription.available }}
       playing={playingId === r.id}
       unplayable={unplayable === r.id}
       onToggle={() => {
@@ -437,6 +458,7 @@ function RecordingRow({
   showCompany,
   badge,
   attachments,
+  transcript,
   playing,
   unplayable,
   onToggle,
@@ -446,6 +468,7 @@ function RecordingRow({
   showCompany: boolean;
   badge: string | null;
   attachments: Attachment[];
+  transcript: { status: TranscriptStatus | undefined; available: boolean } | null;
   playing: boolean;
   unplayable: boolean;
   onToggle: () => void;
@@ -456,6 +479,7 @@ function RecordingRow({
   // Who and what: the bot's name gives the person; the archive's names are
   // shown as they are.
   const who = r.person ?? r.title;
+  const text = useRecordingTranscript(r.id, transcript?.status, transcript?.available ?? false);
   return (
     <li className="py-2">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -478,6 +502,7 @@ function RecordingRow({
         </span>
         <div className="ml-auto flex shrink-0 gap-1 sm:ml-0">
           <AttachmentsButton attachments={attachments} place="recording" />
+          {transcript && <TranscriptButton status={text.status} open={text.open} onClick={text.onClick} />}
           <Button type="button" size="sm" variant={playing ? "secondary" : "outline"} onClick={onToggle}>
             {playing ? <X className="h-3.5 w-3.5 sm:mr-1" /> : <Play className="h-3.5 w-3.5 sm:mr-1" />}
             {/* On a phone the icon alone; the name stays for screen readers. */}
@@ -501,6 +526,8 @@ function RecordingRow({
           {unplayable && <p className="text-xs text-muted-foreground">{t("recordings.unplayable")}</p>}
         </div>
       )}
+      {transcript && <TranscriptNotice notice={text.notice} />}
+      {transcript && text.open && text.segments && <TranscriptPanel segments={text.segments} onClose={text.close} />}
     </li>
   );
 }

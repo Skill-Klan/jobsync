@@ -59,6 +59,10 @@ Only decisions that matter for code are listed.
 | D65–D70 | Everything under the shared QA and BA folders except «pending review»; grouped by company, then stage; filters: direction, stage, company, search — kept in the page address. |
 | D61 | The uploader's name from the file name is shown. |
 | D77–D80 | Attachments next to a recording only when the match is certain, otherwise on its folder; pictures, PDFs and other files are **viewed, not downloaded**; for everyone, like the recordings. |
+| D104 | **Transcripts through ElevenLabs** (Scribe), not a local model; with limits — one job per person waiting, the queue pauses when the credits run out — and a Telegram alert when what is left covers about two interviews (the alert is not built yet). |
+| D105 | The approved look: «Транскрибувати» beside a recording → a spinner → the panel below it opens by itself with the text and **«Копіювати»**; afterwards the button is «Текст». Anyone signed in may press it; the transcript is kept and shared — made once per recording. Copying the text is the owner's explicit wish, unlike the recordings (D63). |
+| D106 | The text shows **who speaks and when** — «Спікер 1 / Спікер 2» with the time — not one block. |
+| D107 | The ElevenLabs key comes from **the same account** that voices the videos: one pool of credits for both. |
 
 ## Study plans («Навчальний план»)
 
