@@ -48,6 +48,7 @@ model User {
   Notification   Notification[]
   aiCalls        AiCall[]
   ChatConversation ChatConversation?
+  RecordingTranscript RecordingTranscript[]
   defaultResumeId String?
   defaultResume   Resume?          @relation("UserDefaultResume", fields: [defaultResumeId], references: [id], onDelete: SetNull)
 }
@@ -814,4 +815,34 @@ model PlanItem {
   note   String?
 
   @@index([planId, parentId, position])
+}
+
+// Transcripts of the interview recordings (owner 2026-11-20, D104–D106): one per
+// recording of the library («Співбесіди»), shared by everyone — the first person
+// to press «Транскрибувати» waits, everybody after sees the text at once. While
+// it is not done, the row is a job of the transcription queue.
+model RecordingTranscript {
+  // The recording's Google Drive file id — the library's own id.
+  recordingId   String    @id
+  // queued | running | done | failed — checked in code.
+  status        String
+  // done: JSON [{ "speaker": 1, "start": 12.5, "text": "…" }], speakers numbered
+  // in the order they first speak.
+  segments      String?
+  languageCode  String?
+  durationSecs  Float?
+  model         String?
+  // failed: a short code of ours (source, provider, …), never the provider's text.
+  failure       String?
+  // Who asked for it: one job of a person waits in the queue at a time. Null
+  // once that person's account is gone — the transcript stays for everyone.
+  requestedById String?
+  requestedBy   User?     @relation(fields: [requestedById], references: [id], onDelete: SetNull)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  startedAt     DateTime?
+  finishedAt    DateTime?
+
+  @@index([status, createdAt])
+  @@index([requestedById, status])
 }
