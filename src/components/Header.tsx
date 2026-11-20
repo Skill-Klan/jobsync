@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PanelLeft, Briefcase, CornerUpLeft } from "lucide-react";
+import { PanelLeft, Briefcase, CornerUpLeft, PowerIcon, Settings } from "lucide-react";
 
 import { Button } from "./ui/button";
 import {
@@ -16,11 +16,17 @@ import { isAdminSession } from "@/skillklan/cabinetAdmin";
 import SidebarToggle from "./SidebarToggle";
 import { AgentChatTrigger } from "./AgentChatTrigger";
 import { NotificationBell } from "./notifications/NotificationBell";
+import { LocaleButtons } from "./LocaleSwitcher";
 import { getTranslations } from "@/i18n/server";
 
-async function Header() {
+// On a phone the side menu is hidden, and with it the user menu (avatar →
+// Settings, language, sign out). The phone menu carries those three too
+// (owner 2026-11-20): without them an admin could not reach «Функції», and
+// nobody could switch the language or sign out.
+async function Header({ signOutAction }: { signOutAction?: () => Promise<void> } = {}) {
   const t = await getTranslations("nav");
   const tc = await getTranslations("common");
+  const ta = await getTranslations("account");
   const features = await getFeatureFlags();
   const isAdmin = await isAdminSession();
   const cabinetUrl = cabinetLink();
@@ -70,6 +76,29 @@ async function Header() {
                 </a>
               </SheetClose>
             )}
+            <div className="grid gap-6 border-t pt-6">
+              <SheetClose asChild>
+                <Link
+                  href="/dashboard/settings"
+                  className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+                >
+                  <Settings className="h-5 w-5" />
+                  {ta("settings")}
+                </Link>
+              </SheetClose>
+              <LocaleButtons className="px-2.5" />
+              {signOutAction && (
+                <form action={signOutAction}>
+                  <button
+                    type="submit"
+                    className="flex w-full items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+                  >
+                    <PowerIcon className="h-5 w-5" />
+                    {ta("logout")}
+                  </button>
+                </form>
+              )}
+            </div>
           </nav>
         </SheetContent>
       </Sheet>

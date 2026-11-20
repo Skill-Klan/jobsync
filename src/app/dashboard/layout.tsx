@@ -64,7 +64,7 @@ export default async function RootLayout({
                 <div className="flex min-h-screen w-full flex-col bg-muted/40">
                   <Sidebar user={user} signOutAction={signOutAction} cabinetUrl={cabinetLink()} isAdmin={isAdmin} />
                   <SidebarInset>
-                    <Header />
+                    <Header signOutAction={signOutAction} />
                     {features.activities && <GlobalActivityBanner />}
                     {/* Container, not viewport, queries: the docked chat panel
                       shrinks this box without changing the viewport width. */}
