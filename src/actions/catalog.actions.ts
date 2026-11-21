@@ -12,7 +12,8 @@ import {
   materializeCatalogEntry,
   removeCatalogEntry,
   renameCatalogEntry,
-  requestCatalogEntry,
+  replaceCatalogRequest,
+  createOwnValue,
   rejectCatalogRequest,
   type CatalogRequestView,
 } from "@/skillklan/catalog/catalog";
@@ -24,8 +25,8 @@ type Result<T = undefined> =
 
 // The shared catalog (src/skillklan/catalog). Every action refuses while the
 // `catalog` switch is off. Changing the catalog asks the backend for the role
-// now (confirmCabinetAdmin); a student can only suggest and pick.
-type Reason = "bad_kind" | "bad_label" | "exists" | "not_found" | "in_catalog";
+// now (confirmCabinetAdmin); a student can only create their own value and pick.
+type Reason = "bad_kind" | "bad_label" | "exists" | "not_found";
 
 async function message(key: string) {
   const t = await getTranslations("catalog");
@@ -33,7 +34,7 @@ async function message(key: string) {
 }
 
 async function refused(reason: Reason): Promise<{ success: false; message: string }> {
-  const key = { bad_kind: "errors.badKind", bad_label: "errors.badLabel", exists: "errors.exists", not_found: "errors.notFound", in_catalog: "errors.inCatalog" }[reason];
+  const key = { bad_kind: "errors.badKind", bad_label: "errors.badLabel", exists: "errors.exists", not_found: "errors.notFound" }[reason];
   return { success: false, message: await message(key) };
 }
 
@@ -96,6 +97,17 @@ export async function approveCatalogItemRequest(id: unknown, label?: unknown): P
   });
 }
 
+// The admin replaces the student's value with an entry the catalog has: every
+// person's saved jobs, work records and contacts move to it.
+export async function replaceCatalogItemRequest(id: unknown, entryId: unknown): Promise<Result<CatalogEntryView>> {
+  return asAdmin(async (admin) => {
+    const result = await replaceCatalogRequest(id, entryId, admin);
+    if (!result.ok) return refused(result.reason);
+    changed();
+    return { success: true as const, data: result.entry };
+  });
+}
+
 export async function rejectCatalogItemRequest(id: unknown): Promise<Result> {
   return asAdmin(async (admin) => {
     const result = await rejectCatalogRequest(id, admin);
@@ -105,14 +117,15 @@ export async function rejectCatalogItemRequest(id: unknown): Promise<Result> {
   });
 }
 
-// A student's suggestion for what the list lacks.
-export async function requestCatalogItem(kind: unknown, label: unknown): Promise<Result<{ again: boolean }>> {
+// A student's new value: it is theirs at once, and the admin gets a copy to
+// correct or replace (SKD-59).
+export async function createCatalogValue(kind: unknown, label: unknown): Promise<Result<PickerOption>> {
   if (await isFeatureOff("catalog")) return unavailable();
   const user = await getCurrentUser();
   if (!user) return { success: false, message: await message("errors.signedOut") };
-  const result = await requestCatalogEntry(user.id, kind, label);
+  const result = await createOwnValue(user.id, kind, label);
   if (!result.ok) return refused(result.reason);
-  return { success: true, data: { again: result.again } };
+  return { success: true, data: result.row };
 }
 
 // The person's own row for a catalog entry they picked (made on the first pick).

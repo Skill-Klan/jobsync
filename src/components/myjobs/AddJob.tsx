@@ -113,24 +113,24 @@ export function AddJob({
   const [availableTags, setAvailableTags] = useState<Tag[]>(tags);
   const [isPending, startTransition] = useTransition();
 
-  // The shared catalog (switch `catalog`): the pickers offer its list only, and
-  // a student suggests what is missing. Without it, everything works as before.
+  // The shared catalog (switch `catalog`): the pickers offer its list and what
+  // the student created themselves; a new value is theirs at once and the admin
+  // gets a copy to correct. Without it, everything works as before.
   const catalog = useCatalog();
   const { catalog: catalogOn, coverLetters: coverLettersOn } = useFeatures();
   const inCatalog = catalogOn && catalog !== null;
   const pickable = <T extends { id: string; label: string; value: string }>(
     kind: CatalogKind,
     own: T[],
-    keep: (string | undefined)[] = [],
   ): T[] =>
     inCatalog
-      ? (mergeCatalogOptions(own, catalog.filter((e) => e.kind === kind), keep) as unknown as T[])
+      ? (mergeCatalogOptions(own, catalog.filter((e) => e.kind === kind)) as unknown as T[])
       : own;
-  const titleOptions = pickable("jobTitle", jobTitles, [editJob?.JobTitle.id]);
-  const companyOptions = pickable("company", companies, [editJob?.Company.id]);
-  const locationOptions = pickable("location", locations, [editJob?.Location?.id]);
-  const sourceChoices = pickable("jobSource", jobSources, [editJob?.JobSource?.id]);
-  const skillOptions = pickable("skill", availableTags, editJob?.tags?.map((tag) => tag.id));
+  const titleOptions = pickable("jobTitle", jobTitles);
+  const companyOptions = pickable("company", companies);
+  const locationOptions = pickable("location", locations);
+  const sourceChoices = pickable("jobSource", jobSources);
+  const skillOptions = pickable("skill", availableTags);
 
   useEffect(() => {
     if (!dialogOpen && searchParams.get("add-job") === "true") {

@@ -64,10 +64,12 @@ describe("mergeCatalogOptions", () => {
     { id: "own-old", label: "Old", value: "old" }, // not in the catalog, a job holds it
   ];
 
-  it("lists the catalog only — own rows outside it are not offered", () => {
+  // owner 2026-11-21 (SKD-59): what a student created themselves stays in their
+  // picker while the admin has not corrected it.
+  it("lists the catalog and the person's own rows the catalog does not have", () => {
     const options = mergeCatalogOptions(own, entries);
-    expect(options.map((o) => o.label)).toEqual(["AWS", "Java", "Manual QA"]);
-    expect(options.some((o) => o.id === "own-rust")).toBe(false);
+    expect(options.map((o) => o.label)).toEqual(["AWS", "Java", "Manual QA", "Old", "Rust"]);
+    expect(options.some((o) => o.id === "own-rust")).toBe(true);
   });
 
   it("an entry the person already has is their own row (its id); the catalog's label shows", () => {
@@ -86,19 +88,13 @@ describe("mergeCatalogOptions", () => {
     expect(isCatalogOptionId("own-java")).toBe(false);
   });
 
-  it("what an older job was saved with stays in the list; an unknown id adds nothing", () => {
-    const options = mergeCatalogOptions(own, entries, ["own-old", "nobody", undefined]);
-    expect(options.map((o) => o.id)).toContain("own-old");
-    expect(options).toHaveLength(4);
+  it("an own row that is also in the catalog is not listed twice", () => {
+    expect(mergeCatalogOptions(own, entries).filter((o) => o.value === "java")).toHaveLength(1);
   });
 
-  it("a held row that is also in the catalog is not listed twice", () => {
-    expect(mergeCatalogOptions(own, entries, ["own-java"]).filter((o) => o.value === "java")).toHaveLength(1);
-  });
-
-  it("an empty catalog offers nothing; the input is not changed", () => {
+  it("an empty catalog offers the person's own rows; the input is not changed", () => {
     const copy = JSON.stringify(own);
-    expect(mergeCatalogOptions(own, [])).toEqual([]);
+    expect(mergeCatalogOptions(own, []).map((o) => o.id)).toEqual(["own-java", "own-old", "own-rust"]);
     expect(JSON.stringify(own)).toBe(copy);
   });
 });

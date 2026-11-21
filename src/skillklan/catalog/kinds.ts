@@ -2,7 +2,9 @@ import { canonicalizeEntityValue } from "@/lib/jobs/canonicalize";
 
 // The shared catalog (owner 2026-11-03): one list of skills, companies, job
 // titles, locations and job sources that everybody picks from in the job form,
-// changed only by whoever manages SkillKlan Job. Pure and shared by the server
+// changed only by whoever manages SkillKlan Job. A student may also create a
+// value of their own at once; the admin gets a copy to correct or replace it
+// (owner 2026-11-21, SKD-59). Pure and shared by the server
 // and the browser.
 export const CATALOG_KINDS = ["skill", "company", "jobTitle", "location", "jobSource"] as const;
 export type CatalogKind = (typeof CATALOG_KINDS)[number];
@@ -42,24 +44,20 @@ export function cleanCatalogLabel(kind: CatalogKind, label: unknown): { label: s
 
 // What a picker shows for one kind: every catalog entry — as the person's own
 // row when they already have one with that key, otherwise as a `catalog:` entry
-// — and nothing else, except the rows the form currently holds (`keep`: an
-// older job keeps showing what it was saved with). Sorted by label.
+// — and the person's own rows the catalog does not have (what they created
+// themselves; the admin corrects or replaces those later). Sorted by label.
 export function mergeCatalogOptions(
   own: readonly PickerOption[],
   entries: readonly { id: string; label: string; value: string }[],
-  keep: readonly (string | undefined)[] = [],
 ): PickerOption[] {
   const byValue = new Map(own.map((row) => [row.value, row]));
+  const listed = new Set(entries.map((entry) => entry.value));
   const options: PickerOption[] = entries.map((entry) => {
     const row = byValue.get(entry.value);
     return row
       ? { id: row.id, label: entry.label, value: entry.value }
       : { id: `${CATALOG_ID_PREFIX}${entry.id}`, label: entry.label, value: entry.value };
   });
-  for (const keepId of keep) {
-    if (!keepId || options.some((o) => o.id === keepId)) continue;
-    const kept = own.find((row) => row.id === keepId);
-    if (kept) options.push(kept);
-  }
+  for (const row of own) if (!listed.has(row.value)) options.push(row);
   return options.sort((a, b) => a.label.localeCompare(b.label));
 }
