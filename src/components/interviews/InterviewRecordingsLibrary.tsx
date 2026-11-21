@@ -45,6 +45,7 @@ import type { Attachment } from "@/skillklan/recordingAttachments";
 import { AttachmentsButton } from "./RecordingAttachments";
 import {
   TranscriptButton,
+  TranscriptConfirm,
   TranscriptNotice,
   TranscriptPanel,
   useRecordingTranscript,
@@ -479,7 +480,7 @@ function RecordingRow({
   // Who and what: the bot's name gives the person; the archive's names are
   // shown as they are.
   const who = r.person ?? r.title;
-  const text = useRecordingTranscript(r.id, transcript?.status, transcript?.available ?? false);
+  const text = useRecordingTranscript(r.id, transcript?.status, transcript?.available ?? false, r.kind);
   return (
     <li className="py-2">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -527,6 +528,7 @@ function RecordingRow({
         </div>
       )}
       {transcript && <TranscriptNotice notice={text.notice} />}
+      {transcript && <TranscriptConfirm confirm={text.confirm} onConfirm={() => void text.transcribe()} onCancel={text.cancel} />}
       {transcript && text.open && text.segments && <TranscriptPanel segments={text.segments} onClose={text.close} />}
     </li>
   );

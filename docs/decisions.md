@@ -68,6 +68,7 @@ Only decisions that matter for code are listed.
 | D110 | Recordings may be sent to ElevenLabs (zero retention is Enterprise-only). |
 | D111 | The four alert texts — low (with the time left), out (new transcripts stopped), topped up, overage on — word for word, kept in the bot. |
 | D112 | The balance can't be read (the key may not read the account, ElevenLabs is down) → **the log only**, no alert; transcripts go on. |
+| D114 | **Asked before transcribing** (2026-11-21): a recruiter interview — «Це рекрутерська співбесіда. Точно хочете її транскрибувати?»; a technical one — one question to confirm (a manager one the same — the agent's assumption); a recording already transcribed asks nothing and shows its text. |
 
 ## Study plans («Навчальний план»)
 

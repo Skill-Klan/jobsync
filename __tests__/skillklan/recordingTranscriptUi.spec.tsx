@@ -6,6 +6,11 @@
 // «Текст» from then on) and nobody pays for it twice. Behind the «Транскрибація»
 // switch: off — no button at all. Refusals in plain words: the person's previous
 // recording still waits; transcription temporarily unavailable.
+// The owner, 2026-11-21 (D114): before transcribing — a recruiter interview asks
+// «Це рекрутерська співбесіда. Точно хочете її транскрибувати?», a technical one
+// asks one question to confirm (a manager one too — the agent's assumption, the
+// owner named only these two); a recording already transcribed asks nothing and
+// shows its text. Cancelled — nothing is sent.
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import InterviewRecordingsLibrary from "@/components/interviews/InterviewRecordingsLibrary";
 import { TRANSCRIPT_POLL_MS } from "@/components/interviews/RecordingTranscript";
@@ -22,6 +27,8 @@ vi.mock("next/navigation", () => ({
 const RECORDINGS = [
   { id: "fileQaTech001", kind: "qaTech", mimeType: "audio/mpeg", date: "2026-09-24", specializations: [], person: "Іван Петренко", company: "Monobank", title: "24.09.2026 - Іван Петренко - Monobank" },
   { id: "fileQaTech002", kind: "qaTech", mimeType: "audio/mpeg", date: "2026-09-20", specializations: [], person: "Олена Коваль", company: "PrivatBank", title: "20.09.2026 - Олена Коваль - PrivatBank" },
+  { id: "fileQaRecr001", kind: "qaRecruiter", mimeType: "audio/mpeg", date: "2026-09-18", specializations: [], person: "Дарина Бойко", company: "Ajax", title: "18.09.2026 - Дарина Бойко - Ajax" },
+  { id: "fileQaMgr0001", kind: "qaManager", mimeType: "audio/mpeg", date: "2026-09-10", specializations: [], person: "Юлія Ткач", company: "Ajax", title: "10.09.2026 - Юлія Ткач - Ajax" },
 ];
 const SEGMENTS = [
   { speaker: 1, start: 0, text: "Розкажіть про себе." },
@@ -64,6 +71,11 @@ afterEach(() => {
 
 const rowOf = async (name: string) => (await screen.findByText(new RegExp(name))).closest("li") as HTMLElement;
 const posts = () => fetchMock.mock.calls.filter(([, init]) => (init as RequestInit | undefined)?.method === "POST");
+// «Transcribe» in the row, then «Transcribe» in the question (D114).
+const transcribe = async (row: HTMLElement) => {
+  fireEvent.click(within(row).getByRole("button", { name: "Transcribe" }));
+  fireEvent.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Transcribe" }));
+};
 
 describe("the switch", () => {
   it("off — no «Transcribe» anywhere; on — one beside every recording", async () => {
@@ -76,7 +88,7 @@ describe("the switch", () => {
     transcription = { available: true, states: {} };
     render(<InterviewRecordingsLibrary />);
     await rowOf("Іван Петренко");
-    expect(screen.getAllByRole("button", { name: "Transcribe" })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: "Transcribe" })).toHaveLength(4);
   });
 
   it("in Ukrainian the button says «Транскрибувати»", async () => {
@@ -93,7 +105,7 @@ describe("pressing «Transcribe»", () => {
     render(<InterviewRecordingsLibrary />);
     const row = await rowOf("Іван Петренко");
 
-    fireEvent.click(within(row).getByRole("button", { name: "Transcribe" }));
+    await transcribe(row);
     await waitFor(() => expect(within(row).getByRole("button", { name: "Transcribing…" })).toBeDisabled());
     expect(posts().map(([url]) => url)).toEqual(["/api/skillklan/interview-recordings/fileQaTech001/transcript"]);
     expect(within(row).getByRole("status")).toHaveTextContent(/usually a few minutes/);
@@ -133,6 +145,7 @@ describe("pressing «Transcribe»", () => {
     fireEvent.click(within(row).getByRole("button", { name: "Text" }));
     const panel = await within(row).findByRole("region", { name: "Transcript" });
     expect(panel).toHaveTextContent("Я тестувальниця.");
+    expect(screen.queryByRole("alertdialog")).toBeNull();
     expect(posts()).toHaveLength(0);
   });
 
@@ -165,7 +178,7 @@ describe("refusals, in plain words", () => {
     postAnswer = { status: 409, body: { error: "busy" } };
     render(<InterviewRecordingsLibrary />);
     const row = await rowOf("Іван Петренко");
-    fireEvent.click(within(row).getByRole("button", { name: "Transcribe" }));
+    await transcribe(row);
     expect(await within(row).findByRole("alert")).toHaveTextContent("Wait for your previous recording first");
     expect(within(row).getByRole("button", { name: "Transcribe" })).toBeEnabled();
   });
@@ -174,7 +187,7 @@ describe("refusals, in plain words", () => {
     postAnswer = { status: 503, body: { error: "unavailable" } };
     render(<InterviewRecordingsLibrary />);
     const row = await rowOf("Іван Петренко");
-    fireEvent.click(within(row).getByRole("button", { name: "Transcribe" }));
+    await transcribe(row);
     expect(await within(row).findByRole("alert")).toHaveTextContent("Transcription is unavailable for now");
   });
 
@@ -184,6 +197,7 @@ describe("refusals, in plain words", () => {
     const row = await rowOf("Іван Петренко");
     fireEvent.click(within(row).getByRole("button", { name: "Transcribe" }));
     expect(await within(row).findByRole("alert")).toHaveTextContent("Transcription is unavailable for now");
+    expect(screen.queryByRole("alertdialog")).toBeNull();
     expect(posts()).toHaveLength(0);
   });
 
@@ -191,10 +205,57 @@ describe("refusals, in plain words", () => {
     views.fileQaTech001 = [{ status: "failed" }];
     render(<InterviewRecordingsLibrary />);
     const row = await rowOf("Іван Петренко");
-    fireEvent.click(within(row).getByRole("button", { name: "Transcribe" }));
+    await transcribe(row);
     await waitFor(() => expect(within(row).getByRole("button", { name: "Transcribing…" })).toBeDisabled());
     await act(() => vi.advanceTimersByTimeAsync(TRANSCRIPT_POLL_MS));
     expect(await within(row).findByRole("alert")).toHaveTextContent("Couldn't transcribe the recording. Try again.");
     expect(within(row).getByRole("button", { name: "Transcribe" })).toBeEnabled();
+  });
+});
+
+describe("the question before transcribing (D114)", () => {
+  it("a recruiter interview: says so and asks if you are sure; cancelled — nothing is sent", async () => {
+    render(<InterviewRecordingsLibrary />);
+    const row = await rowOf("Дарина Бойко");
+    fireEvent.click(within(row).getByRole("button", { name: "Transcribe" }));
+    const dialog = await screen.findByRole("alertdialog");
+    expect(dialog).toHaveTextContent("This is a recruiter interview");
+    expect(dialog).toHaveTextContent("Are you sure you want to transcribe it?");
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
+    expect(posts()).toHaveLength(0);
+    expect(within(row).getByRole("button", { name: "Transcribe" })).toBeEnabled();
+
+    await transcribe(row);
+    await waitFor(() => expect(posts().map(([url]) => url)).toEqual(["/api/skillklan/interview-recordings/fileQaRecr001/transcript"]));
+  });
+
+  it("in Ukrainian: «Це рекрутерська співбесіда» — «Точно хочете її транскрибувати?»", async () => {
+    setTestLocale("uk");
+    render(<InterviewRecordingsLibrary />);
+    const row = await rowOf("Дарина Бойко");
+    fireEvent.click(within(row).getByRole("button", { name: "Транскрибувати" }));
+    const dialog = await screen.findByRole("alertdialog");
+    expect(dialog).toHaveTextContent("Це рекрутерська співбесіда");
+    expect(dialog).toHaveTextContent("Точно хочете її транскрибувати?");
+    expect(within(dialog).getByRole("button", { name: "Транскрибувати" })).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "Скасувати" })).toBeInTheDocument();
+  });
+
+  it.each([
+    ["a technical", "Іван Петренко", "fileQaTech001"],
+    ["a manager", "Юлія Ткач", "fileQaMgr0001"],
+  ])("%s interview: one question to confirm, nothing about recruiters; sent only after «Transcribe»", async (_name, person, id) => {
+    render(<InterviewRecordingsLibrary />);
+    const row = await rowOf(person);
+    fireEvent.click(within(row).getByRole("button", { name: "Transcribe" }));
+    const dialog = await screen.findByRole("alertdialog");
+    expect(within(dialog).getByRole("heading")).toHaveTextContent("Transcribe this recording?");
+    expect(dialog).not.toHaveTextContent("recruiter");
+    expect(posts()).toHaveLength(0);
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "Transcribe" }));
+    await waitFor(() => expect(posts().map(([url]) => url)).toEqual([`/api/skillklan/interview-recordings/${id}/transcript`]));
   });
 });

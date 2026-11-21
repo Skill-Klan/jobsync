@@ -143,7 +143,14 @@
       "unavailable": "Transcription is unavailable for now. Try again later.",
       "failed": "Couldn't transcribe the recording. Try again.",
       "noSpeech": "No speech was recognized in this recording.",
-      "automatic": "Transcribed automatically — names and terms may be wrong."
+      "automatic": "Transcribed automatically — names and terms may be wrong.",
+      "confirm": {
+        "recruiterTitle": "This is a recruiter interview",
+        "recruiterQuestion": "Are you sure you want to transcribe it?",
+        "title": "Transcribe this recording?",
+        "action": "Transcribe",
+        "cancel": "Cancel"
+      }
     }
   }
 }

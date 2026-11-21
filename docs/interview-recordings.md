@@ -45,6 +45,8 @@ Code: [`src/skillklan/interviewRecordings.ts`](../src/skillklan/interviewRecordi
   beside a recording queues it; the page asks for its state every 5 s; when it is done the panel below opens by itself
   with the text by speaker («Спікер 1 · 00:00») and «Копіювати». One transcript per recording, shared by everyone
   (`RecordingTranscript`): pressing a recording that is made or being made only shows it — nobody pays twice.
+  - **Asked first (D114):** a recruiter interview — «Це рекрутерська співбесіда. Точно хочете її транскрибувати?»; any
+    other — «Транскрибувати цей запис?». Cancelled — nothing is sent. Already transcribed — no question, the text opens.
   - **The queue** runs in this server, one recording at a time, outside any request (Cloudflare would cut a request
     waiting minutes). The audio streams from Drive straight into one ElevenLabs request (`scribe_v3`, `diarize`) —
     never held whole in memory. A restart puts a job left «running» back in the queue.
