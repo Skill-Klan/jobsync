@@ -64,7 +64,7 @@ import {
   saveToLocalStorage,
 } from "@/utils/localstorage.utils";
 import { useLabel, useTranslations } from "@/i18n/client";
-import { useCatalog } from "@/context/CatalogContext";
+import { useCatalog, usePendingValues } from "@/context/CatalogContext";
 import { useFeatures } from "@/context/FeaturesContext";
 import { mergeCatalogOptions, type CatalogKind } from "@/skillklan/catalog/kinds";
 import {
@@ -113,9 +113,12 @@ export function AddJob({
   const [availableTags, setAvailableTags] = useState<Tag[]>(tags);
   const [isPending, startTransition] = useTransition();
 
-  // The shared catalog (switch `catalog`): the pickers offer its list only, and
-  // a student suggests what is missing. Without it, everything works as before.
+  // The shared catalog (switch `catalog`): the pickers offer its list, what the
+  // student created and the admin has not answered yet, and what a job being
+  // edited holds; a new value is theirs at once and the admin gets a copy to
+  // correct. Without it, everything works as before.
   const catalog = useCatalog();
+  const pending = usePendingValues();
   const { catalog: catalogOn, coverLetters: coverLettersOn } = useFeatures();
   const inCatalog = catalogOn && catalog !== null;
   const pickable = <T extends { id: string; label: string; value: string }>(
@@ -124,7 +127,12 @@ export function AddJob({
     keep: (string | undefined)[] = [],
   ): T[] =>
     inCatalog
-      ? (mergeCatalogOptions(own, catalog.filter((e) => e.kind === kind), keep) as unknown as T[])
+      ? (mergeCatalogOptions(
+          own,
+          catalog.filter((e) => e.kind === kind),
+          keep,
+          pending.filter((p) => p.kind === kind).map((p) => p.value),
+        ) as unknown as T[])
       : own;
   const titleOptions = pickable("jobTitle", jobTitles, [editJob?.JobTitle.id]);
   const companyOptions = pickable("company", companies, [editJob?.Company.id]);

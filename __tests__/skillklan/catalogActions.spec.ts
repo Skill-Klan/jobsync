@@ -1,14 +1,15 @@
 // @vitest-environment node
 // Requirement — product notes, 2026-11-03: the shared catalog.
 //   · only whoever manages SkillKlan Job changes it (the backend is asked now);
-//     a student can only suggest what is missing and pick what is there;
+//     a student can only create their own value and pick what is there;
 //   · with the switch `catalog` off every action refuses and writes nothing;
 //   · a rename changes the name for everybody — their own rows that share the
 //     key get it too — and the key stays; taking an entry out only takes it out
 //     of the pickers, jobs that have it keep it;
-//   · a suggestion is one request however often it is sent; the admin approves
-//     it (the entry appears, every request for the same thing is closed) or
-//     rejects it;
+//   · owner 2026-11-21 (SKD-59): a student who lacks a value creates it and has
+//     it at once; the admin gets a copy (one request per person and value), can
+//     correct the spelling or replace it with an existing entry — everybody's
+//     rows under the misspelt key move to it — or leave it as it is;
 //   · picking an entry makes the person's own row once, with the catalog's key
 //     and name; two people get two rows.
 // Real SQLite with the current schema (db push), real Prisma.
@@ -43,6 +44,7 @@ vi.mock("@/utils/user.utils", () => ({ getCurrentUser: vi.fn(async () => ctx.use
 vi.mock("next/cache", () => ({ revalidatePath: (...args: unknown[]) => ctx.revalidate(...args) }));
 
 import appPrisma from "@/lib/db";
+import { listMyPendingValues } from "@/skillklan/catalog/catalog";
 import {
   addCatalogItem,
   approveCatalogItemRequest,
@@ -51,7 +53,8 @@ import {
   rejectCatalogItemRequest,
   removeCatalogItem,
   renameCatalogItem,
-  requestCatalogItem,
+  createCatalogValue,
+  replaceCatalogItemRequest,
 } from "@/actions/catalog.actions";
 
 const prisma = new PrismaClient({ datasources: { db: { url: ctx.url } } });
@@ -145,24 +148,34 @@ describe("the admin changes the catalog", () => {
   });
 });
 
-describe("suggestions", () => {
-  it("a student's suggestion is one request, however often it is sent", async () => {
-    expect(await requestCatalogItem("skill", "Rust")).toEqual({ success: true, data: { again: false } });
-    expect(await requestCatalogItem("skill", " rust ")).toEqual({ success: true, data: { again: true } });
+describe("a student's new value", () => {
+  it("is theirs at once, and the admin gets one copy however often it is created", async () => {
+    const first = await createCatalogValue("skill", "Rust");
+    const second = await createCatalogValue("skill", " rust ");
+    expect(first).toMatchObject({ success: true, data: { label: "Rust", value: "rust" } });
+    expect(second).toEqual(first);
+    expect(await prisma.tag.findMany({ where: { createdBy: "u1" } })).toHaveLength(1);
     expect(await prisma.catalogRequest.findMany()).toMatchObject([{ kind: "skill", label: "Rust", value: "rust", requestedBy: "u1", status: "pending" }]);
-    expect(await entries()).toEqual([]); // asking changes nothing in the list
+    expect(await entries()).toEqual([]); // creating changes nothing in the catalog
   });
 
-  it("asking for what the list has is refused, with a pointer to the list", async () => {
+  it("a value the catalog already has is the person's row for it — nothing to review", async () => {
     await addCatalogItem("skill", "Java");
-    expect(await requestCatalogItem("skill", "java")).toEqual({ success: false, message: "It is already in the list — pick it from there." });
+    expect(await createCatalogValue("skill", "java")).toMatchObject({ success: true, data: { label: "Java", value: "java" } });
     expect(await prisma.catalogRequest.count()).toBe(0);
   });
 
-  it("the admin sees the pending ones, with who asked", async () => {
-    await requestCatalogItem("skill", "Rust");
+  it("a bad name and an unknown list are refused and write nothing", async () => {
+    expect(await createCatalogValue("skill", "x")).toEqual({ success: false, message: "A name needs 2 to 80 characters." });
+    expect(await createCatalogValue("contact", "Rust")).toEqual({ success: false, message: "There is no such list." });
+    expect(await prisma.tag.count()).toBe(0);
+    expect(await prisma.catalogRequest.count()).toBe(0);
+  });
+
+  it("the admin sees the pending ones, with who made them", async () => {
+    await createCatalogValue("skill", "Rust");
     ctx.user = { id: "u2" };
-    await requestCatalogItem("company", "Globex");
+    await createCatalogValue("company", "Globex");
     const result = await getCatalogAdminData();
     if (!result.success) throw new Error("expected data");
     expect(result.data.requests.map((r) => [r.kind, r.label, r.requesterName])).toEqual([
@@ -171,10 +184,10 @@ describe("suggestions", () => {
     ]);
   });
 
-  it("approving adds the entry and closes every request for the same thing", async () => {
-    await requestCatalogItem("skill", "Rust");
+  it("approving as it is adds the entry and closes every request for the same thing", async () => {
+    await createCatalogValue("skill", "Rust");
     ctx.user = { id: "u2" };
-    await requestCatalogItem("skill", "RUST");
+    await createCatalogValue("skill", "RUST");
     const [first] = await prisma.catalogRequest.findMany({ orderBy: { createdAt: "asc" } });
 
     const result = await approveCatalogItemRequest(first.id, "Rust");
@@ -185,26 +198,80 @@ describe("suggestions", () => {
       ["approved", 4242],
     ]);
     expect(await entries()).toHaveLength(1);
+    // both students' rows now carry the admin's spelling
+    expect((await prisma.tag.findMany()).map((t) => t.label)).toEqual(["Rust", "Rust"]);
   });
 
-  it("the admin may settle on another name when approving", async () => {
-    await requestCatalogItem("skill", "postmann");
+  it("correcting the spelling: everybody's row under the wrong key becomes one under the right key", async () => {
+    await createCatalogValue("company", "Raifeisen Bank");
+    ctx.user = { id: "u2" };
+    await createCatalogValue("company", "raifeisen bank");
     const [request] = await prisma.catalogRequest.findMany();
-    expect(await approveCatalogItemRequest(request.id, "Postman")).toMatchObject({ success: true, data: { label: "Postman", value: "postman" } });
-    expect((await prisma.catalogRequest.findMany())[0].status).toBe("approved");
+
+    expect(await approveCatalogItemRequest(request.id, "Raiffeisen Bank")).toMatchObject({
+      success: true,
+      data: { label: "Raiffeisen Bank", value: "raiffeisen bank" },
+    });
+
+    expect(await prisma.company.findMany({ select: { createdBy: true, label: true, value: true }, orderBy: { createdBy: "asc" } })).toEqual([
+      { createdBy: "u1", label: "Raiffeisen Bank", value: "raiffeisen bank" },
+      { createdBy: "u2", label: "Raiffeisen Bank", value: "raiffeisen bank" },
+    ]);
+    expect((await prisma.catalogRequest.findMany()).map((r) => r.status)).toEqual(["approved", "approved"]);
   });
 
-  it("rejecting closes it without adding; the student may ask again later", async () => {
-    await requestCatalogItem("skill", "Rust");
+  it("replacing with an existing entry does the same, by the entry the admin picked", async () => {
+    const entry = await addCatalogItem("company", "Raiffeisen Bank");
+    if (!entry.success) throw new Error("setup");
+    await createCatalogValue("company", "Райфайзен");
+    const [request] = await prisma.catalogRequest.findMany();
+
+    expect(await replaceCatalogItemRequest(request.id, entry.data.id)).toMatchObject({ success: true, data: { label: "Raiffeisen Bank" } });
+
+    expect(await prisma.company.findMany({ select: { createdBy: true, value: true } })).toEqual([{ createdBy: "u1", value: "raiffeisen bank" }]);
+    expect((await prisma.catalogRequest.findMany())[0]).toMatchObject({ status: "approved", decidedByCabinetUserId: 4242 });
+    expect(await entries()).toHaveLength(1); // nothing new in the catalog
+  });
+
+  it("an entry of another list, or one that is gone, replaces nothing", async () => {
+    const skill = await addCatalogItem("skill", "Java");
+    if (!skill.success) throw new Error("setup");
+    await createCatalogValue("company", "Acme Inc");
+    const [request] = await prisma.catalogRequest.findMany();
+    const notFound = { success: false, message: "Not found. It may have been changed already — reload the page." };
+    expect(await replaceCatalogItemRequest(request.id, skill.data.id)).toEqual(notFound);
+    expect(await replaceCatalogItemRequest(request.id, "nope")).toEqual(notFound);
+    expect((await prisma.catalogRequest.findMany())[0].status).toBe("pending");
+    expect(await prisma.company.findMany()).toHaveLength(1);
+  });
+
+  it("a corrected typo made again is a new request; the person's pending values are what their picker keeps", async () => {
+    await createCatalogValue("company", "Raifeisen Bank");
+    const [first] = await prisma.catalogRequest.findMany();
+    await approveCatalogItemRequest(first.id, "Raiffeisen Bank");
+    expect(await listMyPendingValues("u1")).toEqual([]);
+
+    // the same student types the same typo again: it is new for the admin
+    expect(await createCatalogValue("company", "Raifeisen Bank")).toMatchObject({ success: true });
+    expect(await listMyPendingValues("u1")).toEqual([{ kind: "company", value: "raifeisen bank" }]);
+    expect(await listMyPendingValues("u2")).toEqual([]);
+    const result = await getCatalogAdminData();
+    if (!result.success) throw new Error("expected data");
+    expect(result.data.requests.map((r) => r.label)).toEqual(["Raifeisen Bank"]);
+  });
+
+  it("leaving it as it is closes the request; nothing changes for anybody, and it is not asked again", async () => {
+    await createCatalogValue("skill", "Rust");
     const [request] = await prisma.catalogRequest.findMany();
     expect(await rejectCatalogItemRequest(request.id)).toEqual({ success: true });
     expect(await entries()).toEqual([]);
+    expect(await prisma.tag.count()).toBe(1);
     expect((await prisma.catalogRequest.findMany())[0]).toMatchObject({ status: "rejected", decidedByCabinetUserId: 4242 });
     // a decided request cannot be decided again
     expect(await approveCatalogItemRequest(request.id)).toMatchObject({ success: false });
-
-    expect(await requestCatalogItem("skill", "Rust")).toEqual({ success: true, data: { again: false } });
-    expect((await prisma.catalogRequest.findMany())[0].status).toBe("pending");
+    // the same person creating it again does not bring the request back
+    await createCatalogValue("skill", "Rust");
+    expect((await prisma.catalogRequest.findMany())[0].status).toBe("rejected");
   });
 });
 
@@ -244,7 +311,7 @@ describe("picking", () => {
     if (!added.success) throw new Error("setup");
     ctx.user = null;
     expect(await pickCatalogItem(added.data.id)).toEqual({ success: false, message: "Sign in again." });
-    expect(await requestCatalogItem("skill", "Rust")).toEqual({ success: false, message: "Sign in again." });
+    expect(await createCatalogValue("skill", "Rust")).toEqual({ success: false, message: "Sign in again." });
     expect(await prisma.tag.count()).toBe(0);
     expect(await prisma.catalogRequest.count()).toBe(0);
   });
@@ -253,7 +320,7 @@ describe("picking", () => {
 describe("who may", () => {
   it("a student cannot change the catalog — the backend says no — and nothing is written", async () => {
     const added = await addCatalogItem("skill", "Java");
-    await requestCatalogItem("skill", "Rust");
+    await createCatalogValue("skill", "Rust");
     const [request] = await prisma.catalogRequest.findMany();
     if (!added.success) throw new Error("setup");
     const before = await state();
@@ -265,6 +332,7 @@ describe("who may", () => {
     expect(await renameCatalogItem(added.data.id, "Java 8")).toEqual(refused);
     expect(await removeCatalogItem(added.data.id)).toEqual(refused);
     expect(await approveCatalogItemRequest(request.id)).toEqual(refused);
+    expect(await replaceCatalogItemRequest(request.id, added.data.id)).toEqual(refused);
     expect(await rejectCatalogItemRequest(request.id)).toEqual(refused);
 
     expect(await state()).toBe(before);
@@ -286,7 +354,7 @@ describe("the switch is off", () => {
   it("every action refuses and writes nothing — and the same calls work when it is on", async () => {
     const added = await addCatalogItem("skill", "Java");
     if (!added.success) throw new Error("setup");
-    await requestCatalogItem("skill", "Rust");
+    await createCatalogValue("skill", "Rust");
     const [request] = await prisma.catalogRequest.findMany();
     const before = await state();
     ctx.revalidate.mockClear();
@@ -299,7 +367,8 @@ describe("the switch is off", () => {
     expect(await removeCatalogItem(added.data.id)).toEqual(off);
     expect(await approveCatalogItemRequest(request.id)).toEqual(off);
     expect(await rejectCatalogItemRequest(request.id)).toEqual(off);
-    expect(await requestCatalogItem("skill", "Go")).toEqual(off);
+    expect(await replaceCatalogItemRequest(request.id, added.data.id)).toEqual(off);
+    expect(await createCatalogValue("skill", "Go")).toEqual(off);
     expect(await pickCatalogItem(added.data.id)).toEqual(off);
 
     expect(await state()).toBe(before);
@@ -307,6 +376,6 @@ describe("the switch is off", () => {
 
     ctx.on = true;
     expect(await pickCatalogItem(added.data.id)).toMatchObject({ success: true });
-    expect(await requestCatalogItem("skill", "Go")).toMatchObject({ success: true });
+    expect(await createCatalogValue("skill", "Go")).toMatchObject({ success: true });
   });
 });

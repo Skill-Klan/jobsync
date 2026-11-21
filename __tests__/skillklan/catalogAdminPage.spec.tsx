@@ -1,9 +1,11 @@
 // Requirement — product notes, 2026-11-03: «Каталог» is the admin's page.
 //   · switch off → 404, nothing read; a student (switch on) → 404, nothing read;
-//   · the admin sees the five lists and the students' requests; approving a
-//     request (under the name the admin settled on) adds the entry and removes
-//     the request; rejecting removes it; adding, renaming and removing change
-//     the list; a refusal of the server is shown;
+//   · the admin sees the five lists and what the students created (owner
+//     2026-11-21, SKD-59): «Correct and add» sends the name the admin settled
+//     on, «Replace» sends the existing entry the admin picked (only entries of
+//     the same list are offered), «Leave as it is» closes it; each removes the
+//     row; adding, renaming and removing change the list; a refusal of the
+//     server is shown;
 //   · taking an entry out asks first, and says jobs keep it.
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -25,6 +27,7 @@ vi.mock("@/actions/catalog.actions", () => ({
   removeCatalogItem: vi.fn(),
   approveCatalogItemRequest: vi.fn(),
   rejectCatalogItemRequest: vi.fn(),
+  replaceCatalogItemRequest: vi.fn(),
 }));
 vi.mock("@/lib/toast", () => ({ toastError: vi.fn(), toastSuccess: vi.fn() }));
 
@@ -35,6 +38,7 @@ import {
   approveCatalogItemRequest,
   getCatalogAdminData,
   rejectCatalogItemRequest,
+  replaceCatalogItemRequest,
   removeCatalogItem,
   renameCatalogItem,
 } from "@/actions/catalog.actions";
@@ -48,8 +52,8 @@ const entries: CatalogEntryView[] = [
   { id: "e3", kind: "company", label: "Acme", value: "acme" },
 ];
 const requests: CatalogRequestView[] = [
-  { id: "r1", kind: "skill", label: "Rust", requestedBy: "u1", requesterName: "Olena", createdAt: new Date("2026-11-03") },
-  { id: "r2", kind: "company", label: "Globex", requestedBy: "u2", requesterName: "Ivan", createdAt: new Date("2026-11-03") },
+  { id: "r1", kind: "skill", label: "Rust", value: "rust", requestedBy: "u1", requesterName: "Olena", createdAt: new Date("2026-11-03") },
+  { id: "r2", kind: "company", label: "Globex", value: "globex", requestedBy: "u2", requesterName: "Ivan", createdAt: new Date("2026-11-03") },
 ];
 
 beforeEach(() => {
@@ -114,15 +118,15 @@ describe("the screen", () => {
     });
     open();
     const u = userEvent.setup();
-    const input = screen.getAllByLabelText("Name to add")[0];
+    const input = screen.getAllByLabelText("Name in the catalog")[0];
     await u.clear(input);
     await u.type(input, "Rust lang");
-    await u.click(screen.getAllByRole("button", { name: "Approve" })[0]);
+    await u.click(screen.getAllByRole("button", { name: "Correct and add" })[0]);
 
     expect(approveCatalogItemRequest).toHaveBeenCalledWith("r1", "Rust lang");
     await waitFor(() => expect(screen.queryByText("from Olena")).not.toBeInTheDocument());
     expect(screen.getByText("from Ivan")).toBeInTheDocument();
-    expect(toastSuccess).toHaveBeenCalledWith("Added to the catalog.");
+    expect(toastSuccess).toHaveBeenCalledWith("Added to the catalog; corrected for the students.");
     await u.click(tab("Skills"));
     expect(screen.getByText("Rust lang")).toBeInTheDocument();
   });
@@ -130,16 +134,37 @@ describe("the screen", () => {
   it("rejecting removes the request and adds nothing", async () => {
     vi.mocked(rejectCatalogItemRequest).mockResolvedValue({ success: true });
     open();
-    await userEvent.setup().click(screen.getAllByRole("button", { name: "Reject" })[1]);
+    await userEvent.setup().click(screen.getAllByRole("button", { name: "Leave as it is" })[1]);
     expect(rejectCatalogItemRequest).toHaveBeenCalledWith("r2");
     await waitFor(() => expect(screen.queryByText("from Ivan")).not.toBeInTheDocument());
-    expect(toastSuccess).toHaveBeenCalledWith("Request rejected.");
+    expect(toastSuccess).toHaveBeenCalledWith("Left as it is.");
+  });
+
+  it("replacing sends the entry picked from the same list, and the row goes", async () => {
+    vi.mocked(replaceCatalogItemRequest).mockResolvedValue({ success: true, data: entries[2] });
+    open();
+    const u = userEvent.setup();
+    // Globex is a company: only the companies of the catalog are offered
+    const pick = screen.getAllByLabelText("Replace with an existing one")[1];
+    expect(within(pick).getAllByRole("option").map((o) => o.textContent)).toEqual(["Pick from the catalog", "Acme"]);
+    await u.selectOptions(pick, "e3");
+    await u.click(screen.getAllByRole("button", { name: "Replace" })[1]);
+
+    expect(replaceCatalogItemRequest).toHaveBeenCalledWith("r2", "e3");
+    await waitFor(() => expect(screen.queryByText("from Ivan")).not.toBeInTheDocument());
+    expect(toastSuccess).toHaveBeenCalledWith("Replaced for every student.");
+    expect(screen.getByText("from Olena")).toBeInTheDocument();
+  });
+
+  it("«Replace» waits for a pick", () => {
+    open();
+    for (const button of screen.getAllByRole("button", { name: "Replace" })) expect(button).toBeDisabled();
   });
 
   it("a refusal of the server is shown and the request stays", async () => {
     vi.mocked(approveCatalogItemRequest).mockResolvedValue({ success: false, message: "Only the administrator can." });
     open();
-    await userEvent.setup().click(screen.getAllByRole("button", { name: "Approve" })[0]);
+    await userEvent.setup().click(screen.getAllByRole("button", { name: "Correct and add" })[0]);
     await waitFor(() => expect(toastError).toHaveBeenCalledWith("Only the administrator can."));
     expect(screen.getByText("from Olena")).toBeInTheDocument();
   });

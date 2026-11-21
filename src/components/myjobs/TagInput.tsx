@@ -18,8 +18,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tag } from "@/models/job.model";
 import { createTag } from "@/actions/tag.actions";
-import { toastError, toastSuccess } from "@/lib/toast";
-import { pickCatalogItem, requestCatalogItem } from "@/actions/catalog.actions";
+import { toastError } from "@/lib/toast";
+import { createCatalogValue, pickCatalogItem } from "@/actions/catalog.actions";
 import { catalogEntryIdOf, isCatalogOptionId } from "@/skillklan/catalog/kinds";
 import { cn } from "@/lib/utils";
 import { APP_CONSTANTS } from "@/lib/constants";
@@ -107,12 +107,16 @@ export function TagInput({
     if (!label || isMaxReached) return;
 
     startTransition(async () => {
-      const result = await createTag(label);
+      // With the shared catalog on, the new skill is the person's own at once
+      // and the admin gets a copy to correct (SKD-59).
+      const result = catalogMode
+        ? await createCatalogValue("skill", label).catch(() => null)
+        : await createTag(label);
       if (!result?.success) {
-        toastError(result?.message ?? t("tagInput.createFailed"));
+        toastError(result?.message ?? (catalogMode ? tCatalog("errors.failed") : t("tagInput.createFailed")));
         return;
       }
-      const newTag: Tag = result.data;
+      const newTag = (catalogMode ? { ...result.data, createdBy: "" } : result.data) as Tag;
       // Add to local pool if not already there
       setLocalTags((prev) =>
         prev.some((t) => t.id === newTag.id) ? prev : [...prev, newTag],
@@ -144,19 +148,6 @@ export function TagInput({
     addTagById(tagId);
     setInputValue("");
     setOpen(false);
-  };
-
-  const handleSuggest = () => {
-    const label = inputValue.trim();
-    if (!label) return;
-    startTransition(async () => {
-      const result = await requestCatalogItem("skill", label).catch(() => null);
-      if (result?.success) {
-        toastSuccess(tCatalog(result.data.again ? "suggest.again" : "suggest.sent"));
-        setInputValue("");
-        setOpen(false);
-      } else toastError(result?.message ?? tCatalog("errors.failed"));
-    });
   };
 
   return (
@@ -205,8 +196,8 @@ export function TagInput({
               {inputValue.trim() && !exactMatchExists && (
                 <CommandGroup>
                   <CommandItem
-                    onSelect={catalogMode ? handleSuggest : handleCreate}
-                    disabled={isPending || (!catalogMode && isMaxReached)}
+                    onSelect={handleCreate}
+                    disabled={isPending || isMaxReached}
                     className="text-primary"
                   >
                     {isPending ? (
@@ -214,9 +205,7 @@ export function TagInput({
                     ) : (
                       <CirclePlus className="mr-2 h-4 w-4" />
                     )}
-                    {catalogMode
-                      ? tCatalog("suggest.action", { label: inputValue.trim() })
-                      : t("tagInput.create", { name: inputValue.trim() })}
+                    {t("tagInput.create", { name: inputValue.trim() })}
                   </CommandItem>
                 </CommandGroup>
               )}

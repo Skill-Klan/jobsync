@@ -27,7 +27,7 @@ import { JobForm } from "@/models/job.model";
 import { addCompany } from "@/actions/company.actions";
 import { createJobTitle } from "@/actions/jobtitle.actions";
 import { toastError, toastSuccess } from "@/lib/toast";
-import { pickCatalogItem, requestCatalogItem } from "@/actions/catalog.actions";
+import { createCatalogValue, pickCatalogItem } from "@/actions/catalog.actions";
 import {
   catalogEntryIdOf,
   isCatalogOptionId,
@@ -47,9 +47,9 @@ interface ComboboxProps {
   onSearchChange?: (search: string) => void;
   // Opt out of the default fixed trigger width when the field sits in a grid
   fullWidth?: boolean;
-  // The shared catalog is on for this field: nothing is created on the fly —
-  // the person picks from the list (an entry they have not used yet becomes
-  // their own row on the first pick) or suggests what is missing.
+  // The shared catalog is on for this field: the person picks from the list (an
+  // entry they have not used yet becomes their own row on the first pick) or
+  // creates a value of their own at once — the admin gets a copy to correct.
   catalogKind?: CatalogKind;
 }
 
@@ -69,10 +69,14 @@ export function Combobox({
   // Rows made from catalog entries during this session, so the field can show
   // the picked one without the page reloading.
   const [picked, setPicked] = useState<PickerOption[]>([]);
-  const shown = options.map((option) => {
+  // Values created during this session: the picker list is rebuilt from the
+  // page's data, which does not have them until it reloads.
+  const [created, setCreated] = useState<PickerOption[]>([]);
+  const mapped = options.map((option) => {
     const own = isCatalogOptionId(option.id) ? picked.find((p) => p.value === option.value) : undefined;
     return own ? { ...option, id: own.id } : option;
   });
+  const shown = [...mapped, ...created.filter((c) => !mapped.some((o) => o.id === c.id || o.value === c.value))];
   // The English prompts name the item ("Select stage"); the Ukrainian ones do
   // not (the noun would need declining) — common.comboBox.
   const displayName = label ?? field.name;
@@ -96,18 +100,20 @@ export function Combobox({
     if (!label) return;
 
     e.preventDefault();
-    if (catalogKind) onSuggest(label);
+    if (catalogKind) onCreateCatalog(label);
     else onCreateOption(label);
     setNewOption("");
   };
 
-  // The catalog has no such thing: ask the administrator for it.
-  const onSuggest = (label: string) => {
+  // The catalog has no such thing: it is the person's own value at once, and
+  // the admin gets a copy to correct or replace.
+  const onCreateCatalog = (label: string) => {
     if (!catalogKind || !label.trim()) return;
     startTransition(async () => {
-      const result = await requestCatalogItem(catalogKind, label).catch(() => null);
+      const result = await createCatalogValue(catalogKind, label).catch(() => null);
       if (result?.success) {
-        toastSuccess(tCatalog(result.data.again ? "suggest.again" : "suggest.sent"));
+        setCreated((prev) => [result.data, ...prev.filter((p) => p.id !== result.data.id)]);
+        field.onChange(result.data.id);
         setIsPopoverOpen(false);
       } else toastError(result?.message ?? tCatalog("errors.failed"));
     });
@@ -233,7 +239,7 @@ export function Combobox({
               onSearchChange?.(val);
             }}
             placeholder={
-              creatable && !catalogKind
+              creatable || catalogKind
                 ? t("comboBox.createOrSearch", { item: displayName })
                 : t("comboBox.search", { item: displayName })
             }
@@ -242,7 +248,7 @@ export function Combobox({
           <CommandList>
             <CommandEmpty
               onClick={() => {
-                if (catalogKind) onSuggest(newOption);
+                if (catalogKind) onCreateCatalog(newOption);
                 else onCreateOption(newOption);
                 setNewOption("");
               }}
@@ -251,18 +257,7 @@ export function Combobox({
                 !newOption && "text-muted-foreground cursor-default"
               )}
             >
-              {catalogKind ? (
-                newOption.trim() ? (
-                  <>
-                    <CirclePlus className="h-4 w-4" />
-                    <p className="block max-w-56 truncate font-semibold text-primary">
-                      {tCatalog("suggest.action", { label: newOption.trim() })}
-                    </p>
-                  </>
-                ) : (
-                  <p>{tCatalog("suggest.notInList")}</p>
-                )
-              ) : creatable ? (
+              {creatable || catalogKind ? (
                 <>
                   <CirclePlus className="h-4 w-4" />
                   <p>{t("comboBox.create")} </p>

@@ -18,6 +18,7 @@ import {
   addCatalogItem,
   approveCatalogItemRequest,
   rejectCatalogItemRequest,
+  replaceCatalogItemRequest,
   removeCatalogItem,
   renameCatalogItem,
 } from "@/actions/catalog.actions";
@@ -83,9 +84,18 @@ export default function CatalogAdmin({
       const result = await approveCatalogItemRequest(request.id, label).catch(() => null);
       if (result?.success) {
         // every pending request for the same thing is closed with it
-        setRequests((prev) => prev.filter((r) => !(r.kind === request.kind && r.label.toLowerCase() === request.label.toLowerCase())));
+        setRequests((prev) => prev.filter((r) => !(r.kind === request.kind && r.value === request.value)));
         setEntries((prev) => (prev.some((e) => e.id === result.data.id) ? prev : [...prev, result.data].sort((a, b) => a.label.localeCompare(b.label))));
         done(t("requests.approved"));
+      } else toastError(result?.message ?? t("errors.failed"));
+    });
+
+  const replace = (request: CatalogRequestView, entryId: string) =>
+    startTransition(async () => {
+      const result = await replaceCatalogItemRequest(request.id, entryId).catch(() => null);
+      if (result?.success) {
+        setRequests((prev) => prev.filter((r) => !(r.kind === request.kind && r.value === request.value)));
+        done(t("requests.replaced"));
       } else toastError(result?.message ?? t("errors.failed"));
     });
 
@@ -127,7 +137,7 @@ export default function CatalogAdmin({
       </div>
 
       {tab === "requests" ? (
-        <RequestsList requests={requests} busy={busy} onApprove={approve} onReject={reject} />
+        <RequestsList requests={requests} entries={entries} busy={busy} onApprove={approve} onReplace={replace} onReject={reject} />
       ) : (
         <KindList
           kind={tab}
@@ -265,23 +275,30 @@ function KindList({
 
 function RequestsList({
   requests,
+  entries,
   busy,
   onApprove,
+  onReplace,
   onReject,
 }: {
   requests: CatalogRequestView[];
+  entries: CatalogEntryView[];
   busy: boolean;
   onApprove: (request: CatalogRequestView, label: string) => void;
+  onReplace: (request: CatalogRequestView, entryId: string) => void;
   onReject: (request: CatalogRequestView) => void;
 }) {
   const t = useTranslations("catalog");
   const [labels, setLabels] = useState<Record<string, string>>({});
+  const [picks, setPicks] = useState<Record<string, string>>({});
 
   if (requests.length === 0) return <p className="text-sm text-muted-foreground">{t("requests.empty")}</p>;
   return (
     <ul className="divide-y rounded-md border bg-background">
       {requests.map((request) => {
         const label = labels[request.id] ?? request.label;
+        const pick = picks[request.id] ?? "";
+        const sameKind = entries.filter((e) => e.kind === request.kind);
         return (
           <li key={request.id} className="flex flex-wrap items-center justify-between gap-3 px-3 py-2">
             <div className="flex min-w-0 flex-col gap-1">
@@ -296,10 +313,30 @@ function RequestsList({
                 className="max-w-sm"
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button type="button" size="sm" disabled={busy || !label.trim()} onClick={() => onApprove(request, label)}>
                 {t("requests.approve")}
               </Button>
+              {sameKind.length > 0 && (
+                <>
+                  <select
+                    value={pick}
+                    onChange={(e) => setPicks((prev) => ({ ...prev, [request.id]: e.target.value }))}
+                    aria-label={t("requests.replaceWith")}
+                    className="h-9 max-w-48 rounded-md border bg-background px-2 text-sm"
+                  >
+                    <option value="">{t("requests.replacePick")}</option>
+                    {sameKind.map((entry) => (
+                      <option key={entry.id} value={entry.id}>
+                        {entry.label}
+                      </option>
+                    ))}
+                  </select>
+                  <Button type="button" size="sm" variant="outline" disabled={busy || !pick} onClick={() => onReplace(request, pick)}>
+                    {t("requests.replace")}
+                  </Button>
+                </>
+              )}
               <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => onReject(request)}>
                 {t("requests.reject")}
               </Button>

@@ -1,7 +1,7 @@
 {
   "page": {
     "title": "Catalog",
-    "description": "One list for everyone: what students pick from in the job form. Only you change it; students suggest what is missing."
+    "description": "One list for everyone: what students pick from in the job form. What it lacks, a student creates themselves — they have it at once, and you see it under Requests and can correct it or replace it with an existing one."
   },
   "tabs": {
     "requests": "Requests",
@@ -33,21 +33,17 @@
   "empty": "Nothing here yet.",
   "count": "{count, plural, one {# item} other {# items}}",
   "requests": {
-    "empty": "No requests.",
+    "empty": "No new values from students.",
     "from": "from {name}",
-    "approve": "Approve",
-    "reject": "Reject",
-    "editLabel": "Name to add",
-    "approved": "Added to the catalog.",
-    "rejected": "Request rejected."
-  },
-  "suggest": {
-    "action": "Suggest “{label}”",
-    "sent": "Sent. The administrator will look at it.",
-    "again": "You have already suggested this.",
-    "inCatalog": "It is already in the list — pick it from there.",
-    "notInList": "Not in the list. Suggest it to the administrator.",
-    "hint": "Only the list is offered here"
+    "approve": "Correct and add",
+    "reject": "Leave as it is",
+    "editLabel": "Name in the catalog",
+    "replaceWith": "Replace with an existing one",
+    "replacePick": "Pick from the catalog",
+    "replace": "Replace",
+    "approved": "Added to the catalog; corrected for the students.",
+    "replaced": "Replaced for every student.",
+    "rejected": "Left as it is."
   },
   "added": "Added to the catalog.",
   "renamed": "Renamed.",
@@ -60,7 +56,6 @@
     "badKind": "There is no such list.",
     "exists": "This is already in the catalog.",
     "notFound": "Not found. It may have been changed already — reload the page.",
-    "inCatalog": "It is already in the list — pick it from there.",
     "failed": "Could not do that. Try again."
   }
 }
