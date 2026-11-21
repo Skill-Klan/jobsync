@@ -61,7 +61,8 @@ Code: [`src/skillklan/interviewRecordings.ts`](../src/skillklan/interviewRecordi
     with the time left; below 1 h — «нові транскрибації зупинено», and nothing new is queued or started; overage
     billing on — the same stop; back to enough — «поповнено». Each once, then once a day while it lasts, to the
     managers' «Алерти» topic through the bot ([contract](contracts/bot-transcript-alerts.md)). Unreadable balance —
-    the log only. Every transcript logs the credits it took — the price of an hour is not settled yet.
+    the log only. An hour of recording costs ≈ 1 018 credits ($0.20; measured 2026-11-21); every transcript logs
+    what the provider billed for it (the response's `character-cost` header).
 - **Not configured** → the page says «Записи співбесід ще не підключено.» A person's own interview stages are on each
   job's «Етапи» tab.
 

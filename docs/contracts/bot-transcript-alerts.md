@@ -49,5 +49,8 @@ bot has no secret configured (the route is off).
 | the bot (its `.env` on the production server) | `JOBSYNC_ALERT_SECRET` (same value); `MANAGER_THREAD_ALERTS` — the topic, already set |
 
 Thresholds are in `app.env` too: `TRANSCRIBE_ALERT_HOURS` (2), `TRANSCRIBE_STOP_HOURS` (1) and
-`ELEVENLABS_CREDITS_PER_HOUR` (19 800 — the price page's «330 credits per minute»; every transcript logs the
-credits it really took, so the rate can be corrected).
+`ELEVENLABS_CREDITS_PER_HOUR` (1 018 — measured 2026-11-21: 38.9 s of speech was billed 11 credits and $0.0022, i.e.
+the API price page's $0.20 an hour; the other page's «330 credits per minute» overstated it about 19.5 times). Every
+transcript logs what the provider billed for it — the `character-cost` and `fiat-cost-before-overages` headers of its
+response — so the rate can be checked. Not the balance before and after: the balance shows a transcript only a minute
+or two later.

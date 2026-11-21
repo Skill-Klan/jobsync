@@ -302,20 +302,36 @@ describe("the credits (D104, D109)", () => {
     expect(await queue.read("recBBBBBBBBBB")).toMatchObject({ status: "done" });
   });
 
-  it("the balance is read before and after each job, and the credits it took go to the log", async () => {
+  // Requirement — the price of an hour has to be checked on real transcripts
+  // (D104), so each job logs what it cost. Measured 2026-11-21: the balance shows
+  // a transcript only ≈ 2 minutes later, so a read right after the job is the
+  // same as before it; the price is what the provider billed on the response
+  // (`character-cost`, `fiat-cost-before-overages` — elevenLabs.ts).
+  it("the balance is read before and after each job; the log has what the provider billed, though the balance has not moved yet", async () => {
     const c = credits(30000);
     const logs: string[] = [];
     const { queue } = setup({
       credits: c.watch,
       log: (m) => void logs.push(m),
-      provider: async () => {
-        c.state.remaining -= 9900;
-        return SPOKEN;
-      },
+      provider: async () => ({ ...SPOKEN, cost: { credits: 509, usd: 0.1018 } }),
     });
     await queue.request("recAAAAAAAAAA", "ann");
     await queue.kick();
     expect(c.state.checks).toBe(2);
-    expect(logs).toContain("a job took 9900 credits for 1800 s of audio");
+    expect(logs).toContain("a job took 509 credits ($0.1018) for 1800 s of audio");
+  });
+
+  it("the provider sent no bill: the log says so, with no number made up", async () => {
+    const c = credits(30000);
+    const logs: string[] = [];
+    const { queue } = setup({
+      credits: c.watch,
+      log: (m) => void logs.push(m),
+      provider: async () => ({ ...SPOKEN, cost: { credits: null, usd: null } }),
+    });
+    await queue.request("recAAAAAAAAAA", "ann");
+    await queue.kick();
+    expect(logs).toContain("a job's cost was not reported, 1800 s of audio");
+    expect(logs.some((m) => /took \d+ credits/.test(m))).toBe(false);
   });
 });

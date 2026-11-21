@@ -12,7 +12,8 @@ import type { ProviderWord } from "./segments";
 
 export const ELEVENLABS_STT_URL = "https://api.elevenlabs.io/v1/speech-to-text";
 // The most accurate Scribe for recorded audio (docs, 2026-11-20); $0.20 an hour
-// on the API price page — the credit price there is contradictory (D104).
+// on the API price page, and that is what a measured transcript cost (2026-11-21:
+// 11 credits, $0.0022 for 38.9 s — creditWatch.ts).
 export const TRANSCRIBE_MODEL = "scribe_v3";
 // One request transcribes the whole recording: minutes for an hour of audio.
 // Past this, the job fails and can be asked for again.
@@ -36,11 +37,29 @@ export class TranscribeError extends Error {
   }
 }
 
+// What the request cost, as the provider billed it in the response headers:
+// `character-cost` (credits) and `fiat-cost-before-overages` (dollars). The
+// account's balance shows a transcript a minute or two later, so this — not a
+// balance read before and after — is the price of one job. null — not sent.
+export type ProviderCost = { credits: number | null; usd: number | null };
+
 export type ProviderTranscript = {
   languageCode: string | null;
   durationSecs: number | null;
   words: ProviderWord[];
+  cost?: ProviderCost;
 };
+
+const AMOUNT = /^\d{1,12}(\.\d{1,12})?$/;
+
+function amount(value: string | null): number | null {
+  const text = value?.trim();
+  return text && AMOUNT.test(text) ? Number(text) : null;
+}
+
+export function costOf(headers: Headers): ProviderCost {
+  return { credits: amount(headers.get("character-cost")), usd: amount(headers.get("fiat-cost-before-overages")) };
+}
 
 // A safe Content-Type for the file part: Drive's mime type when it looks like
 // one, otherwise "let the provider find out".
@@ -161,5 +180,6 @@ export async function transcribe(options: {
     languageCode: typeof data.language_code === "string" ? data.language_code : null,
     durationSecs: typeof data.audio_duration_secs === "number" ? data.audio_duration_secs : null,
     words: data.words,
+    cost: costOf(res.headers),
   };
 }

@@ -69,7 +69,7 @@ describe("the request", () => {
     expect(file.type).toBe("audio/mp4");
     expect(sha(new Uint8Array(await file.arrayBuffer()))).toBe(sha(AUDIO));
 
-    expect(result).toEqual({ languageCode: "ukr", durationSecs: 1.2, words: OK.words });
+    expect(result).toEqual({ languageCode: "ukr", durationSecs: 1.2, words: OK.words, cost: { credits: null, usd: null } });
   });
 
   it("a mime type that does not look like one is not passed on", async () => {
@@ -80,6 +80,32 @@ describe("the request", () => {
     };
     await transcribe({ key: KEY, audio: audioStream(), mimeType: 'audio/mp4"\r\nX-Evil: 1', fetchImpl: fetchImpl as typeof fetch });
     expect(type).toBe("application/octet-stream");
+  });
+});
+
+describe("what a transcript cost", () => {
+  // Requirement — the owner's credit alerts (D104) need the price of a job. A
+  // real Scribe response (2026-11-21, 38.9 s of speech) carried the bill in two
+  // headers: `character-cost: 11` (credits) and `fiat-cost-before-overages:
+  // 0.0022` (dollars); the account's balance showed it only ≈ 2 minutes later.
+  const billed = (headers: Record<string, string>) => async () =>
+    new Response(JSON.stringify(OK), { status: 200, headers: { "content-type": "application/json", ...headers } });
+
+  it("the credits and the dollars the response billed", async () => {
+    const fetchImpl = billed({ "character-cost": "11", "fiat-cost-before-overages": "0.0022" });
+    const result = await transcribe({ key: KEY, audio: audioStream(), mimeType: "audio/mpeg", fetchImpl: fetchImpl as typeof fetch });
+    expect(result.cost).toEqual({ credits: 11, usd: 0.0022 });
+  });
+
+  it.each([
+    ["no headers", {}],
+    ["not a number", { "character-cost": "eleven", "fiat-cost-before-overages": "n/a" }],
+    ["negative", { "character-cost": "-11", "fiat-cost-before-overages": "-0.0022" }],
+    ["exponent", { "character-cost": "1e3", "fiat-cost-before-overages": "2e-3" }],
+    ["empty", { "character-cost": "", "fiat-cost-before-overages": " " }],
+  ])("%s — unknown, not a made-up number", async (_name, headers) => {
+    const result = await transcribe({ key: KEY, audio: audioStream(), mimeType: "audio/mpeg", fetchImpl: billed(headers) as typeof fetch });
+    expect(result.cost).toEqual({ credits: null, usd: null });
   });
 });
 
