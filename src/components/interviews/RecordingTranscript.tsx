@@ -1,9 +1,21 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronUp, Copy, FileText, Loader2 } from "lucide-react";
-import { Button } from "../ui/button";
+import { Button, buttonVariants } from "../ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../ui/alert-dialog";
 import { useTranslations } from "@/i18n/client";
 import { clock, transcriptAsText, type TranscriptSegment } from "@/skillklan/transcripts/segments";
+import { stageOf } from "@/skillklan/recordingsLibrary";
+import type { RecordingKind } from "@/skillklan/recordingKinds";
 
 // «Транскрибувати» beside a recording (owner 2026-11-20, D104–D106, the mockup
 // approved the same day): the button queues the recording and spins while it
@@ -14,10 +26,17 @@ import { clock, transcriptAsText, type TranscriptSegment } from "@/skillklan/tra
 // «Копіювати» puts the text on the clipboard — the owner asked for it in so
 // many words (D105), unlike the recordings themselves, which are only listened
 // to (D63).
+//
+// Asked first (owner 2026-11-21, D114): a recruiter interview — «Це рекрутерська
+// співбесіда. Точно хочете її транскрибувати?»; any other — one question,
+// «Транскрибувати цей запис?». A recording already transcribed asks nothing:
+// the button opens its text.
 
 export type TranscriptStatus = "queued" | "running" | "done" | "failed";
 type Status = TranscriptStatus | "none";
 type Notice = "waiting" | "busy" | "unavailable" | "failed" | null;
+// Which question to ask before transcribing (D114).
+export type Confirm = "recruiter" | "other";
 
 export const TRANSCRIPT_POLL_MS = 5000;
 
@@ -32,11 +51,17 @@ async function readView(recordingId: string): Promise<View> {
   return (await res.json()) as View;
 }
 
-export function useRecordingTranscript(recordingId: string, initial: TranscriptStatus | undefined, available: boolean) {
+export function useRecordingTranscript(
+  recordingId: string,
+  initial: TranscriptStatus | undefined,
+  available: boolean,
+  kind: RecordingKind,
+) {
   const [status, setStatus] = useState<Status>(initial ?? "none");
   const [segments, setSegments] = useState<TranscriptSegment[] | null>(null);
   const [open, setOpen] = useState(false);
   const [notice, setNotice] = useState<Notice>(initial === "queued" || initial === "running" ? "waiting" : null);
+  const [confirm, setConfirm] = useState<Confirm | null>(null);
   // Opened by itself only for the person who pressed the button on this page.
   const pressed = useRef(false);
 
@@ -88,6 +113,12 @@ export function useRecordingTranscript(recordingId: string, initial: TranscriptS
       setNotice("unavailable");
       return;
     }
+    setConfirm(stageOf(kind) === "recruiter" ? "recruiter" : "other");
+  };
+
+  // After «Транскрибувати» in the question (D114).
+  const transcribe = async () => {
+    setConfirm(null);
     pressed.current = true;
     setNotice(null);
     try {
@@ -107,7 +138,17 @@ export function useRecordingTranscript(recordingId: string, initial: TranscriptS
     }
   };
 
-  return { status, segments, open, notice, onClick, close: () => setOpen(false) };
+  return {
+    status,
+    segments,
+    open,
+    notice,
+    onClick,
+    close: () => setOpen(false),
+    confirm,
+    transcribe,
+    cancel: () => setConfirm(null),
+  };
 }
 
 export function TranscriptButton({
@@ -224,5 +265,40 @@ export function TranscriptPanel({
       )}
       <p className="mt-2 text-xs text-muted-foreground">{t("recordings.transcript.automatic")}</p>
     </section>
+  );
+}
+
+// The question before transcribing (D114): a recruiter interview is named as such.
+export function TranscriptConfirm({
+  confirm,
+  onConfirm,
+  onCancel,
+}: {
+  confirm: Confirm | null;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  const t = useTranslations("interviews");
+  return (
+    <AlertDialog open={confirm !== null} onOpenChange={(open) => !open && onCancel()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            {confirm === "recruiter" ? t("recordings.transcript.confirm.recruiterTitle") : t("recordings.transcript.confirm.title")}
+          </AlertDialogTitle>
+          <AlertDialogDescription className={confirm === "recruiter" ? undefined : "sr-only"}>
+            {confirm === "recruiter"
+              ? t("recordings.transcript.confirm.recruiterQuestion")
+              : t("recordings.transcript.confirm.title")}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{t("recordings.transcript.confirm.cancel")}</AlertDialogCancel>
+          <AlertDialogAction className={buttonVariants({ variant: "default" })} onClick={onConfirm}>
+            {t("recordings.transcript.confirm.action")}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
