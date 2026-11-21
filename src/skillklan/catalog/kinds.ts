@@ -3,8 +3,8 @@ import { canonicalizeEntityValue } from "@/lib/jobs/canonicalize";
 // The shared catalog (owner 2026-11-03): one list of skills, companies, job
 // titles, locations and job sources that everybody picks from in the job form,
 // changed only by whoever manages SkillKlan Job. A student may also create a
-// value of their own at once; the admin gets a copy to correct or replace it
-// (owner 2026-11-21, SKD-59). Pure and shared by the server
+// value of their own at once; the admin gets a copy to correct or replace it,
+// and until then it stays in their picker (owner 2026-11-21, SKD-59). Pure and shared by the server
 // and the browser.
 export const CATALOG_KINDS = ["skill", "company", "jobTitle", "location", "jobSource"] as const;
 export type CatalogKind = (typeof CATALOG_KINDS)[number];
@@ -44,11 +44,16 @@ export function cleanCatalogLabel(kind: CatalogKind, label: unknown): { label: s
 
 // What a picker shows for one kind: every catalog entry — as the person's own
 // row when they already have one with that key, otherwise as a `catalog:` entry
-// — and the person's own rows the catalog does not have (what they created
-// themselves; the admin corrects or replaces those later). Sorted by label.
+// — plus the person's own rows that are not in the catalog but should still be
+// there: what they created and the admin has not answered yet (`pending`, their
+// keys) and what the form currently holds (`keep`: an older job keeps showing
+// what it was saved with). Every other row of their own is not offered.
+// Sorted by label.
 export function mergeCatalogOptions(
   own: readonly PickerOption[],
   entries: readonly { id: string; label: string; value: string }[],
+  keep: readonly (string | undefined)[] = [],
+  pending: readonly string[] = [],
 ): PickerOption[] {
   const byValue = new Map(own.map((row) => [row.value, row]));
   const listed = new Set(entries.map((entry) => entry.value));
@@ -58,6 +63,9 @@ export function mergeCatalogOptions(
       ? { id: row.id, label: entry.label, value: entry.value }
       : { id: `${CATALOG_ID_PREFIX}${entry.id}`, label: entry.label, value: entry.value };
   });
-  for (const row of own) if (!listed.has(row.value)) options.push(row);
+  for (const row of own) {
+    if (listed.has(row.value) || options.some((o) => o.id === row.id)) continue;
+    if (pending.includes(row.value) || keep.includes(row.id)) options.push(row);
+  }
   return options.sort((a, b) => a.label.localeCompare(b.label));
 }

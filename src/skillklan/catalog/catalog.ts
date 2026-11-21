@@ -96,6 +96,16 @@ export async function removeCatalogEntry(id: unknown) {
   return { ok: true as const };
 }
 
+// What the person created and the admin has not answered yet: their picker keeps
+// showing these next to the catalog (the rest of their own rows is not offered).
+export async function listMyPendingValues(userId: string): Promise<{ kind: CatalogKind; value: string }[]> {
+  const rows = await prisma.catalogRequest.findMany({
+    where: { requestedBy: userId, status: "pending" },
+    select: { kind: true, value: true },
+  });
+  return rows.filter((r): r is { kind: CatalogKind; value: string } => isCatalogKind(r.kind));
+}
+
 export type CatalogRequestView = {
   id: string;
   kind: CatalogKind;
@@ -129,7 +139,9 @@ export async function listPendingRequests(): Promise<CatalogRequestView[]> {
 // and a copy goes to the admin as a pending request, so a misspelling
 // ("Raifeisen Bank") can be corrected or replaced for everybody. A value the
 // catalog already has is just the person's own row for it — nothing to review.
-// One request per person, kind and value; an answered one is not re-opened.
+// One request per person, kind and value. One the admin corrected comes back
+// when the same value is created again (the typo is gone from their rows, so
+// this is a new one); one the admin left as it is stays closed.
 export async function createOwnValue(userId: string, kind: unknown, label: unknown) {
   if (!isCatalogKind(kind)) return fail("bad_kind");
   const clean = cleanCatalogLabel(kind, label);
@@ -153,6 +165,10 @@ export async function createOwnValue(userId: string, kind: unknown, label: unkno
       where: { kind_value_requestedBy: { kind, value: clean.value, requestedBy: userId } },
       update: {},
       create: { kind, label: clean.label, value: clean.value, requestedBy: userId },
+    });
+    await prisma.catalogRequest.updateMany({
+      where: { kind, value: clean.value, requestedBy: userId, status: "approved" },
+      data: { status: "pending", label: clean.label, decidedAt: null, decidedByCabinetUserId: null },
     });
   }
   return { ok: true as const, row: toOption(row) };

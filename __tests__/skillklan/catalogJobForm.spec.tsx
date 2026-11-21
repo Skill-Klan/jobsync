@@ -1,8 +1,10 @@
 // Requirement — product notes, 2026-11-03, changed by the owner 2026-11-21
 // (SKD-59): with the switch `catalog` on, the job form offers the shared list
 // and what the person created themselves:
-//   · a picker lists the catalog's entries and the person's own rows the
-//     catalog lacks (those the admin has not corrected yet);
+//   · a picker lists the catalog's entries, the values the person created and
+//     the admin has not answered yet, and what a job being edited holds — not
+//     the rest of their own rows (an answered one that is not in the catalog
+//     must not linger);
 //   · picking an entry the person has not used yet makes their own row first
 //     (pickCatalogItem), and the form holds that row;
 //   · typing something the list lacks offers «Create …» — the value is theirs
@@ -14,7 +16,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AddJob } from "@/components/myjobs/AddJob";
 import { FeaturesProvider } from "@/context/FeaturesContext";
-import { CatalogProvider } from "@/context/CatalogContext";
+import { CatalogProvider, type PendingValue } from "@/context/CatalogContext";
 import { ALL_FEATURES_ON } from "@/skillklan/features";
 import { JOB_STATUSES } from "@/lib/data/jobStatusesData";
 import { MOCK_JOB_SOURCES } from "../fixtures/mockJobSources";
@@ -90,7 +92,7 @@ const catalog: CatalogEntryView[] = [
   { id: "e-j1", kind: "jobSource", label: "DOU", value: "dou" },
 ];
 
-function renderForm({ catalogOn = true, editJob = null as JobResponse | null, provide = true } = {}) {
+function renderForm({ catalogOn = true, editJob = null as JobResponse | null, provide = true, pending = [] as PendingValue[] } = {}) {
   const form = (
     <AddJob
       jobStatuses={JOB_STATUSES}
@@ -106,7 +108,7 @@ function renderForm({ catalogOn = true, editJob = null as JobResponse | null, pr
   );
   return render(
     <FeaturesProvider value={{ ...ALL_FEATURES_ON, catalog: catalogOn }}>
-      <CatalogProvider value={provide ? catalog : null}>{form}</CatalogProvider>
+      <CatalogProvider value={provide ? catalog : null} pending={pending}>{form}</CatalogProvider>
     </FeaturesProvider>,
   );
 }
@@ -124,16 +126,29 @@ beforeEach(() => {
 });
 
 describe("the pickers with the catalog on", () => {
-  it("list the catalog and the person's own extras", async () => {
+  it("list the catalog only; own rows nobody is waiting on are not offered", async () => {
     renderForm();
     await user().click(await screen.findByLabelText("Job Title"));
+    expect(optionsOf()).toEqual(["Automation QA", "QA Engineer"]);
+    expect(screen.queryByText("Ninja Tester")).not.toBeInTheDocument();
+  });
+
+  it("a value the person created and the admin has not answered yet is offered (paired with the case above)", async () => {
+    renderForm({ pending: [{ kind: "jobTitle", value: "ninja tester" }] });
+    await user().click(await screen.findByLabelText("Job Title"));
     expect(optionsOf()).toEqual(["Automation QA", "Ninja Tester", "QA Engineer"]);
+  });
+
+  it("a pending value of another list is not offered here", async () => {
+    renderForm({ pending: [{ kind: "company", value: "ninja tester" }] });
+    await user().click(await screen.findByLabelText("Job Title"));
+    expect(screen.queryByText("Ninja Tester")).not.toBeInTheDocument();
   });
 
   it("the same for companies", async () => {
     renderForm();
     await user().click(await screen.findByLabelText("Company"));
-    expect(optionsOf()).toEqual(["Acme", "Globex", "My Garage Ltd"]);
+    expect(optionsOf()).toEqual(["Acme", "Globex"]);
   });
 
   it("an entry the person has not used makes their own row first, then the form holds it", async () => {
@@ -216,10 +231,16 @@ describe("skills with the catalog on", () => {
     return u;
   };
 
-  it("list the catalog's skills and the person's own", async () => {
-    renderForm();
+  it("list the catalog's skills; a pending own skill is offered, an unanswered-for-nobody one is not", async () => {
+    renderForm({ pending: [{ kind: "skill", value: "pisʹ" }] });
     await openSkills();
     expect(optionsOf()).toEqual(["Java", "pisʹ", "Selenium"]);
+  });
+
+  it("without a request the person's own skill outside the catalog is not offered", async () => {
+    renderForm();
+    await openSkills();
+    expect(optionsOf()).toEqual(["Java", "Selenium"]);
   });
 
   it("picking one the person has not used makes their own tag, and a chip appears", async () => {

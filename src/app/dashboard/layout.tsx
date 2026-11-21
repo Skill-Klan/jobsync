@@ -19,7 +19,7 @@ import { getFeatureFlags } from "@/skillklan/featureFlags";
 import { cabinetLink } from "@/skillklan/cabinetLink";
 import { isAdminSession } from "@/skillklan/cabinetAdmin";
 import { CatalogProvider } from "@/context/CatalogContext";
-import { listCatalog } from "@/skillklan/catalog/catalog";
+import { listCatalog, listMyPendingValues } from "@/skillklan/catalog/catalog";
 
 export default async function RootLayout({
   children,
@@ -40,6 +40,7 @@ export default async function RootLayout({
   const isAdmin = await isAdminSession();
   // The shared catalog, only while its switch is on: the job form offers it.
   const catalog = features.catalog ? await listCatalog() : null;
+  const pending = features.catalog && user ? await listMyPendingValues(user.id) : [];
 
   const signOutAction = async () => {
     "use server";
@@ -55,7 +56,7 @@ export default async function RootLayout({
 
   return (
     <FeaturesProvider value={features}>
-      <CatalogProvider value={catalog}>
+      <CatalogProvider value={catalog} pending={pending}>
       <ActivityProvider>
         <SidebarProvider initialExpanded={initialExpanded}>
           <RightRailProvider>

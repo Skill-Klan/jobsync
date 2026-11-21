@@ -44,6 +44,7 @@ vi.mock("@/utils/user.utils", () => ({ getCurrentUser: vi.fn(async () => ctx.use
 vi.mock("next/cache", () => ({ revalidatePath: (...args: unknown[]) => ctx.revalidate(...args) }));
 
 import appPrisma from "@/lib/db";
+import { listMyPendingValues } from "@/skillklan/catalog/catalog";
 import {
   addCatalogItem,
   approveCatalogItemRequest,
@@ -242,6 +243,21 @@ describe("a student's new value", () => {
     expect(await replaceCatalogItemRequest(request.id, "nope")).toEqual(notFound);
     expect((await prisma.catalogRequest.findMany())[0].status).toBe("pending");
     expect(await prisma.company.findMany()).toHaveLength(1);
+  });
+
+  it("a corrected typo made again is a new request; the person's pending values are what their picker keeps", async () => {
+    await createCatalogValue("company", "Raifeisen Bank");
+    const [first] = await prisma.catalogRequest.findMany();
+    await approveCatalogItemRequest(first.id, "Raiffeisen Bank");
+    expect(await listMyPendingValues("u1")).toEqual([]);
+
+    // the same student types the same typo again: it is new for the admin
+    expect(await createCatalogValue("company", "Raifeisen Bank")).toMatchObject({ success: true });
+    expect(await listMyPendingValues("u1")).toEqual([{ kind: "company", value: "raifeisen bank" }]);
+    expect(await listMyPendingValues("u2")).toEqual([]);
+    const result = await getCatalogAdminData();
+    if (!result.success) throw new Error("expected data");
+    expect(result.data.requests.map((r) => r.label)).toEqual(["Raifeisen Bank"]);
   });
 
   it("leaving it as it is closes the request; nothing changes for anybody, and it is not asked again", async () => {
