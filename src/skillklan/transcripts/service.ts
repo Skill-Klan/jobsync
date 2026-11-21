@@ -4,7 +4,7 @@ import { readFeatureFlags } from "@/skillklan/featureFlags";
 import { fetchRecordingBytes, findRecording } from "@/skillklan/interviewRecordings";
 import { TRANSCRIBE_MODEL, elevenLabsKey, transcribe } from "./elevenLabs";
 import { createTranscriptQueue, type TranscriptQueue } from "./queue";
-import { createCreditWatch, type CreditWatch } from "./creditWatch";
+import { DEFAULT_CREDITS_PER_HOUR, createCreditWatch, type CreditWatch } from "./creditWatch";
 import { readCredits } from "./credits";
 import { sendBotAlert } from "./botAlert";
 
@@ -20,7 +20,7 @@ const log = (message: string) => console.error(`[transcripts] ${message}`);
 
 // Thresholds (owner D104), in app.env so they change without a release:
 //   ELEVENLABS_CREDITS_PER_HOUR — credits an hour of recording costs (default:
-//     the price page's 330 a minute; measure and set — see creditWatch.ts);
+//     measured, ≈ 1 018 — creditWatch.ts; each job logs what it was billed);
 //   TRANSCRIBE_ALERT_HOURS — «закінчуються» below this (default 2, «умовно 2 співбесіди»);
 //   TRANSCRIBE_STOP_HOURS — no new transcripts below this (default 1).
 function positive(raw: string | undefined, fallback: number): number {
@@ -45,7 +45,7 @@ export function creditWatch(): CreditWatch {
       notify: async (event, minutesLeft) => {
         await sendBotAlert(event, minutesLeft, { log });
       },
-      creditsPerHour: positive(process.env.ELEVENLABS_CREDITS_PER_HOUR, 330 * 60),
+      creditsPerHour: positive(process.env.ELEVENLABS_CREDITS_PER_HOUR, DEFAULT_CREDITS_PER_HOUR),
       lowHours: positive(process.env.TRANSCRIBE_ALERT_HOURS, 2),
       stopHours: positive(process.env.TRANSCRIBE_STOP_HOURS, 1),
       log,

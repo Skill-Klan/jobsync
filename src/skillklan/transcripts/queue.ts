@@ -1,7 +1,7 @@
 import "server-only";
 import type { PrismaClient } from "@prisma/client";
 import { parseSegments, segmentsFromWords, type TranscriptSegment } from "./segments";
-import { TranscribeError, type ProviderTranscript, type TranscribeFailure } from "./elevenLabs";
+import { TranscribeError, type ProviderCost, type ProviderTranscript, type TranscribeFailure } from "./elevenLabs";
 import type { CreditWatch } from "./creditWatch";
 
 // The transcription queue (owner 2026-11-20): anyone presses «Транскрибувати»
@@ -22,9 +22,9 @@ import type { CreditWatch } from "./creditWatch";
 // · Anything else fails the job; asking again queues it anew.
 // · A restart finds jobs left «running» and queues them again (resume).
 // · The account's credits (D104, D109): nearly out or overage billing on — no
-//   new job is queued or started (creditWatch.ts); before and after each job
-//   the balance is read, and the credits it took go to the log (the price of an
-//   hour is not known yet — D104).
+//   new job is queued or started (creditWatch.ts); the balance is read before
+//   and after each job, and the credits the provider billed for it (response
+//   headers) go to the log.
 
 export type TranscriptStatus = "queued" | "running" | "done" | "failed";
 const WAITING: TranscriptStatus[] = ["queued", "running"];
@@ -124,8 +124,9 @@ export function createTranscriptQueue(deps: QueueDeps) {
     return { ok: true, status: (row?.status ?? "queued") as TranscriptStatus };
   }
 
-  // Returns the seconds of audio transcribed, when it was.
-  async function run(recordingId: string, key: string): Promise<number | null> {
+  // Returns what was transcribed — the seconds of audio and what the provider
+  // billed for them — when it was.
+  async function run(recordingId: string, key: string): Promise<{ seconds: number | null; cost: ProviderCost | null } | null> {
     const finish = (data: Record<string, unknown>) =>
       db.recordingTranscript.updateMany({ where: { recordingId, status: "running" }, data: { ...data, finishedAt: new Date(now()) } });
     const fail = (failure: string) => finish({ status: "failed", failure });
@@ -166,7 +167,7 @@ export function createTranscriptQueue(deps: QueueDeps) {
       model: deps.model,
       failure: null,
     });
-    return result.durationSecs;
+    return { seconds: result.durationSecs, cost: result.cost ?? null };
   }
 
   async function drain(): Promise<void> {
@@ -176,17 +177,27 @@ export function createTranscriptQueue(deps: QueueDeps) {
       if (!key) return;
       const job = await db.recordingTranscript.findFirst({ where: { status: "queued" }, orderBy: { createdAt: "asc" } });
       if (!job) return;
-      const before = deps.credits ? await deps.credits.check() : null;
+      if (deps.credits) await deps.credits.check();
       if (deps.credits?.blocked()) return;
       const claimed = await db.recordingTranscript.updateMany({
         where: { recordingId: job.recordingId, status: "queued" },
         data: { status: "running", startedAt: new Date(now()) },
       });
       if (claimed.count !== 1) continue;
-      const seconds = await run(job.recordingId, key);
-      const after = deps.credits ? await deps.credits.check() : null;
-      if (seconds !== null && before?.known && after?.known) {
-        log(`a job took ${before.remaining - after.remaining} credits for ${Math.round(seconds)} s of audio`);
+      const done = await run(job.recordingId, key);
+      if (deps.credits) await deps.credits.check();
+      // The price from the provider's own bill on the response: the balance shows
+      // a transcript only a minute or two later (measured 2026-11-21), so a read
+      // before and after said 0 — or the videos' voicing in between.
+      if (done && done.seconds !== null) {
+        const credits = done.cost?.credits ?? null;
+        const usd = done.cost?.usd ?? null;
+        const audio = `${Math.round(done.seconds)} s of audio`;
+        log(
+          credits === null
+            ? `a job's cost was not reported, ${audio}`
+            : `a job took ${credits} credits${usd === null ? "" : ` ($${usd})`} for ${audio}`,
+        );
       }
     }
   }

@@ -8,7 +8,7 @@
 //   D112: the balance can't be read → the log only, no alert.
 // Hours come from credits at a rate (here 600 credits an hour, so 1 credit =
 // 0.1 min); 2 h = 1200 credits, 1 h = 600.
-import { createCreditWatch, REMIND_MS, type CreditEvent } from "@/skillklan/transcripts/creditWatch";
+import { createCreditWatch, DEFAULT_CREDITS_PER_HOUR, REMIND_MS, type CreditEvent } from "@/skillklan/transcripts/creditWatch";
 
 const HOUR = 60 * 60 * 1000;
 
@@ -110,4 +110,43 @@ it("never read at all — nothing stops (the key's quota and the provider's 402 
   state.fail = true;
   await watch.check();
   expect(watch.blocked()).toBe(false);
+});
+
+describe("the default price of an hour", () => {
+  // Requirement — the alerts count hours of recording (D104), so the price of an
+  // hour must be the real one. Measured 2026-11-21 on the account Job uses (D107):
+  // 38.909 s through scribe_v3 was billed 11 credits ($0.0022). By hand:
+  // 11 / 38.909 × 3600 = 1 017.8 → 1 018 credits an hour, rounded up so the alerts
+  // come early, not late. The balance that day: 40 000 − 8 794 = 31 206 credits
+  // = 31 206 / 1 018 × 60 = 1 839 min (30 h 39 min) — plenty, nothing to say.
+  // (The price page's «330 credits per minute» read it as 94 min: a false
+  // «закінчуються».)
+  const watchAt = (remaining: number) => {
+    const sent: [CreditEvent, number | null][] = [];
+    const watch = createCreditWatch({
+      read: async () => ({ remaining, overage: false }),
+      notify: async (event, minutes) => void sent.push([event, minutes]),
+      creditsPerHour: DEFAULT_CREDITS_PER_HOUR,
+      lowHours: 2,
+      stopHours: 1,
+    });
+    return { watch, sent };
+  };
+
+  it("is the measured 1 018 credits an hour", () => {
+    expect(DEFAULT_CREDITS_PER_HOUR).toBe(1018);
+  });
+
+  it("the balance measured that day reads as ≈ 30 h — no alert, no stop", async () => {
+    const { watch, sent } = watchAt(31206);
+    expect(await watch.check()).toEqual({ known: true, level: "ok", remaining: 31206, minutesLeft: 1839 });
+    expect(sent).toEqual([]);
+    expect(watch.blocked()).toBe(false);
+  });
+
+  it("paired: under 2 h of recording (2 000 credits = 117 min) — «закінчуються» with the time left", async () => {
+    const { watch, sent } = watchAt(2000);
+    await watch.check();
+    expect(sent).toEqual([["credits_low", 117]]);
+  });
 });

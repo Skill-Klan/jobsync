@@ -27,9 +27,8 @@ export type CreditCheck =
 export type CreditWatchOptions = {
   read: () => Promise<Credits>;
   notify: (event: CreditEvent, minutesLeft: number | null) => Promise<void>;
-  // How many credits an hour of recording costs. ElevenLabs' price page:
-  // «Speech to Text 330 credits per minute» = 19 800 an hour; the other page says
-  // dollars. Measured on real transcripts (logged per job) — then set in app.env.
+  // How many credits an hour of recording costs — DEFAULT_CREDITS_PER_HOUR
+  // unless app.env says otherwise.
   creditsPerHour: number;
   lowHours: number;
   stopHours: number;
@@ -39,6 +38,16 @@ export type CreditWatchOptions = {
 };
 
 export const REMIND_MS = 24 * 60 * 60 * 1000;
+
+// Credits an hour of recording costs, measured 2026-11-21 on the account Job
+// uses (D107): 38.909 s of speech through scribe_v3 was billed 11 credits
+// (`character-cost`) and $0.0022 — ≈ 1 018 credits, $0.20 an hour, the API price
+// page's dollars. Rounded up, so the alerts come a little early, not late. The
+// other page's «330 credits per minute» (19 800 an hour) is not the API price:
+// with it, 31 206 credits left read as 1.6 h instead of 30 — «закінчуються»
+// for nothing, and the stop soon after.
+export const MEASURED = { credits: 11, seconds: 38.909 } as const;
+export const DEFAULT_CREDITS_PER_HOUR = Math.ceil((MEASURED.credits / MEASURED.seconds) * 3600);
 
 const EVENT_OF: Record<Exclude<CreditLevel, "ok">, CreditEvent> = {
   low: "credits_low",
