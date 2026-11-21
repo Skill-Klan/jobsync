@@ -54,8 +54,12 @@ Code: [`src/skillklan/interviewRecordings.ts`](../src/skillklan/interviewRecordi
     pressing again queues it anew. Silence → done with no text.
   - **Routes:** `GET|POST /api/skillklan/interview-recordings/:id/transcript` — a session, a library recording, the
     switch on (otherwise 404). The list adds `transcription: { available, states }` only with the switch on.
-  - **Not built yet (D104):** the Telegram alert when the credits left cover about two interviews, and reading the
-    balance from ElevenLabs. Until then the hard ceiling is the key's own credit quota in ElevenLabs.
+  - **Credit alerts** (D104, D108–D112): before each transcript and once an hour the app reads the account's balance
+    (`GET /v1/user/subscription`, the same key) and turns it into hours of recording. Below 2 h — «закінчуються»
+    with the time left; below 1 h — «нові транскрибації зупинено», and nothing new is queued or started; overage
+    billing on — the same stop; back to enough — «поповнено». Each once, then once a day while it lasts, to the
+    managers' «Алерти» topic through the bot ([contract](contracts/bot-transcript-alerts.md)). Unreadable balance —
+    the log only. Every transcript logs the credits it took — the price of an hour is not settled yet.
 - **Not configured** → the page says «Записи співбесід ще не підключено.» A person's own interview stages are on each
   job's «Етапи» tab.
 
@@ -88,6 +92,8 @@ Google Cloud.
    something here goes wrong. The account's own overage (usage-based billing) decides whether running out stops the
    queue or spends money: switch it off to have a stop.
 2. `app.env` on the server: `ELEVENLABS_API_KEY=<the key>` — typed in, never pasted into a chat or a file in git.
+   For the credit alerts the key must also be allowed to **read the account** (User → Read in the key's
+   permissions), and `JOBSYNC_ALERT_SECRET` must match the bot's.
 3. Redeploy the running digest (as above), then switch «Транскрибація» on in Settings → «Функції».
 4. Check: one short recording — «Транскрибувати», the text appears with speakers; ElevenLabs' usage page shows what it
    cost (the credit price per hour is unclear in their docs — measure it on this first one).

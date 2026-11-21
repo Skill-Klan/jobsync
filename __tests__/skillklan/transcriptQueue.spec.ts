@@ -265,3 +265,57 @@ describe("failures", () => {
     expect(calls).toHaveLength(1);
   });
 });
+
+describe("the credits (D104, D109)", () => {
+  // A stand-in for creditWatch.ts (its own spec covers the thresholds): blocked or
+  // not, and a balance that drops by what a job costs.
+  function credits(start: number) {
+    const state = { blocked: false, remaining: start, checks: 0 };
+    return {
+      state,
+      watch: {
+        blocked: () => state.blocked,
+        check: async () => {
+          state.checks += 1;
+          return { known: true as const, level: state.blocked ? ("out" as const) : ("ok" as const), remaining: state.remaining, minutesLeft: 0 };
+        },
+      },
+    };
+  }
+
+  it("nearly out or overage on: nothing new is queued, a waiting job is not started; paired: back to enough — it is made", async () => {
+    const c = credits(30000);
+    c.state.blocked = true;
+    const { queue, calls } = setup({ credits: c.watch });
+    expect(await queue.availability()).toBe("unavailable");
+    expect(await queue.request("recAAAAAAAAAA", "ann")).toEqual({ ok: false, reason: "unavailable" });
+
+    await db.recordingTranscript.create({ data: { recordingId: "recBBBBBBBBBB", status: "queued", requestedById: "bob" } });
+    await queue.kick();
+    expect(calls).toHaveLength(0);
+    expect(await queue.read("recBBBBBBBBBB")).toEqual({ status: "queued" });
+
+    c.state.blocked = false;
+    expect(await queue.availability()).toBe("on");
+    await queue.kick();
+    expect(calls).toHaveLength(1);
+    expect(await queue.read("recBBBBBBBBBB")).toMatchObject({ status: "done" });
+  });
+
+  it("the balance is read before and after each job, and the credits it took go to the log", async () => {
+    const c = credits(30000);
+    const logs: string[] = [];
+    const { queue } = setup({
+      credits: c.watch,
+      log: (m) => void logs.push(m),
+      provider: async () => {
+        c.state.remaining -= 9900;
+        return SPOKEN;
+      },
+    });
+    await queue.request("recAAAAAAAAAA", "ann");
+    await queue.kick();
+    expect(c.state.checks).toBe(2);
+    expect(logs).toContain("a job took 9900 credits for 1800 s of audio");
+  });
+});

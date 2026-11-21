@@ -63,6 +63,11 @@ Only decisions that matter for code are listed.
 | D105 | The approved look: «Транскрибувати» beside a recording → a spinner → the panel below it opens by itself with the text and **«Копіювати»**; afterwards the button is «Текст». Anyone signed in may press it; the transcript is kept and shared — made once per recording. Copying the text is the owner's explicit wish, unlike the recordings (D63). |
 | D106 | The text shows **who speaks and when** — «Спікер 1 / Спікер 2» with the time — not one block. |
 | D107 | The ElevenLabs key comes from **the same account** that voices the videos: one pool of credits for both. |
+| D108 | Alerts about the credits go to **the managers' group**, «Алерти» topic, through the SkillKlan bot (a narrow endpoint with its own secret) — not to the owner personally, not with a bot token in this app. |
+| D109 | Billing above the plan is **switched off** in ElevenLabs; if this app sees it on (or already billed), it alerts and stops new transcripts. |
+| D110 | Recordings may be sent to ElevenLabs (zero retention is Enterprise-only). |
+| D111 | The four alert texts — low (with the time left), out (new transcripts stopped), topped up, overage on — word for word, kept in the bot. |
+| D112 | The balance can't be read (the key may not read the account, ElevenLabs is down) → **the log only**, no alert; transcripts go on. |
 
 ## Study plans («Навчальний план»)
 
