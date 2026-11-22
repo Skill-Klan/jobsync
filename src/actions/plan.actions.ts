@@ -93,7 +93,9 @@ async function viewedStudentItem(entry: unknown, studentId: unknown, itemId: unk
 
 async function writeDone(itemId: string, done: boolean, t: Awaited<ReturnType<typeof getTranslations>>): Promise<Result> {
   try {
-    await prisma.planItem.update({ where: { id: itemId }, data: { done, doneAt: done ? new Date() : null } });
+    // Only a change is written: a point that is already ticked keeps the date it
+    // was passed on.
+    await prisma.planItem.updateMany({ where: { id: itemId, done: !done }, data: { done, doneAt: done ? new Date() : null } });
   } catch (error) {
     console.error("[plans] tick failed", error);
     return { success: false, message: t("errors.saveFailed") };

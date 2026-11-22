@@ -70,11 +70,11 @@ export type MentorLookup = {
 };
 
 export async function loadMentorLookup(viewer: number, canPick: boolean): Promise<MentorLookup> {
-  const [me, mentors] = await Promise.all([
-    sharedAnswer(`${viewer}:me`, async () => (await getViewerMentor(viewer)) ?? null),
+  const [asked, mentors] = await Promise.all([
+    sharedAnswer(`${viewer}:me`, () => getViewerMentor(viewer)),
     canPick ? sharedAnswer(`${viewer}:mentors`, () => listMentors(viewer)) : Promise.resolve([] as Mentor[]),
   ]);
-  return { canPick, mentors, me };
+  return { canPick, mentors, me: asked?.mentor ?? null };
 }
 
 export function loadEntryStudents(viewer: number, entry: MentorEntry): Promise<MentorStudent[] | null> {
