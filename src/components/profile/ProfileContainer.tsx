@@ -63,6 +63,8 @@ const ProfileContainer = () => {
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [page, setPage] = useState<number>(1);
   const [loading, setLoading] = useState(false);
+  // The first load has finished: until then an empty list is not «nothing yet».
+  const [loaded, setLoaded] = useState(false);
   const loadResumes = useCallback(
     async (page: number) => {
       const { data, total, success, message } = await getResumeList(
@@ -111,6 +113,7 @@ const ProfileContainer = () => {
       setLoading(true);
       await Promise.all([loadResumes(page), loadCoverLetters()]);
       setLoading(false);
+      setLoaded(true);
     },
     [loadResumes, loadCoverLetters],
   );
@@ -275,6 +278,9 @@ const ProfileContainer = () => {
       </ResponsiveCardHeader>
       <CardContent>
         {loading && <Loading />}
+        {loaded && !loading && documents.length === 0 && (
+          <p className="py-6 text-center text-sm text-muted-foreground">{t("profileContainer.empty")}</p>
+        )}
         {documents.length > 0 && (
           <>
             <DocumentTable

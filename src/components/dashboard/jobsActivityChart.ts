@@ -142,3 +142,9 @@ export function arcLabelLines(
 
   return [name, hours(slice.value)];
 }
+
+// The weekly chart's axis label on a phone: the day of the month only. The full
+// label ("пн, 16 лист." / "Mon, Nov 16") is too wide for seven ticks.
+export function shortDayLabel(label: string): string {
+  return /\d+/.exec(label)?.[0] ?? label;
+}
