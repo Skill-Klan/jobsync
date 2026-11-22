@@ -17,6 +17,7 @@ import enPlans from "./en/plans.json";
 import enProfile from "./en/profile.json";
 import enQuestions from "./en/questions.json";
 import enSettings from "./en/settings.json";
+import enStats from "./en/stats.json";
 import enTasks from "./en/tasks.json";
 import enValidation from "./en/validation.json";
 import ukAccount from "./uk/account.json";
@@ -37,6 +38,7 @@ import ukPlans from "./uk/plans.json";
 import ukProfile from "./uk/profile.json";
 import ukQuestions from "./uk/questions.json";
 import ukSettings from "./uk/settings.json";
+import ukStats from "./uk/stats.json";
 import ukTasks from "./uk/tasks.json";
 import ukValidation from "./uk/validation.json";
 
@@ -63,6 +65,7 @@ const en = {
   profile: enProfile,
   questions: enQuestions,
   settings: enSettings,
+  stats: enStats,
   tasks: enTasks,
   validation: enValidation,
 };
@@ -86,6 +89,7 @@ const uk: typeof en = {
   profile: ukProfile,
   questions: ukQuestions,
   settings: ukSettings,
+  stats: ukStats,
   tasks: ukTasks,
   validation: ukValidation,
 };

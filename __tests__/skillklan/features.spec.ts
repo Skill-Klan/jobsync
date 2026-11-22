@@ -107,6 +107,7 @@ describe("visibleSidebarLinks — the menu for everyone, the admin included", ()
       "/dashboard/student-plans",
       ...FULL_MENU.slice(FULL_MENU.indexOf("/dashboard/plan") + 1),
       "/dashboard/catalog", // the admin's too, since `catalog` is on in ALL_ON
+      "/dashboard/stats", // the admin's alone, no switch (SKD-66)
     ]);
     // a student, same switches: the student's page only
     expect(routes(visibleSidebarLinks(ALL_ON, "production", false))).toContain("/dashboard/plan");
@@ -115,7 +116,7 @@ describe("visibleSidebarLinks — the menu for everyone, the admin included", ()
     const off = adminMenu({ ...ALL_ON, plans: false });
     expect(off).not.toContain("/dashboard/plan");
     expect(off).not.toContain("/dashboard/student-plans");
-    expect(off).toEqual([...FULL_MENU.filter((r) => r !== "/dashboard/plan"), "/dashboard/catalog"]);
+    expect(off).toEqual([...FULL_MENU.filter((r) => r !== "/dashboard/plan"), "/dashboard/catalog", "/dashboard/stats"]);
   });
 
   // Owner, 2026-11-03: the catalog is managed by whoever manages SkillKlan Job
@@ -127,6 +128,17 @@ describe("visibleSidebarLinks — the menu for everyone, the admin included", ()
     expect(menu({ ...ALL_ON, catalog: false }, true)).not.toContain("/dashboard/catalog");
     // the other items stay when it is off
     expect(menu({ ...ALL_ON, catalog: false }, false)).toEqual(FULL_MENU);
+  });
+
+  // Owner, 2026-11-22 (SKD-66): the statistics are for whoever manages
+  // SkillKlan Job and nobody else; there is no switch for it.
+  it("«Статистика» is the admin's alone", () => {
+    const menu = (admin: boolean) => routes(visibleSidebarLinks(ALL_ON, "production", admin));
+    expect(menu(true)).toContain("/dashboard/stats");
+    expect(menu(false)).not.toContain("/dashboard/stats");
+    // with everything switched off the admin still has it
+    const allOff = Object.fromEntries(Object.keys(ALL_ON).map((k) => [k, false])) as FeatureFlags;
+    expect(routes(visibleSidebarLinks(allOff, "production", true))).toContain("/dashboard/stats");
   });
 
   it("dev-only items stay out of production and show in development", () => {
