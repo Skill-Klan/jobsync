@@ -1,5 +1,6 @@
 import "server-only";
 import prisma from "@/lib/db";
+import { TICKABLE_KINDS } from "./plans/kinds";
 
 // «Статистика» for the admin (SKD-66, level 1): who signs in and what each
 // person has made, counted from what the app already stores — no event log.
@@ -21,7 +22,10 @@ export type UsageRow = {
   jobs: number;
   resumes: number;
   resumesWithFile: number;
-  planDone: number;
+  // Study-plan modules over all the person's plans: closed ones (every point in
+  // them ticked) out of all.
+  modulesClosed: number;
+  modulesTotal: number;
 };
 
 export type UsageSummary = {
@@ -34,7 +38,7 @@ export type UsageSummary = {
   withJobs: number;
   withResume: number;
   withResumeFile: number;
-  withPlanProgress: number;
+  withClosedModule: number;
   medianJobs: number;
 };
 
@@ -49,20 +53,19 @@ export async function collectUsage(): Promise<UsageRow[]> {
     select: { id: true, name: true, cabinetUserId: true, createdAt: true, lastLoginAt: true },
   });
   const ids = users.map((u) => u.id);
-  const [jobs, resumes, planDone] = await Promise.all([
+  const [jobs, resumes, planItems] = await Promise.all([
     prisma.job.groupBy({ by: ["userId"], where: { userId: { in: ids } }, _count: { _all: true } }),
     prisma.resume.findMany({
       where: { profile: { userId: { in: ids } } },
       select: { FileId: true, profile: { select: { userId: true } } },
     }),
-    prisma.planItem.groupBy({
-      by: ["planId"],
-      where: { done: true, plan: { userId: { in: ids } } },
-      _count: { _all: true },
+    prisma.planItem.findMany({
+      where: { plan: { userId: { in: ids } } },
+      select: { id: true, planId: true, parentId: true, kind: true, done: true },
     }),
   ]);
   const plans = await prisma.plan.findMany({
-    where: { id: { in: planDone.map((g) => g.planId) } },
+    where: { userId: { in: ids } },
     select: { id: true, userId: true },
   });
   const owner = new Map(plans.map((p) => [p.id, p.userId]));
@@ -75,10 +78,13 @@ export async function collectUsage(): Promise<UsageRow[]> {
     tally(resumeCount, r.profile.userId);
     if (r.FileId) tally(resumeFileCount, r.profile.userId);
   }
-  const planCount = new Map<string, number>();
-  for (const g of planDone) {
-    const userId = owner.get(g.planId);
-    if (userId) tally(planCount, userId, g._count._all);
+  const modulesClosed = new Map<string, number>();
+  const modulesTotal = new Map<string, number>();
+  for (const [planId, progress] of moduleProgress(planItems)) {
+    const userId = owner.get(planId);
+    if (!userId) continue;
+    tally(modulesClosed, userId, progress.closed);
+    tally(modulesTotal, userId, progress.total);
   }
 
   return users.map((u) => ({
@@ -90,8 +96,43 @@ export async function collectUsage(): Promise<UsageRow[]> {
     jobs: jobCount.get(u.id) ?? 0,
     resumes: resumeCount.get(u.id) ?? 0,
     resumesWithFile: resumeFileCount.get(u.id) ?? 0,
-    planDone: planCount.get(u.id) ?? 0,
+    modulesClosed: modulesClosed.get(u.id) ?? 0,
+    modulesTotal: modulesTotal.get(u.id) ?? 0,
   }));
+}
+
+type PlanItemLite = { id: string; planId: string; parentId: string | null; kind: string; done: boolean };
+
+// A module is closed when every point in it is ticked (a module with nothing
+// to tick is not closed). Per plan: how many modules, how many closed. A point
+// is found under its module by walking up the parents; one that sits under no
+// module counts nowhere.
+export function moduleProgress(items: PlanItemLite[]): Map<string, { closed: number; total: number }> {
+  const byId = new Map(items.map((i) => [i.id, i]));
+  const tickable: readonly string[] = TICKABLE_KINDS;
+  const parts = new Map<string, { done: number; total: number }>();
+  const result = new Map<string, { closed: number; total: number }>();
+  for (const item of items) {
+    if (item.kind !== "module") continue;
+    parts.set(item.id, { done: 0, total: 0 });
+    const plan = result.get(item.planId) ?? { closed: 0, total: 0 };
+    plan.total += 1;
+    result.set(item.planId, plan);
+  }
+  for (const item of items) {
+    if (!tickable.includes(item.kind)) continue;
+    let up: PlanItemLite | undefined = item;
+    for (let depth = 0; up && up.kind !== "module" && depth < 50; depth++) up = up.parentId ? byId.get(up.parentId) : undefined;
+    const part = up && up.kind === "module" ? parts.get(up.id) : undefined;
+    if (!part) continue;
+    part.total += 1;
+    if (item.done) part.done += 1;
+  }
+  for (const item of items) {
+    const part = parts.get(item.id);
+    if (part && part.total > 0 && part.done === part.total) result.get(item.planId)!.closed += 1;
+  }
+  return result;
 }
 
 function median(values: number[]): number {
@@ -116,7 +157,7 @@ export function summarizeUsage(rows: UsageRow[], now: Date): UsageSummary {
     withJobs: has((r) => r.jobs),
     withResume: has((r) => r.resumes),
     withResumeFile: has((r) => r.resumesWithFile),
-    withPlanProgress: has((r) => r.planDone),
+    withClosedModule: has((r) => r.modulesClosed),
     medianJobs: median(rows.map((r) => r.jobs)),
   };
 }

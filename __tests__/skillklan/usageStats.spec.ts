@@ -5,9 +5,12 @@
 //   · people = accounts that came from the cabinet (a dev-only password account
 //     is not a person of the school);
 //   · "signed in" = has lastLoginAt; active in 7 / 30 days = signed in that recently;
-//   · per person: vacancies, resumes (and with a file), study-plan points ticked —
-//     each person's own, never summed across (the owner dropped applied ones, tasks
-//     and interview stages: tasks are switched off, the others add nothing);
+//   · per person: vacancies, resumes (and with a file), and study-plan modules —
+//     how many are closed out of all (a module is closed when every point in it
+//     is ticked), each person's own, never summed across (the owner dropped
+//     applied ones, tasks and interview stages, and asked for modules instead of
+//     ticked points: «9 modules, how many closed»);
+//   · the list can be sorted by a column; that part is in usageSort.spec;
 //   · the summary counts people who have at least one of each; the median of
 //     vacancies is over everyone, those with none included;
 //   · the list starts with the longest quiet: never signed in, then the oldest sign-in;
@@ -124,7 +127,7 @@ describe("signing in", () => {
 });
 
 describe("what a person has made", () => {
-  it("counts each person's own vacancies, resumes, files and ticked plan points", async () => {
+  it("counts each person's own vacancies, resumes, files and plan modules (closed of all)", async () => {
     const a = await person("a", "Anna", 1, daysAgo(1));
     const b = await person("b", "Boris", 2, daysAgo(2));
 
@@ -134,14 +137,24 @@ describe("what a person has made", () => {
     const file = await prisma.file.create({ data: { fileName: "cv.pdf", fileType: "pdf", filePath: "data/files/resumes/cv.pdf" } });
     await prisma.resume.create({ data: { profileId: profile.id, title: "With file", FileId: file.id } });
     await prisma.resume.create({ data: { profileId: profile.id, title: "Without" } });
+    // Plan of four modules: 1 closed (a point under a topic and a homework task),
+    // 2 half ticked, 3 with nothing to tick, 4 with a ticked task but an unticked
+    // point deep under a topic — so 1 closed of 4.
     const plan = await prisma.plan.create({ data: { userId: a.id, track: "java", title: "Java" } });
-    await prisma.planItem.createMany({
-      data: [
-        { planId: plan.id, kind: "item", title: "x", position: 0, done: true },
-        { planId: plan.id, kind: "item", title: "y", position: 1, done: true },
-        { planId: plan.id, kind: "item", title: "z", position: 2, done: false },
-      ],
-    });
+    const row = (data: { kind: string; parentId?: string; done?: boolean }) =>
+      prisma.planItem.create({ data: { planId: plan.id, title: data.kind, position: 0, ...data } });
+    const m1 = await row({ kind: "module" });
+    const topic = await row({ kind: "topic", parentId: m1.id });
+    await row({ kind: "item", parentId: topic.id, done: true });
+    await row({ kind: "homework_task", parentId: m1.id, done: true });
+    const m2 = await row({ kind: "module" });
+    await row({ kind: "item", parentId: m2.id, done: true });
+    await row({ kind: "item", parentId: m2.id, done: false });
+    await row({ kind: "module" });
+    const m4 = await row({ kind: "module" });
+    await row({ kind: "homework_task", parentId: m4.id, done: true });
+    const topic4 = await row({ kind: "topic", parentId: m4.id });
+    await row({ kind: "item", parentId: topic4.id, done: false });
     // Boris: one vacancy, nothing else.
     await job(b.id);
 
@@ -149,8 +162,8 @@ describe("what a person has made", () => {
     const anna = people.find((p) => p.name === "Anna")!;
     const boris = people.find((p) => p.name === "Boris")!;
 
-    expect(anna).toMatchObject({ jobs: 3, resumes: 2, resumesWithFile: 1, planDone: 2 });
-    expect(boris).toMatchObject({ jobs: 1, resumes: 0, resumesWithFile: 0, planDone: 0 });
+    expect(anna).toMatchObject({ jobs: 3, resumes: 2, resumesWithFile: 1, modulesClosed: 1, modulesTotal: 4 });
+    expect(boris).toMatchObject({ jobs: 1, resumes: 0, resumesWithFile: 0, modulesClosed: 0, modulesTotal: 0 });
   });
 
   it("the summary counts people who have at least one; the median of vacancies is over everyone", async () => {
@@ -171,7 +184,7 @@ describe("what a person has made", () => {
       withJobs: 2,
       withResume: 1,
       withResumeFile: 0,
-      withPlanProgress: 0,
+      withClosedModule: 0,
       medianJobs: 0.5,
     });
   });

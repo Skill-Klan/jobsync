@@ -12,7 +12,6 @@
   "withJobs": "Вакансії в банку вакансій",
   "withResume": "Резюме",
   "withResumeFile": "Резюме з файлом",
-  "withPlanProgress": "Відмічені пункти навчального плану",
   "outOf": "{count} із {total}",
   "medianJobs": "Медіана вакансій на людину: {count}",
   "listTitle": "Люди",
@@ -23,6 +22,9 @@
   "never": "ніколи",
   "jobs": "Вакансії",
   "resumes": "Резюме",
-  "planDone": "Пункти плану",
-  "resumesCell": "{total} ({withFile} з файлом)"
+  "resumesCell": "{total} ({withFile} з файлом)",
+  "withClosedModule": "Закрили хоч один модуль плану",
+  "modules": "Модулі",
+  "modulesCell": "{closed} із {total}",
+  "noPlan": "немає плану"
 }

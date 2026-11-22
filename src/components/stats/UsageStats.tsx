@@ -2,11 +2,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { DATE_PATTERNS } from "@/i18n/dates";
 import { getFormatDate, getTranslations } from "@/i18n/server";
 import type { UsageRow, UsageSummary } from "@/skillklan/usageStats";
+import UsageTable from "./UsageTable";
+import type { TableRow } from "./usageSort";
 
 // «Статистика»: the numbers on top, the people below, the longest quiet first.
 export default async function UsageStats({ summary, people }: { summary: UsageSummary; people: UsageRow[] }) {
   const t = await getTranslations("stats");
   const formatDate = await getFormatDate();
+  const rows: TableRow[] = people.map((p) => ({
+    id: p.id,
+    name: p.name,
+    lastSignIn: p.lastLoginAt?.getTime() ?? null,
+    lastSignInLabel: p.lastLoginAt ? formatDate(p.lastLoginAt, DATE_PATTERNS.dateNumeric) : null,
+    jobs: p.jobs,
+    resumes: p.resumes,
+    resumesWithFile: p.resumesWithFile,
+    modulesClosed: p.modulesClosed,
+    modulesTotal: p.modulesTotal,
+  }));
   const signIn: { key: "people" | "signedIn" | "neverSignedIn" | "active7" | "active30"; value: number }[] = [
     { key: "people", value: summary.people },
     { key: "signedIn", value: summary.signedIn },
@@ -14,11 +27,11 @@ export default async function UsageStats({ summary, people }: { summary: UsageSu
     { key: "active7", value: summary.active7 },
     { key: "active30", value: summary.active30 },
   ];
-  const use: { key: "withJobs" | "withResume" | "withResumeFile" | "withPlanProgress"; value: number }[] = [
+  const use: { key: "withJobs" | "withResume" | "withResumeFile" | "withClosedModule"; value: number }[] = [
     { key: "withJobs", value: summary.withJobs },
     { key: "withResume", value: summary.withResume },
     { key: "withResumeFile", value: summary.withResumeFile },
-    { key: "withPlanProgress", value: summary.withPlanProgress },
+    { key: "withClosedModule", value: summary.withClosedModule },
   ];
   return (
     <div className="space-y-6">
@@ -61,38 +74,7 @@ export default async function UsageStats({ summary, people }: { summary: UsageSu
           {people.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("empty")}</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-left text-xs text-muted-foreground">
-                    <th className="py-2 pr-3 font-medium">{t("name")}</th>
-                    <th className="py-2 pr-3 font-medium">{t("lastSignIn")}</th>
-                    <th className="py-2 pr-3 text-right font-medium">{t("jobs")}</th>
-                    <th className="py-2 pr-3 text-right font-medium">{t("resumes")}</th>
-                    <th className="py-2 text-right font-medium">{t("planDone")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {people.map((p) => (
-                    <tr key={p.id} className="border-b last:border-0">
-                      <td className="py-2 pr-3">{p.name}</td>
-                      <td className="py-2 pr-3 whitespace-nowrap">
-                        {p.lastLoginAt ? (
-                          formatDate(p.lastLoginAt, DATE_PATTERNS.dateNumeric)
-                        ) : (
-                          <span className="text-muted-foreground">{t("never")}</span>
-                        )}
-                      </td>
-                      <td className="py-2 pr-3 text-right tabular-nums">{p.jobs}</td>
-                      <td className="py-2 pr-3 text-right tabular-nums">
-                        {t("resumesCell", { total: p.resumes, withFile: p.resumesWithFile })}
-                      </td>
-                      <td className="py-2 text-right tabular-nums">{p.planDone}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <UsageTable rows={rows} />
           )}
         </CardContent>
       </Card>
