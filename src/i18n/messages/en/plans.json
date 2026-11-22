@@ -19,6 +19,8 @@
     "description": "Give a student their copy of a study plan. There is one copy per student and plan, and the template does not change it after it is given.",
     "searchPlaceholder": "Search by name",
     "searchLabel": "Search for a student",
+    "mentorLabel": "Filter by mentor",
+    "mentorAll": "All mentors",
     "noStudents": "There are no users yet.",
     "noMatch": "Nobody found.",
     "unnamed": "No name",

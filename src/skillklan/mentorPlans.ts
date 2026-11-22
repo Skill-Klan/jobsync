@@ -69,10 +69,15 @@ export type MentorLookup = {
   me: Mentor | null;
 };
 
+// The list of mentors for a viewer who may pick one; `null` — not answered.
+export function loadMentors(viewer: number): Promise<Mentor[] | null> {
+  return sharedAnswer(`${viewer}:mentors`, () => listMentors(viewer));
+}
+
 export async function loadMentorLookup(viewer: number, canPick: boolean): Promise<MentorLookup> {
   const [asked, mentors] = await Promise.all([
     sharedAnswer(`${viewer}:me`, () => getViewerMentor(viewer)),
-    canPick ? sharedAnswer(`${viewer}:mentors`, () => listMentors(viewer)) : Promise.resolve([] as Mentor[]),
+    canPick ? loadMentors(viewer) : Promise.resolve([] as Mentor[]),
   ]);
   return { canPick, mentors, me: asked?.mentor ?? null };
 }
