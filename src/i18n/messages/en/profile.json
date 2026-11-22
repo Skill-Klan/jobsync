@@ -159,6 +159,7 @@
     "noLetterhead": "No letterhead — set a default resume with contact info to add your name and contact line."
   },
   "resumePage": {
+    "fileHint": "This resume was made from a file. Use «Preview» to open it.",
     "skillsDeleted": "Skills section has been deleted successfully",
     "certificationDeleted": "Certification has been deleted successfully",
     "nowDefault": "This resume is now your default.",
