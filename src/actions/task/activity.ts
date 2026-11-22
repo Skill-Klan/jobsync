@@ -4,6 +4,7 @@ import { handleError } from "@/lib/utils";
 import { requireUser } from "../shared";
 import { getTranslations } from "@/i18n/server";
 import { isFeatureOff } from "@/skillklan/featureFlags";
+import { refuseIfTasksOff } from "./switch";
 
 export const startActivityFromTask = async (
   taskId: string
@@ -20,9 +21,8 @@ export const startActivityFromTask = async (
     }
 
     // Tasks switched off: the task is not there either.
-    if (await isFeatureOff("tasks")) {
-      return { success: false, message: t("errors.switchedOff") };
-    }
+    const off = await refuseIfTasksOff();
+    if (off) return off;
 
     const task = await prisma.task.findFirst({
       where: {

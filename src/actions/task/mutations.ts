@@ -6,7 +6,7 @@ import { AddTaskFormSchema } from "@/models/addTaskForm.schema";
 import { z } from "zod";
 import { requireUser } from "../shared";
 import { getTranslations } from "@/i18n/server";
-import { isFeatureOff } from "@/skillklan/featureFlags";
+import { refuseIfTasksOff } from "./switch";
 
 const WITH_ACTIVITY_TYPE = {
   activityType: true,
@@ -18,11 +18,8 @@ export const createTask = async (
   const t = await getTranslations("tasks");
   try {
     const user = await requireUser();
-    // Switched off (Settings → «Функції»): a page opened before still has its
-    // buttons — refuse here too.
-    if (await isFeatureOff("tasks")) {
-      return { success: false, message: t("errors.switchedOff") };
-    }
+    const off = await refuseIfTasksOff();
+    if (off) return off;
 
     const validatedData = AddTaskFormSchema.parse(data);
 
@@ -53,11 +50,8 @@ export const updateTask = async (
   const t = await getTranslations("tasks");
   try {
     const user = await requireUser();
-    // Switched off (Settings → «Функції»): a page opened before still has its
-    // buttons — refuse here too.
-    if (await isFeatureOff("tasks")) {
-      return { success: false, message: t("errors.switchedOff") };
-    }
+    const off = await refuseIfTasksOff();
+    if (off) return off;
 
     if (!data.id) {
       throw new Error(t("errors.idRequired"));
@@ -96,11 +90,8 @@ export const updateTaskStatus = async (
   const t = await getTranslations("tasks");
   try {
     const user = await requireUser();
-    // Switched off (Settings → «Функції»): a page opened before still has its
-    // buttons — refuse here too.
-    if (await isFeatureOff("tasks")) {
-      return { success: false, message: t("errors.switchedOff") };
-    }
+    const off = await refuseIfTasksOff();
+    if (off) return off;
 
     const task = await prisma.task.update({
       where: {
@@ -126,11 +117,8 @@ export const deleteTaskById = async (
   const t = await getTranslations("tasks");
   try {
     const user = await requireUser();
-    // Switched off (Settings → «Функції»): a page opened before still has its
-    // buttons — refuse here too.
-    if (await isFeatureOff("tasks")) {
-      return { success: false, message: t("errors.switchedOff") };
-    }
+    const off = await refuseIfTasksOff();
+    if (off) return off;
 
     const task = await prisma.task.findFirst({
       where: {

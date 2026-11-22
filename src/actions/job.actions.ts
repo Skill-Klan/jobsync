@@ -5,7 +5,6 @@
 export {
   getJobsList,
   getJobFilterCounts,
-  getJobsIterator,
   getJobDetails,
 } from "./job/queries";
 

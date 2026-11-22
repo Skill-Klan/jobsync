@@ -38,21 +38,6 @@ const JOB_LIST_SELECT = {
   _count: { select: { Notes: true } },
 };
 
-const JOB_EXPORT_SELECT = {
-  id: true,
-  createdAt: true,
-  JobSource: true,
-  JobTitle: true,
-  jobType: true,
-  workplaceType: true,
-  Company: true,
-  Status: true,
-  Location: true,
-  dueDate: true,
-  applied: true,
-  appliedDate: true,
-};
-
 const JOB_DETAILS_INCLUDE = {
   JobSource: true,
   JobTitle: true,
@@ -301,40 +286,6 @@ export const getJobFilterCounts = async (
   }
 };
 
-
-export async function* getJobsIterator(filter?: string, pageSize = 200) {
-  const user = await requireUser();
-  let page = 1;
-  let fetchedCount = 0;
-
-  while (true) {
-    const skip = (page - 1) * pageSize;
-    const filterBy = filter
-      ? filter === Object.keys(JOB_TYPES)[1]
-        ? { status: filter }
-        : { type: filter }
-      : {};
-
-    const chunk = await prisma.job.findMany({
-      where: {
-        userId: user.id,
-        ...filterBy,
-      },
-      select: JOB_EXPORT_SELECT,
-      skip,
-      take: pageSize,
-      orderBy: { createdAt: "desc" },
-    });
-
-    if (!chunk.length) {
-      break;
-    }
-
-    yield chunk;
-    fetchedCount += chunk.length;
-    page++;
-  }
-}
 
 export const getJobDetails = async (
   jobId: string,
