@@ -4,12 +4,13 @@
 // writes «Залік» in «Тип завдання» on a point the student has passed. Reading it:
 //   · a student tab is one with the plan's header; «Шаблон плану» and the
 //     homework tabs are not students;
-//   · «Павло (roman_t)» → first name «Павло», hint «roman_t»; no bracket → no hint;
+//   · «Павло (mentor_x)» → first name «Павло», hint «mentor_x»; no bracket → no hint;
 //   · a point is passed only by «Залік» in its own row — not by a topic status,
 //     not by «Практика»/«Теорія», not by a blank;
 //   · a point is found in a plan by its topic and its text; the same pair twice
 //     goes first-with-first; a passed row that finds nothing is reported, never
 //     dropped, and a ticked point is never counted as new.
+import JSZip from "jszip";
 import { readStudentTabs, matchPassed, SHEET_MAX_BYTES } from "@/skillklan/plans/sheetImport";
 import { HEADER, makeWorkbook } from "../helpers/makeWorkbook";
 
@@ -33,13 +34,13 @@ describe("reading student tabs", () => {
     const data = await makeWorkbook([
       { name: "ДЗ", rows: [["ДЗ1"]] },
       { name: "Шаблон плану", rows: student("x").rows },
-      student("Павло (roman_t)"),
+      student("Павло (mentor_x)"),
       student("Марія"),
       { name: "ДЗ (v1)", rows: [["ДЗ1"], ["1. Питання"]] },
     ]);
     const tabs = await readStudentTabs(data);
     expect(tabs.map((t) => [t.name, t.firstName, t.hint])).toEqual([
-      ["Павло (roman_t)", "Павло", "roman_t"],
+      ["Павло (mentor_x)", "Павло", "mentor_x"],
       ["Марія", "Марія", ""],
     ]);
   });
@@ -65,6 +66,18 @@ describe("reading student tabs", () => {
     await expect(readStudentTabs(new Uint8Array([1, 2, 3]))).rejects.toThrow();
     await expect(readStudentTabs(new Uint8Array(0))).rejects.toThrow();
     await expect(readStudentTabs(new Uint8Array(SHEET_MAX_BYTES + 1))).rejects.toThrow();
+  });
+
+  // Review fix (SKD-67): the archive's own table is read before anything is
+  // unpacked — a workbook of thousands of entries is refused, an ordinary one is not.
+  it("refuses a workbook with too many entries before unpacking it, and reads an ordinary one (paired)", async () => {
+    const ordinary = await makeWorkbook([student("Олена (Максим)")]);
+    expect(await readStudentTabs(ordinary)).toHaveLength(1);
+
+    const zip = await JSZip.loadAsync(ordinary);
+    for (let i = 0; i < 1001; i++) zip.file(`xl/media/x${i}.xml`, "x");
+    const bomb = await zip.generateAsync({ type: "uint8array" });
+    await expect(readStudentTabs(bomb)).rejects.toThrow(/too large/);
   });
 });
 

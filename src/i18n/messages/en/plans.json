@@ -67,7 +67,8 @@
     "reportMissing": ", {count} not found",
     "reportFailed": "{name}: failed, try again",
     "again": "Import more",
-    "close": "Close"
+    "close": "Close",
+    "sameStudent": "Choose a different student for «{tab}»: another tab already goes to the same one."
   },
   "errors": {
     "unavailable": "The study plan is not available right now.",

@@ -49,7 +49,7 @@ vi.mock("@/skillklan/cabinetApi", async (importOriginal) => ({
   listStudentsWithoutMentor: ctx.without,
 }));
 
-import { applyPlanImport, previewPlanImport } from "@/actions/plan.actions";
+import { applyPlanImport, previewPlanImport } from "@/skillklan/plans/importHandlers";
 import { candidatesFor } from "@/skillklan/plans/importFlow";
 import { findOrCreateCabinetUser } from "@/skillklan/cabinetUser";
 import { getPlanTemplate, type PlanNode } from "@/skillklan/plans/template";
@@ -314,7 +314,7 @@ describe("which student a tab is offered", () => {
   });
   it("two with the same first name → the admin chooses, unless the bracket names exactly one's mentor", () => {
     expect(candidatesFor({ firstName: "Іван", hint: "" }, pool)).toMatchObject({ preselected: null });
-    expect(candidatesFor({ firstName: "Іван", hint: "roman_t" }, pool)).toMatchObject({ preselected: null });
+    expect(candidatesFor({ firstName: "Іван", hint: "mentor_x" }, pool)).toMatchObject({ preselected: null });
     expect(candidatesFor({ firstName: "Іван", hint: "Борис" }, pool)).toMatchObject({ preselected: 2 });
     expect(candidatesFor({ firstName: "Іван", hint: "Борис" }, pool).candidates).toHaveLength(2);
   });

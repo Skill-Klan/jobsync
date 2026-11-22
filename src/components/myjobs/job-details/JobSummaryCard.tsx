@@ -115,7 +115,6 @@ export function JobSummaryCard({
                   )}
                   <ResumeFilePreviewButton
                     resumeId={job.Resume.id!}
-                    fileName={job.Resume.File.fileName || job.Resume.File.filePath}
                     title={job.Resume.title}
                   />
                 </div>

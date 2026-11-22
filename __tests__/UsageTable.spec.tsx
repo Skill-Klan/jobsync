@@ -1,5 +1,6 @@
-// Requirement — the owner, 2026-11-22 (SKD-66): the statistics list keeps the
-// "longest quiet first" order until a column header is clicked; a click sorts
+// Requirement — the owner, 2026-11-22 (SKD-66): the statistics list starts with
+// the longest quiet first (never signed in, then the oldest sign-in) until another
+// column header is clicked; a click sorts
 // by it (biggest first), a second click flips it; the header says which way.
 import { render, screen, fireEvent, within } from "@testing-library/react";
 import UsageTable from "@/components/stats/UsageTable";
@@ -13,10 +14,16 @@ const order = () => screen.getAllByRole("row").slice(1).map((r) => within(r).get
 describe("UsageTable", () => {
   const rows = [row("Ann", 5), row("Bob", 31), row("Cat", 0)];
 
-  it("starts in the order given, with no column marked", () => {
-    render(<UsageTable rows={rows} />);
-    expect(order()).toEqual(["Ann", "Bob", "Cat"]);
-    expect(screen.getAllByRole("columnheader").every((h) => h.getAttribute("aria-sort") === "none")).toBe(true);
+  it("starts with the longest quiet first, and the Last sign-in column says so", () => {
+    const quiet = [
+      { ...row("Recent", 1), lastSignIn: 9000, lastSignInLabel: "d" },
+      { ...row("Never", 2) },
+      { ...row("Old", 3), lastSignIn: 1000, lastSignInLabel: "d" },
+    ];
+    render(<UsageTable rows={quiet} />);
+    expect(order()).toEqual(["Never", "Old", "Recent"]);
+    expect(screen.getByRole("columnheader", { name: "Last sign-in" })).toHaveAttribute("aria-sort", "ascending");
+    expect(screen.getByRole("columnheader", { name: "Name" })).toHaveAttribute("aria-sort", "none");
   });
 
   it("a click on Vacancies sorts biggest first, a second click flips, and the header says so", () => {

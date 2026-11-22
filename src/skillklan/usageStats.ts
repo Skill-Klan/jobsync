@@ -161,13 +161,3 @@ export function summarizeUsage(rows: UsageRow[], now: Date): UsageSummary {
     medianJobs: median(rows.map((r) => r.jobs)),
   };
 }
-
-// Who to look at first: the longest quiet on top (never signed in, then the
-// oldest sign-in), so "who fell asleep" is the head of the list.
-export function byQuietest(rows: UsageRow[]): UsageRow[] {
-  return [...rows].sort((a, b) => {
-    const x = a.lastLoginAt?.getTime() ?? -Infinity;
-    const y = b.lastLoginAt?.getTime() ?? -Infinity;
-    return x - y || a.name.localeCompare(b.name, "uk");
-  });
-}

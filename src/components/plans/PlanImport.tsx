@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { applyPlanImport, previewPlanImport } from "@/actions/plan.actions";
 import type { ImportResult, Preview } from "@/skillklan/plans/importFlow";
 import { useTranslations } from "@/i18n/client";
 import { toastError } from "@/lib/toast";
@@ -11,6 +10,15 @@ import { toastError } from "@/lib/toast";
 // which student each tab goes to and what would be ticked, then confirm. The
 // preview writes nothing; the file is sent again with the confirmation and is
 // never kept (the server checks everything again).
+// One step of the import: the route answers like a server action did.
+async function send<T>(data: FormData): Promise<{ success: true; data: T } | { success: false; message?: string } | null> {
+  try {
+    return await (await fetch("/api/plans/import", { method: "POST", body: data })).json();
+  } catch {
+    return null;
+  }
+}
+
 export default function PlanImport({ tracks }: { tracks: { track: string; title: string }[] }) {
   const t = useTranslations("plans");
   const [open, setOpen] = useState(false);
@@ -19,17 +27,21 @@ export default function PlanImport({ tracks }: { tracks: { track: string; title:
   const [preview, setPreview] = useState<Preview | null>(null);
   const [chosen, setChosen] = useState<Record<string, number | null>>({});
   const [report, setReport] = useState<ImportResult[] | null>(null);
+  // A new key empties the (uncontrolled) file input on reset.
+  const [fileKey, setFileKey] = useState(0);
   const [pending, startTransition] = useTransition();
 
   const reset = () => {
     setFile(null);
+    setFileKey((k) => k + 1);
     setPreview(null);
     setChosen({});
     setReport(null);
   };
 
-  const body = (extra?: Record<string, string>) => {
+  const body = (mode: "preview" | "apply", extra?: Record<string, string>) => {
     const data = new FormData();
+    data.set("mode", mode);
     if (file) data.set("file", file);
     data.set("track", track);
     for (const [k, v] of Object.entries(extra ?? {})) data.set(k, v);
@@ -39,10 +51,20 @@ export default function PlanImport({ tracks }: { tracks: { track: string; title:
   const read = () => {
     if (!file) return toastError(t("import.noFile"));
     startTransition(async () => {
-      const result = await previewPlanImport(body()).catch(() => null);
+      const result = await send<Preview>(body("preview"));
       if (!result?.success) return toastError(result?.message ?? t("import.unreadable"));
       setPreview(result.data);
-      setChosen(Object.fromEntries(result.data.tabs.map((x) => [x.tab, x.preselected])));
+      // A student goes to one tab only: when two tabs preselect the same one, the later is left for the admin.
+      const taken = new Set<number>();
+      setChosen(
+        Object.fromEntries(
+          result.data.tabs.map((x) => {
+            const free = x.preselected !== null && !taken.has(x.preselected);
+            if (free) taken.add(x.preselected as number);
+            return [x.tab, free ? x.preselected : null];
+          }),
+        ),
+      );
     });
   };
 
@@ -50,8 +72,10 @@ export default function PlanImport({ tracks }: { tracks: { track: string; title:
 
   const confirm = () => {
     if (picks.length === 0) return toastError(t("import.nothingChosen"));
+    const clash = picks.find((p, i) => picks.findIndex((q) => q.userId === p.userId) !== i);
+    if (clash) return toastError(t("import.sameStudent", { tab: clash.tab }));
     startTransition(async () => {
-      const result = await applyPlanImport(body({ picks: JSON.stringify(picks) })).catch(() => null);
+      const result = await send<{ results: ImportResult[] }>(body("apply", { picks: JSON.stringify(picks) }));
       if (!result?.success) return toastError(result?.message);
       setReport(result.data.results);
     });
@@ -117,6 +141,7 @@ export default function PlanImport({ tracks }: { tracks: { track: string; title:
           <label className="space-y-1 text-sm">
             <span className="block">{t("import.file")}</span>
             <input
+              key={fileKey}
               type="file"
               accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}

@@ -4,15 +4,15 @@ import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { useTranslations } from "@/i18n/client";
 import { nextSort, sortRows, type SortDirection, type SortKey, type TableRow } from "./usageSort";
 
-// The people list: the longest quiet first (the server's order) until a column
-// header is clicked; then by that column, and again to flip.
+// The people list: the longest quiet first (last sign-in, oldest on top) until
+// another column header is clicked; and again to flip.
 export default function UsageTable({ rows }: { rows: TableRow[] }) {
   const t = useTranslations("stats");
-  const [sort, setSort] = useState<{ key: SortKey; direction: SortDirection } | null>(null);
-  const shown = useMemo(() => (sort ? sortRows(rows, sort.key, sort.direction) : rows), [rows, sort]);
+  const [sort, setSort] = useState<{ key: SortKey; direction: SortDirection }>({ key: "lastSignIn", direction: "asc" });
+  const shown = useMemo(() => sortRows(rows, sort.key, sort.direction), [rows, sort]);
 
   const header = (key: SortKey, label: string, align: "left" | "right") => {
-    const active = sort?.key === key;
+    const active = sort.key === key;
     const Icon = !active ? ArrowUpDown : sort.direction === "asc" ? ArrowUp : ArrowDown;
     return (
       <th
