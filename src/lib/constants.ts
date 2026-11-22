@@ -13,6 +13,7 @@ import {
   CalendarCheck,
   ListChecks,
   Users,
+  ChartColumn,
   LibraryBig,
 } from "lucide-react";
 
@@ -497,6 +498,12 @@ export const SIDEBAR_LINKS: {
     route: "/dashboard/catalog",
     labelKey: "catalog",
     feature: "catalog",
+    adminOnly: true,
+  },
+  {
+    icon: ChartColumn,
+    route: "/dashboard/stats",
+    labelKey: "stats",
     adminOnly: true,
   },
   {
