@@ -90,6 +90,17 @@ afterAll(async () => {
 });
 
 describe("ticking and annotating — a student's own points only", () => {
+  // Review SKD-68: the date a point was passed is kept (the spreadsheet import
+  // already keeps it) — a second tick of a ticked point, a double click or a
+  // retry, changes nothing.
+  it("ticking a point that is already ticked keeps its date", async () => {
+    const item = await firstOf(ann, "item");
+    const passed = new Date("2026-01-05T10:00:00Z");
+    await prisma.planItem.update({ where: { id: item.id }, data: { done: true, doneAt: passed } });
+    await expect(setPlanItemDone(item.id, true)).resolves.toEqual({ success: true });
+    expect((await prisma.planItem.findUniqueOrThrow({ where: { id: item.id } })).doneAt).toEqual(passed);
+  });
+
   it("ticks a point: done, with the time; unticks: both back", async () => {
     const item = await firstOf(ann, "item");
     await expect(setPlanItemDone(item.id, true)).resolves.toEqual({ success: true });

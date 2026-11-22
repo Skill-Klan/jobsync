@@ -137,8 +137,9 @@ describe("the app's client", () => {
     expect((await listMentors(QA))?.map((m) => m.direction)).toEqual(["QA"]);
     expect(ids(await listMentorStudents(ADMIN, 1004))).toEqual([1001, 1006]);
     expect(ids(await listStudentsWithoutMentor(ADMIN))).toEqual([1008, 1009]);
-    expect(await getViewerMentor(MENTOR)).toEqual({ mentorId: 1004, name: "Test Mentor", direction: "QA" });
-    expect(await getViewerMentor(STUDENT)).toBeNull();
+    expect(await getViewerMentor(MENTOR)).toEqual({ mentor: { mentorId: 1004, name: "Test Mentor", direction: "QA" } });
+    // an answer «not a mentor» is not the same as no answer
+    expect(await getViewerMentor(STUDENT)).toEqual({ mentor: null });
   });
 
   it("an empty list is [], a list that could not be loaded is null — never the same", async () => {
@@ -186,7 +187,7 @@ describe("the app's client", () => {
     reply({ mentors: [{ mentorId: 3, name: "M" }, { mentorId: -1 }, "x"] });
     expect(await listMentors(1)).toEqual([{ mentorId: 3, name: "M", direction: "" }]);
     reply({ mentor: { mentorId: 0 } });
-    expect(await getViewerMentor(1)).toBeNull();
+    expect(await getViewerMentor(1)).toEqual({ mentor: null });
 
     vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ success: false }), { status: 200 })));
     expect(await listMentors(1)).toBeNull();

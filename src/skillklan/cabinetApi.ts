@@ -145,12 +145,13 @@ function studentsOf(data: unknown): MentorStudent[] | null {
   return out;
 }
 
-// Is the viewer a mentor themself («My students», D98)? `null` — not a mentor,
-// or the backend did not answer: both show no «My students».
-export async function getViewerMentor(viewerId: number): Promise<Mentor | null> {
+// Is the viewer a mentor themself («My students», D98)? `{ mentor: null }` —
+// the backend answered: not a mentor. `null` — it did not answer. Both show no
+// «My students», but only the first is an answer worth sharing for 30 s.
+export async function getViewerMentor(viewerId: number): Promise<{ mentor: Mentor | null } | null> {
   if (!isId(viewerId)) return null;
   const data = (await call(`/api/jobsync/users/${viewerId}/mentor`, { method: "GET" })) as { mentor?: unknown } | null;
-  return mentorOf(data?.mentor);
+  return data && typeof data === "object" ? { mentor: mentorOf(data.mentor) } : null;
 }
 
 // The mentors this viewer may pick. `null` — could not be loaded.

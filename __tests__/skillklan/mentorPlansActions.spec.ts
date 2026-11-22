@@ -27,6 +27,7 @@ const ctx = await vi.hoisted(async () => {
     session: { value: null as null | { user: { id: string } } },
     students: vi.fn(),
     without: vi.fn(),
+    me: vi.fn(),
   };
 });
 
@@ -41,6 +42,7 @@ vi.mock("@/skillklan/cabinetApi", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/skillklan/cabinetApi")>()),
   listMentorStudents: ctx.students,
   listStudentsWithoutMentor: ctx.without,
+  getViewerMentor: ctx.me,
 }));
 
 import {
@@ -52,6 +54,7 @@ import {
 import { assignPlan } from "@/skillklan/plans/assignPlan";
 import { PLAN_NOTE_MAX } from "@/skillklan/plans/tree";
 import { ACCESS_SHARE_MS } from "@/skillklan/accessRecheck";
+import { loadMentorLookup } from "@/skillklan/mentorPlans";
 
 const prisma = new PrismaClient({ datasources: { db: { url: ctx.url } } });
 const mentorEntry = { kind: "mentor", mentorId: 1004 };
@@ -193,6 +196,32 @@ describe("one answer per 30 s", () => {
     expect((await getEntryStudents(mentorEntry)).success).toBe(false);
     expect((await getEntryStudents(mentorEntry)).success).toBe(true);
     expect(ctx.students).toHaveBeenCalledTimes(2);
+  });
+});
+
+// Review SKD-68: «not a mentor» is an answer like any other and is shared for
+// 30 s; only «the backend did not answer» is asked again at the next opening.
+describe("«am I a mentor» is one answer per 30 s too", () => {
+  it("a viewer who is not a mentor: the backend says so once, the second opening reuses it", async () => {
+    ctx.me.mockResolvedValue({ mentor: null });
+    expect((await loadMentorLookup(42, false)).me).toBeNull();
+    expect((await loadMentorLookup(42, false)).me).toBeNull();
+    expect(ctx.me).toHaveBeenCalledTimes(1);
+  });
+
+  it("a mentor is found, and also asked once", async () => {
+    const mentor = { mentorId: 1004, name: "Test Mentor", direction: "QA" };
+    ctx.me.mockResolvedValue({ mentor });
+    expect((await loadMentorLookup(42, false)).me).toEqual(mentor);
+    expect((await loadMentorLookup(42, false)).me).toEqual(mentor);
+    expect(ctx.me).toHaveBeenCalledTimes(1);
+  });
+
+  it("a backend that did not answer is not kept: the next opening asks again and shows no «my students» meanwhile", async () => {
+    ctx.me.mockResolvedValueOnce(null).mockResolvedValueOnce({ mentor: null });
+    expect((await loadMentorLookup(42, false)).me).toBeNull();
+    expect((await loadMentorLookup(42, false)).me).toBeNull();
+    expect(ctx.me).toHaveBeenCalledTimes(2);
   });
 });
 
