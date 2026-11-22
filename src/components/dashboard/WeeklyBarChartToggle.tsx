@@ -12,6 +12,7 @@ import {
   OTHER_COLOR,
   OTHER_SLICE_ID,
   otherBucketLabel,
+  shortDayLabel,
 } from "./jobsActivityChart";
 import { useLocale, useTranslations } from "@/i18n/client";
 
@@ -201,9 +202,7 @@ export default function WeeklyBarChartToggle({
               legendPosition: "middle",
               legendOffset: 32,
               truncateTickAt: 0,
-              format: isSmallScreen
-                ? (value: string) => value.split(", ")[1] ?? value
-                : undefined,
+              format: isSmallScreen ? shortDayLabel : undefined,
             }}
             axisLeft={{
               tickSize: 5,

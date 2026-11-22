@@ -30,6 +30,7 @@
     "addResume": "Add New Resume",
     "addCoverLetter": "Add New Cover Letter",
     "loading": "Loading...",
+    "empty": "No documents yet. Add your first resume with the button above.",
     "loadMore": "Load More"
   },
   "documentTable": {

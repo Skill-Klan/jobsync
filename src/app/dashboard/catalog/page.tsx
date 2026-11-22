@@ -3,6 +3,14 @@ import CatalogAdmin from "@/components/catalog/CatalogAdmin";
 import { getCatalogAdminData } from "@/actions/catalog.actions";
 import { getFeatureFlags } from "@/skillklan/featureFlags";
 import { isAdminSession } from "@/skillklan/cabinetAdmin";
+import type { Metadata } from "next";
+import { getTranslations } from "@/i18n/server";
+
+// The tab title: the page's name (the layout adds «| SkillKlan Job»).
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("nav");
+  return { title: t("catalog") };
+}
 
 // The admin's page: not there while `catalog` is off, and not there for a
 // student — a 404, as for any page that does not exist for them.

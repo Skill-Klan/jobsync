@@ -2,6 +2,7 @@ import {
   buildDonutSlices,
   arcLabelLines,
   donutLayout,
+  shortDayLabel,
   OTHER_SLICE_ID,
 } from "@/components/dashboard/jobsActivityChart";
 
@@ -175,5 +176,23 @@ describe("donutLayout", () => {
     expect(layout.gutter).toBe(76);
     expect(layout.maxLabelChars).toBe(8);
     expect(layout.holeDiameter).toBeCloseTo(108 * 0.72);
+  });
+});
+
+// Review of the local test pass (SKD-70): at phone width seven weekday labels
+// ("пн, 16 лист.") run into each other on the weekly chart's axis. The short
+// label is the day of the month, in both languages.
+describe("shortDayLabel", () => {
+  it.each([
+    ["пн, 16 лист.", "16"],
+    ["Mon, Nov 16", "16"],
+    ["нд, 1 черв.", "1"],
+    ["Sun, Jun 1", "1"],
+  ])("%s → %s", (label, expected) => {
+    expect(shortDayLabel(label)).toBe(expected);
+  });
+
+  it("a label with no number is left as it is", () => {
+    expect(shortDayLabel("Today")).toBe("Today");
   });
 });
