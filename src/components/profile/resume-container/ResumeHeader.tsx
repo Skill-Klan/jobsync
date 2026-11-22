@@ -13,6 +13,7 @@ import {
 } from "../../ui/dropdown-menu";
 import AddResumeSection, { AddResumeSectionRef } from "../AddResumeSection";
 import { DownloadFileButton } from "../DownloadFileButton";
+import { ResumeFilePreviewButton } from "../ResumeFilePreview";
 import { useFeatures } from "@/context/FeaturesContext";
 import { useTranslations } from "@/i18n/client";
 
@@ -58,6 +59,13 @@ export function ResumeHeader({
               )
             : title}
         </CardTitle>
+        {resume.FileId && resume.File?.filePath && (
+          <ResumeFilePreviewButton
+            resumeId={resume.id!}
+            fileName={resume.File.fileName || resume.File.filePath}
+            title={title}
+          />
+        )}
         {isDefault && (
           <Badge className="border-transparent bg-green-600 text-white hover:bg-green-600/90">
             {t("badges.default")}

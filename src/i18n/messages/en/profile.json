@@ -165,7 +165,10 @@
     "changeDefaultDescription": "This will make this resume your default, replacing any current default.",
     "aiReview": "AI Review",
     "review": "Review",
-    "download": "Download {fileName}"
+    "download": "Download {fileName}",
+    "preview": "Preview",
+    "previewDescription": "Read the attached resume file without downloading it.",
+    "previewFailed": "The file cannot be shown. You can still download it."
   },
   "resumeDialogs": {
     "replaceTitle": "Replace existing attachment?",
