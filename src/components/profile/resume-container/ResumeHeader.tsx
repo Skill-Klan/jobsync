@@ -62,7 +62,6 @@ export function ResumeHeader({
         {resume.FileId && resume.File?.filePath && (
           <ResumeFilePreviewButton
             resumeId={resume.id!}
-            fileName={resume.File.fileName || resume.File.filePath}
             title={title}
           />
         )}

@@ -1,4 +1,6 @@
 import JSZip from "jszip";
+import { APP_CONSTANTS } from "@/lib/constants";
+import { preflightZip } from "@/lib/ai/import/extract-text";
 
 // Reading a study-plan spreadsheet: the school keeps one workbook per track, a
 // tab per student (a copy of the «Шаблон плану» tab named after the student),
@@ -10,7 +12,6 @@ import JSZip from "jszip";
 // read here (the tab list, the shared strings, the cells) are plain.
 
 export const SHEET_MAX_BYTES = 4 * 1024 * 1024;
-const PART_MAX_BYTES = 30 * 1024 * 1024; // a part's size once unpacked
 
 // Tabs that are not a student's.
 const SERVICE_TABS = new Set(["шаблон плану", "дз", "дз (v1)"]);
@@ -19,7 +20,7 @@ const PASSED = "залік";
 export type PassedRow = { topic: string; text: string };
 export type StudentTab = {
   name: string;
-  // The name before the bracket: «Павло (roman_t)» → «Павло».
+  // The name before the bracket: «Павло (mentor_x)» → «Павло».
   firstName: string;
   // What is in the bracket, if anything — a hint about the mentor.
   hint: string;
@@ -60,10 +61,7 @@ function columnIndex(ref: string): number {
 
 async function part(zip: JSZip, name: string): Promise<string | null> {
   const file = zip.file(name);
-  if (!file) return null;
-  const size = (file as unknown as { _data?: { uncompressedSize?: number } })._data?.uncompressedSize;
-  if (typeof size === "number" && size > PART_MAX_BYTES) throw new Error("part too large");
-  return file.async("string");
+  return file ? file.async("string") : null;
 }
 
 type Rows = Map<number, Map<number, string>>;
@@ -98,6 +96,20 @@ const clean = (s: string | undefined) => (s ?? "").replace(/\s+/g, " ").trim();
 export async function readStudentTabs(data: ArrayBuffer | Uint8Array): Promise<StudentTab[]> {
   const bytes = data instanceof Uint8Array ? data : new Uint8Array(data);
   if (bytes.byteLength === 0 || bytes.byteLength > SHEET_MAX_BYTES) throw new Error("bad size");
+  // Before anything is unpacked: the archive's own table says how many entries
+  // and how many bytes it holds (the same guard as for a resume's .docx).
+  let archive;
+  try {
+    archive = preflightZip(Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength));
+  } catch {
+    throw new Error("not a workbook");
+  }
+  if (
+    archive.entries > APP_CONSTANTS.RESUME_IMPORT_MAX_DOCX_ENTRIES ||
+    archive.uncompressedBytes > APP_CONSTANTS.RESUME_IMPORT_MAX_DOCX_UNCOMPRESSED_BYTES
+  ) {
+    throw new Error("workbook too large unpacked");
+  }
   const zip = await JSZip.loadAsync(bytes);
   const [book, rels, shared] = await Promise.all([
     part(zip, "xl/workbook.xml"),

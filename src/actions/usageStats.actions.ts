@@ -1,12 +1,13 @@
-"use server";
 import { isAdminSession } from "@/skillklan/cabinetAdmin";
-import { byQuietest, collectUsage, summarizeUsage, type UsageRow, type UsageSummary } from "@/skillklan/usageStats";
+import { collectUsage, summarizeUsage, type UsageRow, type UsageSummary } from "@/skillklan/usageStats";
 
-// «Статистика» (SKD-66): for the admin and the QA moderator only — the session's
-// answer is enough to look (it is read-only), as with «Плани студентів». Anyone
-// else gets nothing, not an empty page.
+// «Статистика» (SKD-66): a plain server module, not a server action — only the
+// page calls it, so there is no endpoint a browser can post to. For the admin and
+// the QA moderator only. The session's answer is enough: this is a read on a
+// render path, where the backend must not be asked every time (CLAUDE.md), and the
+// session role is at most 5 minutes old (auth.config). Anyone else gets nothing.
 export async function getUsageStats(): Promise<{ summary: UsageSummary; people: UsageRow[] } | null> {
   if (!(await isAdminSession())) return null;
   const rows = await collectUsage();
-  return { summary: summarizeUsage(rows, new Date()), people: byQuietest(rows) };
+  return { summary: summarizeUsage(rows, new Date()), people: rows };
 }

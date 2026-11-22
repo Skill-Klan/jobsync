@@ -11,8 +11,8 @@ vi.mock("@/components/pdf-export/PdfPreviewPane", () => ({
   ),
 }));
 
-const open = (fileName: string) => {
-  render(<ResumeFilePreviewButton resumeId="r 1" fileName={fileName} title="My CV" />);
+const open = () => {
+  render(<ResumeFilePreviewButton resumeId="r 1" title="My CV" />);
   fireEvent.click(screen.getByRole("button", { name: "Preview" }));
 };
 
@@ -20,18 +20,18 @@ describe("ResumeFilePreviewButton", () => {
   afterEach(() => vi.restoreAllMocks());
 
   it("a PDF is asked for reading (view=1) and drawn by the PDF pane", async () => {
-    global.fetch = vi.fn().mockResolvedValue({ ok: true, blob: async () => new Blob(["%PDF-1"]) }) as unknown as typeof fetch;
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, headers: new Headers({ "content-type": "application/pdf" }), blob: async () => new Blob(["%PDF-1"]) }) as unknown as typeof fetch;
 
-    open("cv.pdf");
+    open();
 
     expect(await screen.findByTestId("pdf-pane")).toHaveAttribute("data-size", "6");
     expect((global.fetch as any).mock.calls[0][0]).toBe("/api/profile/resume?resumeId=r%201&view=1");
   });
 
   it("a Word document is shown in a frame that allows no scripts", async () => {
-    global.fetch = vi.fn().mockResolvedValue({ ok: true, text: async () => "<p>Hello</p>" }) as unknown as typeof fetch;
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, headers: new Headers({ "content-type": "text/html; charset=utf-8" }), text: async () => "<p>Hello</p>" }) as unknown as typeof fetch;
 
-    open("cv.docx");
+    open();
 
     const frame = await screen.findByTitle("My CV");
     expect(frame.tagName).toBe("IFRAME");
@@ -40,10 +40,19 @@ describe("ResumeFilePreviewButton", () => {
     expect(screen.queryByTestId("pdf-pane")).toBeNull();
   });
 
+  // Review fix (SKD-67): a Word file uploaded under a ".pdf" name is still shown as a page.
+  it("what the server sent decides, not the file's name", async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, headers: new Headers({ "content-type": "text/html; charset=utf-8" }), text: async () => "<p>Word</p>" }) as unknown as typeof fetch;
+    render(<ResumeFilePreviewButton resumeId="r1" title="cv.pdf" />);
+    fireEvent.click(screen.getByRole("button", { name: "Preview" }));
+    expect((await screen.findByTitle("cv.pdf")).tagName).toBe("IFRAME");
+    expect(screen.queryByTestId("pdf-pane")).toBeNull();
+  });
+
   it("a file the server refuses → a message, no frame", async () => {
     global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 415 }) as unknown as typeof fetch;
 
-    open("cv.docx");
+    open();
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/cannot be shown/i);
     expect(screen.queryByTitle("My CV")).toBeNull();
@@ -51,7 +60,7 @@ describe("ResumeFilePreviewButton", () => {
 
   it("nothing is fetched until the button is pressed (paired case)", async () => {
     global.fetch = vi.fn() as unknown as typeof fetch;
-    render(<ResumeFilePreviewButton resumeId="r1" fileName="cv.pdf" title="My CV" />);
+    render(<ResumeFilePreviewButton resumeId="r1" title="My CV" />);
     await waitFor(() => expect(screen.getByRole("button", { name: "Preview" })).toBeInTheDocument());
     expect(global.fetch).not.toHaveBeenCalled();
   });

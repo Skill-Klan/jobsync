@@ -10,10 +10,9 @@
 //     is ticked), each person's own, never summed across (the owner dropped
 //     applied ones, tasks and interview stages, and asked for modules instead of
 //     ticked points: «9 modules, how many closed»);
-//   · the list can be sorted by a column; that part is in usageSort.spec;
+//   · the order of the list (longest quiet first, a clicked column) is the table's: usageSort.spec;
 //   · the summary counts people who have at least one of each; the median of
 //     vacancies is over everyone, those with none included;
-//   · the list starts with the longest quiet: never signed in, then the oldest sign-in;
 //   · a student, a mentor, no session at all → nothing (null).
 // Real SQLite with the current schema (db push), real Prisma.
 import fs from "fs";
@@ -113,16 +112,6 @@ describe("signing in", () => {
     const { summary } = (await getUsageStats())!;
 
     expect(summary.active7).toBe(1);
-  });
-
-  it("the list starts with the longest quiet: never, then the oldest sign-in", async () => {
-    await person("r", "Recent", 1, daysAgo(1));
-    await person("o", "Old", 2, daysAgo(40));
-    await person("n", "Never", 3, null);
-
-    const { people } = (await getUsageStats())!;
-
-    expect(people.map((p) => p.name)).toEqual(["Never", "Old", "Recent"]);
   });
 });
 

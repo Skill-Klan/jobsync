@@ -16,31 +16,28 @@ export type TableRow = {
   modulesTotal: number;
 };
 
-const value = (row: TableRow, key: SortKey): number | string => {
+const text = (a: string, b: string) => a.localeCompare(b, "uk");
+const num = (a: number, b: number) => (a < b ? -1 : a > b ? 1 : 0);
+
+function compare(a: TableRow, b: TableRow, key: SortKey): number {
   switch (key) {
     case "name":
-      return row.name;
+      return text(a.name, b.name);
     case "lastSignIn":
-      return row.lastSignIn ?? -Infinity;
+      return num(a.lastSignIn ?? -Infinity, b.lastSignIn ?? -Infinity);
     case "jobs":
-      return row.jobs;
+      return num(a.jobs, b.jobs);
     case "resumes":
-      return row.resumes;
+      return num(a.resumes, b.resumes);
     case "modules":
-      // Closed first, then how many there are to close.
-      return row.modulesClosed * 1000 + row.modulesTotal;
+      // More closed first; with the same closed, the plan with more modules to go.
+      return num(a.modulesClosed, b.modulesClosed) || num(a.modulesTotal, b.modulesTotal);
   }
-};
+}
 
 export function sortRows(rows: TableRow[], key: SortKey, direction: SortDirection): TableRow[] {
   const sign = direction === "asc" ? 1 : -1;
-  return [...rows].sort((a, b) => {
-    const x = value(a, key);
-    const y = value(b, key);
-    const order =
-      typeof x === "string" && typeof y === "string" ? x.localeCompare(y, "uk") : x < y ? -1 : x > y ? 1 : 0;
-    return order * sign || a.name.localeCompare(b.name, "uk");
-  });
+  return [...rows].sort((a, b) => compare(a, b, key) * sign || text(a.name, b.name));
 }
 
 // Clicking a column: a new column starts with the biggest first (a name — A to Z);

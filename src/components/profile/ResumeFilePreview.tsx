@@ -17,17 +17,11 @@ type Loaded =
   | { state: "pdf"; blob: Blob }
   | { state: "page"; html: string };
 
-function isPdf(name: string) {
-  return name.toLowerCase().endsWith(".pdf");
-}
-
 export function ResumeFilePreviewButton({
   resumeId,
-  fileName,
   title,
 }: {
   resumeId: string;
-  fileName: string;
   title: string;
 }) {
   const t = useTranslations("profile");
@@ -50,7 +44,7 @@ export function ResumeFilePreviewButton({
           <DialogContent className="flex max-h-[90vh] max-w-4xl flex-col gap-3 p-4 sm:p-5">
             <DialogTitle className="truncate pr-8 text-base">{title}</DialogTitle>
             <DialogDescription className="sr-only">{t("resumePage.previewDescription")}</DialogDescription>
-            <PreviewBody resumeId={resumeId} fileName={fileName} title={title} />
+            <PreviewBody resumeId={resumeId} title={title} />
           </DialogContent>
         </Dialog>
       )}
@@ -58,7 +52,7 @@ export function ResumeFilePreviewButton({
   );
 }
 
-function PreviewBody({ resumeId, fileName, title }: { resumeId: string; fileName: string; title: string }) {
+function PreviewBody({ resumeId, title }: { resumeId: string; title: string }) {
   const t = useTranslations("profile");
   const [loaded, setLoaded] = useState<Loaded>({ state: "loading" });
 
@@ -70,14 +64,15 @@ function PreviewBody({ resumeId, fileName, title }: { resumeId: string; fileName
     })
       .then(async (res) => {
         if (!res.ok) return setLoaded({ state: "failed" });
-        if (isPdf(fileName)) setLoaded({ state: "pdf", blob: await res.blob() });
+        // What the server sent decides, not the name the file had when it was uploaded.
+        if (res.headers.get("content-type")?.startsWith("application/pdf")) setLoaded({ state: "pdf", blob: await res.blob() });
         else setLoaded({ state: "page", html: await res.text() });
       })
       .catch(() => {
         if (!controller.signal.aborted) setLoaded({ state: "failed" });
       });
     return () => controller.abort();
-  }, [resumeId, fileName]);
+  }, [resumeId]);
 
   if (loaded.state === "loading") return <Loading />;
   if (loaded.state === "failed") {

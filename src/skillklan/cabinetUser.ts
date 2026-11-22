@@ -36,31 +36,32 @@ export async function findOrCreateCabinetUser(identity: CabinetIdentity) {
     });
   }
 
+  const { user } = await createCabinetUser(identity.userId, name, lastLoginAt);
+  return user;
+}
+
+// Makes the account of a cabinet id (and seeds it): one place for the sign-in
+// and for an import that comes before the first sign-in. `created` is false when
+// another request made it first.
+async function createCabinetUser(cabinetUserId: number, name: string, lastLoginAt: Date | null) {
   const password = await bcrypt.hash(crypto.randomBytes(32).toString("hex"), 10);
   try {
     // One transaction: an account that exists must also be seeded, or every
     // later sign-in would find it and never seed it.
-    return await prisma.$transaction(async (tx) => {
-      const user = await tx.user.create({
-        data: {
-          name,
-          email: cabinetEmail(identity.userId),
-          password,
-          cabinetUserId: identity.userId,
-          lastLoginAt,
-        },
+    const user = await prisma.$transaction(async (tx) => {
+      const made = await tx.user.create({
+        data: { name, email: cabinetEmail(cabinetUserId), password, cabinetUserId, lastLoginAt },
       });
-      await seedNewAccount(user.id, tx);
-      return user;
+      await seedNewAccount(made.id, tx);
+      return made;
     });
+    return { user, created: true };
   } catch (error) {
     // Two first sign-ins at once: the unique cabinetUserId lets one through,
     // the other reads what it created.
     if ((error as { code?: string })?.code === "P2002") {
-      const winner = await prisma.user.findUnique({
-        where: { cabinetUserId: identity.userId },
-      });
-      if (winner) return winner;
+      const winner = await prisma.user.findUnique({ where: { cabinetUserId } });
+      if (winner) return { user: winner, created: false };
     }
     throw error;
   }
@@ -76,26 +77,6 @@ export async function findOrCreateCabinetUser(identity: CabinetIdentity) {
 export async function ensureCabinetUser(identity: Pick<CabinetIdentity, "userId" | "name">): Promise<{ id: string; created: boolean }> {
   const existing = await prisma.user.findUnique({ where: { cabinetUserId: identity.userId }, select: { id: true } });
   if (existing) return { id: existing.id, created: false };
-  const password = await bcrypt.hash(crypto.randomBytes(32).toString("hex"), 10);
-  try {
-    const user = await prisma.$transaction(async (tx) => {
-      const made = await tx.user.create({
-        data: {
-          name: identity.name.trim() || FALLBACK_NAME,
-          email: cabinetEmail(identity.userId),
-          password,
-          cabinetUserId: identity.userId,
-        },
-      });
-      await seedNewAccount(made.id, tx);
-      return made;
-    });
-    return { id: user.id, created: true };
-  } catch (error) {
-    if ((error as { code?: string })?.code === "P2002") {
-      const winner = await prisma.user.findUnique({ where: { cabinetUserId: identity.userId }, select: { id: true } });
-      if (winner) return { id: winner.id, created: false };
-    }
-    throw error;
-  }
+  const { user, created } = await createCabinetUser(identity.userId, identity.name.trim() || FALLBACK_NAME, null);
+  return { id: user.id, created };
 }
