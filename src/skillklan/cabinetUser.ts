@@ -65,3 +65,37 @@ export async function findOrCreateCabinetUser(identity: CabinetIdentity) {
     throw error;
   }
 }
+
+// The account of a student who has not come in yet: made by an admin's import
+// of their plan (src/skillklan/plans/importPlan.ts), so that a plan can exist
+// before the first sign-in. Same account, same seeding, same placeholder email
+// as a sign-in makes — the first real sign-in finds it by the cabinet id — but
+// no login is stamped: lastLoginAt stays empty, so «who uses SkillKlan Job»
+// does not count a person who has never opened it. An existing account is
+// returned as it is.
+export async function ensureCabinetUser(identity: Pick<CabinetIdentity, "userId" | "name">): Promise<{ id: string; created: boolean }> {
+  const existing = await prisma.user.findUnique({ where: { cabinetUserId: identity.userId }, select: { id: true } });
+  if (existing) return { id: existing.id, created: false };
+  const password = await bcrypt.hash(crypto.randomBytes(32).toString("hex"), 10);
+  try {
+    const user = await prisma.$transaction(async (tx) => {
+      const made = await tx.user.create({
+        data: {
+          name: identity.name.trim() || FALLBACK_NAME,
+          email: cabinetEmail(identity.userId),
+          password,
+          cabinetUserId: identity.userId,
+        },
+      });
+      await seedNewAccount(made.id, tx);
+      return made;
+    });
+    return { id: user.id, created: true };
+  } catch (error) {
+    if ((error as { code?: string })?.code === "P2002") {
+      const winner = await prisma.user.findUnique({ where: { cabinetUserId: identity.userId }, select: { id: true } });
+      if (winner) return { id: winner.id, created: false };
+    }
+    throw error;
+  }
+}

@@ -8,6 +8,7 @@ import type { Mentor, MentorStudent } from "@/skillklan/cabinetApi";
 import { useTranslations } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import PlanView from "./PlanView";
+import PlanImport from "./PlanImport";
 
 // «Плани студентів» for the admin, the QA moderator and a mentor: pick a mentor
 // (or «Без ментора», or «Мої студенти»), then a student, then look at their
@@ -20,11 +21,14 @@ export default function MentorPlans({
   mentors,
   me,
   canPick,
+  importTracks = [],
 }: {
   // `null` — the list of mentors could not be loaded.
   mentors: Mentor[] | null;
   me: Mentor | null;
   canPick: boolean;
+  // The plans an admin may import progress into.
+  importTracks?: { track: string; title: string }[];
 }) {
   const t = useTranslations("plans");
   const [entry, setEntry] = useState<Choice | null>(null);
@@ -88,6 +92,8 @@ export default function MentorPlans({
           {t("mentor.mentorsFailed")}
         </p>
       )}
+      {canPick && importTracks.length > 0 && <PlanImport tracks={importTracks} />}
+
       {canPick && mentors !== null && mentors.length === 0 && !me && (
         <p className="text-sm text-muted-foreground">{t("mentor.noMentors")}</p>
       )}
