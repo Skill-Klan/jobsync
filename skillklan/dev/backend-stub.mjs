@@ -17,6 +17,7 @@
 // that accepts anything would prove nothing. Fake people only, kept in memory; no network calls.
 
 import crypto from "node:crypto";
+import { readFileSync } from "node:fs";
 import http from "node:http";
 import { pathToFileURL } from "node:url";
 
@@ -312,7 +313,13 @@ function sendHtml(res, status, html) {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const port = Number(process.env.DEV_BACKEND_PORT || 3739);
+  // Optional, for trying a flow on more people than the defaults: DEV_BACKEND_EXTRA names a local JSON file
+  // `{ "people": [...], "mentors": [...] }` in the shapes above, added to the fake people. Keep that file out of
+  // the repository.
+  const extra = process.env.DEV_BACKEND_EXTRA ? JSON.parse(readFileSync(process.env.DEV_BACKEND_EXTRA, "utf8")) : {};
   const { server } = createBackendStub({
+    people: [...DEFAULT_PEOPLE, ...(extra.people ?? [])],
+    mentors: [...DEFAULT_MENTORS, ...(extra.mentors ?? [])],
     secret: process.env.JOBSYNC_API_SECRET,
     jobsUrl: (process.env.NEXTAUTH_URL || "http://localhost:3737").replace(/\/+$/, ""),
   });
