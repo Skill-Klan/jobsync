@@ -186,6 +186,11 @@ function ResumeContainer({
     !ContactInfo && (!ResumeSections || ResumeSections.length === 0);
   const showStructureWithAI =
     ai && isEmptyResume && !!resume.File?.filePath && aiReady && !importMode;
+  // A resume made from a file and nothing else yet: point at the file (the
+  // Preview button), not at filling sections by hand. The AI card above has its
+  // own text when it is shown.
+  const showFileHint =
+    isEmptyResume && !!resume.File?.filePath && !importMode && !showStructureWithAI;
 
   const handleSetDefault = async () => {
     if (!resume?.id) return;
@@ -256,6 +261,10 @@ function ResumeContainer({
           isStructuring={isStructuring}
           onStructure={handleStructureWithAI}
         />
+      )}
+
+      {showFileHint && (
+        <p className="px-1 py-4 text-sm text-muted-foreground">{t("resumePage.fileHint")}</p>
       )}
 
       {/* SAVED SECTIONS */}

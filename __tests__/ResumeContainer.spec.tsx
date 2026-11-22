@@ -109,3 +109,25 @@ describe("ResumeContainer — Review button", () => {
     expect(chat.open).not.toHaveBeenCalled();
   });
 });
+
+// Local test pass before opening access (SKD-70): a resume made from a file has
+// no sections, and its page was an empty screen under the title. The hint points
+// at the file — the thing the person actually has — and says nothing about
+// filling sections by hand.
+describe("ResumeContainer — a resume made from a file, with nothing else yet", () => {
+  const fromFile: Resume = {
+    id: "r2",
+    title: "PR1",
+    File: { id: "f1", fileName: "pr1.pdf", fileType: "resume", filePath: "/files/pr1.pdf" },
+  };
+
+  it("tells the person to open the file", () => {
+    render(<ResumeContainer resume={fromFile} defaultResumeId={null} />);
+    expect(screen.getByText(/made from a file/i)).toBeInTheDocument();
+  });
+
+  it("paired: a resume with no file gets no such hint", () => {
+    render(<ResumeContainer resume={{ id: "r3", title: "Empty" }} defaultResumeId={null} />);
+    expect(screen.queryByText(/made from a file/i)).not.toBeInTheDocument();
+  });
+});

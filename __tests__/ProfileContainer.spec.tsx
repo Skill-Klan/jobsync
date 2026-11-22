@@ -1,6 +1,7 @@
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ProfileContainer from "@/components/profile/ProfileContainer";
+import { getResumeList } from "@/actions/profile.actions";
 import React from "react";
 
 vi.mock("next/navigation", () => ({
@@ -66,5 +67,25 @@ describe("ProfileContainer Component", () => {
     expect(
       screen.getByRole("heading", { level: 2, name: /create resume/i }),
     ).toBeInTheDocument();
+  });
+});
+
+// Review of the local test pass (SKD-70): a student with no resume saw only the
+// title and a button — no word on what to do. The hint shows once the first
+// load has finished and nothing came back, never while it is still loading.
+describe("ProfileContainer with nothing yet", () => {
+  it("says so when the first load found no documents", async () => {
+    await act(async () => {
+      render(<ProfileContainer />);
+    });
+    expect(screen.getByText(/no documents yet/i)).toBeInTheDocument();
+  });
+
+  it("says nothing while the first load is still running", async () => {
+    vi.mocked(getResumeList).mockReturnValueOnce(new Promise(() => {}) as never);
+    await act(async () => {
+      render(<ProfileContainer />);
+    });
+    expect(screen.queryByText(/no documents yet/i)).not.toBeInTheDocument();
   });
 });

@@ -7,6 +7,13 @@ import { isAdminSession } from "@/skillklan/cabinetAdmin";
 import { loadMentorLookup, viewerCabinetId } from "@/skillklan/mentorPlans";
 import { PLAN_TRACKS, getPlanTemplate } from "@/skillklan/plans/template";
 import { getTranslations } from "@/i18n/server";
+import type { Metadata } from "next";
+
+// The tab title: the page's name (the layout adds «| SkillKlan Job»).
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("nav");
+  return { title: t("plan") };
+}
 
 // Switched off in Settings → «Функції» — the page is not there for anyone,
 // the admin included; the plans and ticks stay in the database.

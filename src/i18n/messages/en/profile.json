@@ -30,6 +30,7 @@
     "addResume": "Add New Resume",
     "addCoverLetter": "Add New Cover Letter",
     "loading": "Loading...",
+    "empty": "No documents yet. Add your first resume with the button above.",
     "loadMore": "Load More"
   },
   "documentTable": {
@@ -158,6 +159,7 @@
     "noLetterhead": "No letterhead — set a default resume with contact info to add your name and contact line."
   },
   "resumePage": {
+    "fileHint": "This resume was made from a file. Use «Preview» to open it.",
     "skillsDeleted": "Skills section has been deleted successfully",
     "certificationDeleted": "Certification has been deleted successfully",
     "nowDefault": "This resume is now your default.",
