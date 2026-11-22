@@ -10,6 +10,7 @@ import fs from "fs";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { PDF_MAGIC, ZIP_MAGIC } from "@/lib/ai/import/extract-text";
 import { log } from "@/lib/telemetry";
+import { DOCX_PAGE_POLICY, DocxUnreadableError, docxToPage } from "@/lib/docxPage";
 import prisma from "@/lib/db";
 import {
   isResumeFilePath,
@@ -149,6 +150,31 @@ export const GET = async (req: NextRequest) => {
     }
 
     const fileContent = fs.readFileSync(fullFilePath);
+
+    // ?view=1 — to read in the page without saving: a PDF as it is, a Word
+    // document as a page without scripts (the page shows it in a sandboxed
+    // frame; the policy header keeps it inert if the address is opened alone).
+    if (searchParams.get("view") === "1") {
+      if (fileType === ".pdf") {
+        return new NextResponse(fileContent, {
+          headers: { "Content-Type": contentType, "Content-Disposition": "inline", "X-Content-Type-Options": "nosniff" },
+        });
+      }
+      try {
+        return new NextResponse(await docxToPage(fileContent), {
+          headers: {
+            "Content-Type": "text/html; charset=utf-8",
+            "Content-Security-Policy": `sandbox; ${DOCX_PAGE_POLICY}`,
+            "X-Content-Type-Options": "nosniff",
+          },
+        });
+      } catch (error) {
+        if (error instanceof DocxUnreadableError) {
+          return NextResponse.json({ error: "File cannot be shown" }, { status: 415 });
+        }
+        throw error;
+      }
+    }
 
     // Strip CR/LF from filename to prevent header injection
     const safeFileName = fileName.replace(/[\r\n"]/g, "_");

@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CircularScore } from "@/components/CircularScore";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DownloadFileButton } from "@/components/profile/DownloadFileButton";
+import { ResumeFilePreviewButton } from "@/components/profile/ResumeFilePreview";
 import { BADGE_COLORS, getJobStatusBadgeColor } from "@/lib/badge-colors";
 import { cn, formatUrl } from "@/lib/utils";
 import type { JobMatchData } from "@/models/ai.schemas";
@@ -105,12 +106,19 @@ export function JobSummaryCard({
             <p className="text-sm text-muted-foreground">{t("summary.resume")}</p>
             <div className="mt-1 font-medium">
               {job.Resume?.File?.filePath ? (
-                DownloadFileButton(
-                  job.Resume.id!,
-                  job.Resume.File.filePath,
-                  job.Resume.title,
-                  job.Resume.File.fileName,
-                )
+                <div className="flex flex-wrap items-center gap-2">
+                  {DownloadFileButton(
+                    job.Resume.id!,
+                    job.Resume.File.filePath,
+                    job.Resume.title,
+                    job.Resume.File.fileName,
+                  )}
+                  <ResumeFilePreviewButton
+                    resumeId={job.Resume.id!}
+                    fileName={job.Resume.File.fileName || job.Resume.File.filePath}
+                    title={job.Resume.title}
+                  />
+                </div>
               ) : job.Resume?.id ? (
                 <Link
                   href={`/dashboard/profile/resume/${job.Resume.id}`}

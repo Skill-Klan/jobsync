@@ -165,7 +165,10 @@
     "changeDefaultDescription": "Це резюме стане основним замість поточного.",
     "aiReview": "Оцінка AI",
     "review": "Оцінити",
-    "download": "Завантажити {fileName}"
+    "download": "Завантажити {fileName}",
+    "preview": "Переглянути",
+    "previewDescription": "Перегляд прикріпленого файлу резюме без завантаження.",
+    "previewFailed": "Не вдалося показати файл. Його все одно можна завантажити."
   },
   "resumeDialogs": {
     "replaceTitle": "Замінити прикріплений файл?",
