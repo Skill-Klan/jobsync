@@ -5,6 +5,7 @@ import { getMyPlans } from "@/actions/plan.actions";
 import { getFeatureFlags } from "@/skillklan/featureFlags";
 import { isAdminSession } from "@/skillklan/cabinetAdmin";
 import { loadMentorLookup, viewerCabinetId } from "@/skillklan/mentorPlans";
+import { PLAN_TRACKS, getPlanTemplate } from "@/skillklan/plans/template";
 import { getTranslations } from "@/i18n/server";
 
 // Switched off in Settings → «Функції» — the page is not there for anyone,
@@ -29,7 +30,12 @@ async function Plan() {
   const t = await getTranslations("plans");
   return (
     <div className="col-span-3 space-y-10">
-      <MentorPlans mentors={lookup.mentors} me={lookup.me} canPick={lookup.canPick} />
+      <MentorPlans
+        mentors={lookup.mentors}
+        me={lookup.me}
+        canPick={lookup.canPick}
+        importTracks={PLAN_TRACKS.map((track) => ({ track, title: getPlanTemplate(track)!.title }))}
+      />
       {own.length > 0 && <PlanView plans={own} title={t("mentor.myPlan")} />}
     </div>
   );
