@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import { ChevronDown } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -119,11 +120,12 @@ export default function StudentPlansAdmin({
           className="max-w-sm"
         />
         {mentors && (
+          <div className="relative">
           <select
             value={mentorKey}
             onChange={(e) => pickMentor(e.target.value)}
             aria-label={t("admin.mentorLabel")}
-            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+            className="h-10 appearance-none rounded-md border border-input bg-background pl-3 pr-10 text-sm"
           >
             <option value="all">{t("admin.mentorAll")}</option>
             {mentors.map((m) => (
@@ -133,6 +135,8 @@ export default function StudentPlansAdmin({
             ))}
             <option value="none">{t("mentor.noMentor")}</option>
           </select>
+          <ChevronDown aria-hidden className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 opacity-60" />
+          </div>
         )}
       </div>
       {mentors === null && (
