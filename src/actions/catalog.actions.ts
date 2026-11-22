@@ -54,7 +54,14 @@ async function asAdmin<T>(run: (cabinetUserId: number) => Promise<T>): Promise<T
   if (await isFeatureOff("catalog")) return unavailable();
   const cabinetUserId = await confirmCabinetAdmin();
   if (cabinetUserId === null) return { success: false, message: await message("errors.adminOnly") };
-  return run(cabinetUserId);
+  try {
+    return await run(cabinetUserId);
+  } catch (error) {
+    // A database that is busy, a transaction that timed out: a message, not a
+    // crashed action.
+    console.error("[catalog] change failed", error);
+    return { success: false, message: await message("errors.failed") };
+  }
 }
 
 function changed() {

@@ -15,20 +15,22 @@ import {
 type Reason = "bad_kind" | "bad_label" | "exists" | "not_found";
 type Fail = { ok: false; reason: Reason };
 const fail = (reason: Reason): Fail => ({ ok: false, reason });
+const isUniqueViolation = (err: unknown) => (err as { code?: string })?.code === "P2002";
 
 // The person's own list for each kind: same key, label, createdBy everywhere.
-function ownList(kind: CatalogKind) {
+// `db` is the client or the transaction the work runs in.
+function ownList(kind: CatalogKind, db: Prisma.TransactionClient | typeof prisma) {
   switch (kind) {
     case "skill":
-      return prisma.tag;
+      return db.tag;
     case "company":
-      return prisma.company;
+      return db.company;
     case "jobTitle":
-      return prisma.jobTitle;
+      return db.jobTitle;
     case "location":
-      return prisma.location;
+      return db.location;
     case "jobSource":
-      return prisma.jobSource;
+      return db.jobSource;
   }
 }
 
@@ -38,7 +40,8 @@ type OwnDelegate = {
   create(args: unknown): Promise<OwnRow>;
   updateMany(args: unknown): Promise<{ count: number }>;
 };
-const own = (kind: CatalogKind) => ownList(kind) as unknown as OwnDelegate;
+const own = (kind: CatalogKind, db: Prisma.TransactionClient | typeof prisma = prisma) =>
+  ownList(kind, db) as unknown as OwnDelegate;
 
 function view(row: { id: string; kind: string; label: string; value: string }): CatalogEntryView {
   return { id: row.id, kind: row.kind as CatalogKind, label: row.label, value: row.value };
@@ -55,10 +58,16 @@ export async function addCatalogEntry(kind: unknown, label: unknown, cabinetUser
   if (!clean) return fail("bad_label");
   const existing = await prisma.catalogEntry.findUnique({ where: { kind_value: { kind, value: clean.value } } });
   if (existing) return fail("exists");
-  const entry = await prisma.catalogEntry.create({
-    data: { kind, label: clean.label, value: clean.value, createdByCabinetUserId: cabinetUserId },
-  });
-  return { ok: true as const, entry: view(entry) };
+  try {
+    const entry = await prisma.catalogEntry.create({
+      data: { kind, label: clean.label, value: clean.value, createdByCabinetUserId: cabinetUserId },
+    });
+    return { ok: true as const, entry: view(entry) };
+  } catch (err) {
+    // Two adds of one name at once: the check above passed for both.
+    if (isUniqueViolation(err)) return fail("exists");
+    throw err;
+  }
 }
 
 // A rename changes the label only — the key stays, so everybody's own rows
@@ -76,8 +85,7 @@ export async function renameCatalogEntry(id: unknown, label: unknown) {
   const kind = entry.kind;
   const renamed = await prisma.$transaction(async (tx) => {
     const updated = await tx.catalogEntry.update({ where: { id }, data: { label: clean.label } });
-    const delegates = { skill: tx.tag, company: tx.company, jobTitle: tx.jobTitle, location: tx.location, jobSource: tx.jobSource };
-    await (delegates[kind] as unknown as OwnDelegate).updateMany({
+    await own(kind, tx).updateMany({
       where: { value: entry.value },
       data: { label: clean.label },
     });
@@ -147,30 +155,35 @@ export async function createOwnValue(userId: string, kind: unknown, label: unkno
   const clean = cleanCatalogLabel(kind, label);
   if (!clean) return fail("bad_label");
   const entry = await prisma.catalogEntry.findUnique({ where: { kind_value: { kind, value: clean.value } } });
-  const list = own(kind);
-  const where = { value_createdBy: { value: clean.value, createdBy: userId } };
-  let row = await list.findUnique({ where });
-  if (!row) {
-    try {
-      row = await list.create({ data: { label: entry?.label ?? clean.label, value: clean.value, createdBy: userId } });
-    } catch (err) {
-      // Two creations at once: the loser finds the winner's row.
-      if ((err as { code?: string })?.code !== "P2002") throw err;
-      row = await list.findUnique({ where });
-      if (!row) throw err;
+  // The row and the admin's request go together: a row without its request is
+  // a typo nobody will ever see.
+  const row = await prisma.$transaction(async (tx) => {
+    const list = own(kind, tx);
+    const where = { value_createdBy: { value: clean.value, createdBy: userId } };
+    let found = await list.findUnique({ where });
+    if (!found) {
+      try {
+        found = await list.create({ data: { label: entry?.label ?? clean.label, value: clean.value, createdBy: userId } });
+      } catch (err) {
+        // Two creations at once: the loser finds the winner's row.
+        if (!isUniqueViolation(err)) throw err;
+        found = await list.findUnique({ where });
+        if (!found) throw err;
+      }
     }
-  }
-  if (!entry) {
-    await prisma.catalogRequest.upsert({
-      where: { kind_value_requestedBy: { kind, value: clean.value, requestedBy: userId } },
-      update: {},
-      create: { kind, label: clean.label, value: clean.value, requestedBy: userId },
-    });
-    await prisma.catalogRequest.updateMany({
-      where: { kind, value: clean.value, requestedBy: userId, status: "approved" },
-      data: { status: "pending", label: clean.label, decidedAt: null, decidedByCabinetUserId: null },
-    });
-  }
+    if (!entry) {
+      await tx.catalogRequest.upsert({
+        where: { kind_value_requestedBy: { kind, value: clean.value, requestedBy: userId } },
+        update: {},
+        create: { kind, label: clean.label, value: clean.value, requestedBy: userId },
+      });
+      await tx.catalogRequest.updateMany({
+        where: { kind, value: clean.value, requestedBy: userId, status: "approved" },
+        data: { status: "pending", label: clean.label, decidedAt: null, decidedByCabinetUserId: null },
+      });
+    }
+    return found;
+  });
   return { ok: true as const, row: toOption(row) };
 }
 
@@ -189,29 +202,43 @@ const delegateOf = (tx: Tx, model: string) =>
 
 // Everything that points at a row of `model`, read from the Prisma schema so a
 // relation added later is moved too: scalar foreign keys, and many-to-many
-// links (a skill on jobs and questions).
-function references(model: string) {
+// links (a skill on jobs and questions; `back` is the field of `model` that
+// lists them). The schema does not change while the process runs: read once.
+type References = {
+  keys: { model: string; field: string }[];
+  links: { model: string; field: string; back: string }[];
+};
+const referencesCache = new Map<string, References>();
+
+export function references(model: string): References {
+  const cached = referencesCache.get(model);
+  if (cached) return cached;
   const models = Prisma.dmmf.datamodel.models;
-  const keys: { model: string; field: string }[] = [];
-  const links: { model: string; field: string }[] = [];
+  const found: References = { keys: [], links: [] };
   for (const m of models) {
     for (const f of m.fields) {
       if (f.kind !== "object" || f.type !== model) continue;
-      if (f.relationFromFields?.length === 1) keys.push({ model: m.name, field: f.relationFromFields[0] });
+      if (f.relationFromFields?.length === 1) found.keys.push({ model: m.name, field: f.relationFromFields[0] });
       else if (f.isList) {
         // A many-to-many link: the other side lists this model back.
         const back = models.find((x) => x.name === model)?.fields.find((x) => x.relationName === f.relationName && x.isList);
-        if (back) links.push({ model: m.name, field: f.name });
+        if (back) found.links.push({ model: m.name, field: f.name, back: back.name });
       }
     }
   }
-  return { keys, links };
+  referencesCache.set(model, found);
+  return found;
 }
+
+// How many ids go into one `connect` (SQLite limits the variables of a query).
+const CONNECT_CHUNK = 500;
 
 // Moves what every person saved under the key `from` onto their own row for the
 // catalog entry `to` (made when they have none), then drops the old row. This is
 // the correction: "Raifeisen Bank" → "Raiffeisen Bank" shows up in every job,
 // work record and contact that had it. Same key, new spelling: only the label.
+// A few queries per person, however many jobs they have: the foreign keys move
+// with one updateMany each, a many-to-many link with a connect of all its rows.
 async function moveValues(tx: Tx, kind: CatalogKind, from: string, to: { value: string; label: string }) {
   const model = MODEL[kind];
   const list = delegateOf(tx, model);
@@ -228,10 +255,17 @@ async function moveValues(tx: Tx, kind: CatalogKind, from: string, to: { value: 
       (await list.create({ data: { label: to.label, value: to.value, createdBy: old.createdBy } }));
     for (const key of keys) await delegateOf(tx, key.model).updateMany({ where: { [key.field]: old.id }, data: { [key.field]: target.id } });
     for (const link of links) {
-      const owner = delegateOf(tx, link.model);
-      const rows: { id: string }[] = await owner.findMany({ where: { [link.field]: { some: { id: old.id } } }, select: { id: true } });
-      for (const row of rows) {
-        await owner.update({ where: { id: row.id }, data: { [link.field]: { disconnect: { id: old.id }, connect: { id: target.id } } } });
+      const rows: { id: string }[] = await delegateOf(tx, link.model).findMany({
+        where: { [link.field]: { some: { id: old.id } } },
+        select: { id: true },
+      });
+      // Connecting a row that is already linked changes nothing; the old row's
+      // own links go when it is deleted below.
+      for (let i = 0; i < rows.length; i += CONNECT_CHUNK) {
+        await list.update({
+          where: { id: target.id },
+          data: { [link.back]: { connect: rows.slice(i, i + CONNECT_CHUNK).map((r) => ({ id: r.id })) } },
+        });
       }
     }
     // What the old row knew and the target does not (a logo, a watch) is kept.
@@ -335,7 +369,7 @@ export async function materializeCatalogEntry(userId: string, entryId: unknown) 
     return { ok: true as const, row: toOption(created) };
   } catch (err) {
     // Two picks at once: the loser finds the winner's row.
-    if ((err as { code?: string })?.code === "P2002") {
+    if (isUniqueViolation(err)) {
       const winner = await list.findUnique({ where });
       if (winner) return { ok: true as const, row: toOption(winner) };
     }

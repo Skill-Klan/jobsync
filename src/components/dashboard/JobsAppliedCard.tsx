@@ -83,24 +83,16 @@ export default function JobsAppliedCard() {
         </CardDescription>
       </CardHeader>
       <CardFooter className={QUICK_ACTIONS_GRID}>
-        {/* A hint on hover and on keyboard focus: what the button is for. */}
-        <TooltipProvider delayDuration={200}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                className={QUICK_ACTION_BUTTON}
-                onClick={() => router.push("/dashboard/myjobs?add-job=true")}
-              >
-                <BriefcaseBusiness className="h-3.5 w-3.5 shrink-0" />
-                <span className={QUICK_ACTION_LABEL}>{t("quickActions.addJob")}</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent className="max-w-xs">
-              {t("quickActions.addJobHint")}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Hinted hint={t("quickActions.addJobHint")}>
+          <Button
+            variant="outline"
+            className={QUICK_ACTION_BUTTON}
+            onClick={() => router.push("/dashboard/myjobs?add-job=true")}
+          >
+            <BriefcaseBusiness className="h-3.5 w-3.5 shrink-0" />
+            <span className={QUICK_ACTION_LABEL}>{t("quickActions.addJob")}</span>
+          </Button>
+        </Hinted>
         {automations && (
           <Button
             variant="outline"
