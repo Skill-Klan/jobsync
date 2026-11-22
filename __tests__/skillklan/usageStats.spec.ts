@@ -5,8 +5,9 @@
 //   · people = accounts that came from the cabinet (a dev-only password account
 //     is not a person of the school);
 //   · "signed in" = has lastLoginAt; active in 7 / 30 days = signed in that recently;
-//   · per person: vacancies, applied ones, resumes (and with a file), tasks,
-//     interview stages, study-plan points ticked — each person's own, never summed across;
+//   · per person: vacancies, resumes (and with a file), study-plan points ticked —
+//     each person's own, never summed across (the owner dropped applied ones, tasks
+//     and interview stages: tasks are switched off, the others add nothing);
 //   · the summary counts people who have at least one of each; the median of
 //     vacancies is over everyone, those with none included;
 //   · the list starts with the longest quiet: never signed in, then the oldest sign-in;
@@ -44,9 +45,9 @@ async function person(id: string, name: string, cabinetUserId: number | null, la
     data: { id, name, email: `${id}@test.invalid`, password: "-", cabinetUserId, lastLoginAt },
   });
 }
-async function job(userId: string, applied = false) {
+async function job(userId: string) {
   return prisma.job.create({
-    data: { userId, description: "d", jobType: "FT", createdAt: NOW, statusId, companyId, jobTitleId: titleId, applied },
+    data: { userId, description: "d", jobType: "FT", createdAt: NOW, statusId, companyId, jobTitleId: titleId },
   });
 }
 
@@ -70,10 +71,7 @@ beforeEach(async () => {
   ctx.admin = true;
   await prisma.planItem.deleteMany();
   await prisma.plan.deleteMany();
-  await prisma.jobStage.deleteMany();
-  await prisma.jobStageType.deleteMany();
   await prisma.job.deleteMany();
-  await prisma.task.deleteMany();
   await prisma.resume.deleteMany();
   await prisma.file.deleteMany();
   await prisma.profile.deleteMany();
@@ -126,22 +124,16 @@ describe("signing in", () => {
 });
 
 describe("what a person has made", () => {
-  it("counts each person's own vacancies, applied ones, resumes, files, tasks, stages and ticked plan points", async () => {
+  it("counts each person's own vacancies, resumes, files and ticked plan points", async () => {
     const a = await person("a", "Anna", 1, daysAgo(1));
     const b = await person("b", "Boris", 2, daysAgo(2));
 
-    // Anna: 3 vacancies (2 applied), 2 stages on one of them, 2 resumes (1 with a file), 1 task, 2 ticked points.
-    const [j1, j2] = [await job(a.id, true), await job(a.id, true)];
-    await job(a.id);
-    const type = await prisma.jobStageType.create({ data: { label: "HR", value: "hr", createdBy: a.id, statusId } });
-    for (const jobId of [j1.id, j1.id, j2.id]) {
-      await prisma.jobStage.create({ data: { jobId, stageTypeId: type.id } });
-    }
+    // Anna: 3 vacancies, 2 resumes (1 with a file), 2 ticked points (a third is not ticked).
+    for (let i = 0; i < 3; i++) await job(a.id);
     const profile = await prisma.profile.create({ data: { userId: a.id } });
     const file = await prisma.file.create({ data: { fileName: "cv.pdf", fileType: "pdf", filePath: "data/files/resumes/cv.pdf" } });
     await prisma.resume.create({ data: { profileId: profile.id, title: "With file", FileId: file.id } });
     await prisma.resume.create({ data: { profileId: profile.id, title: "Without" } });
-    await prisma.task.create({ data: { userId: a.id, title: "t", status: "in-progress", priority: 1 } as never });
     const plan = await prisma.plan.create({ data: { userId: a.id, track: "java", title: "Java" } });
     await prisma.planItem.createMany({
       data: [
@@ -157,8 +149,8 @@ describe("what a person has made", () => {
     const anna = people.find((p) => p.name === "Anna")!;
     const boris = people.find((p) => p.name === "Boris")!;
 
-    expect(anna).toMatchObject({ jobs: 3, applied: 2, stages: 3, resumes: 2, resumesWithFile: 1, tasks: 1, planDone: 2 });
-    expect(boris).toMatchObject({ jobs: 1, applied: 0, stages: 0, resumes: 0, resumesWithFile: 0, tasks: 0, planDone: 0 });
+    expect(anna).toMatchObject({ jobs: 3, resumes: 2, resumesWithFile: 1, planDone: 2 });
+    expect(boris).toMatchObject({ jobs: 1, resumes: 0, resumesWithFile: 0, planDone: 0 });
   });
 
   it("the summary counts people who have at least one; the median of vacancies is over everyone", async () => {
@@ -166,7 +158,7 @@ describe("what a person has made", () => {
     const b = await person("b", "Boris", 2, daysAgo(2));
     await person("c", "Clara", 3, null);
     await person("d", "Dmytro", 4, null);
-    for (let i = 0; i < 5; i++) await job(a.id, i < 2);
+    for (let i = 0; i < 5; i++) await job(a.id);
     await job(b.id);
     const profile = await prisma.profile.create({ data: { userId: a.id } });
     await prisma.resume.create({ data: { profileId: profile.id, title: "R" } });
@@ -177,11 +169,8 @@ describe("what a person has made", () => {
     expect(summary).toMatchObject({
       people: 4,
       withJobs: 2,
-      withApplied: 1,
       withResume: 1,
       withResumeFile: 0,
-      withTask: 0,
-      withStage: 0,
       withPlanProgress: 0,
       medianJobs: 0.5,
     });

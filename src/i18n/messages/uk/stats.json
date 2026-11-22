@@ -10,11 +10,8 @@
   "useTitle": "Що люди зробили",
   "useHint": "Скільки людей мають хоча б одне.",
   "withJobs": "Вакансії в банку вакансій",
-  "withApplied": "Відгук на вакансію",
   "withResume": "Резюме",
   "withResumeFile": "Резюме з файлом",
-  "withTask": "Завдання",
-  "withStage": "Етап співбесіди",
   "withPlanProgress": "Відмічені пункти навчального плану",
   "outOf": "{count} із {total}",
   "medianJobs": "Медіана вакансій на людину: {count}",
@@ -25,10 +22,7 @@
   "lastSignIn": "Останній вхід",
   "never": "ніколи",
   "jobs": "Вакансії",
-  "applied": "Відгуки",
   "resumes": "Резюме",
-  "tasks": "Завдання",
-  "stages": "Етапи",
   "planDone": "Пункти плану",
   "resumesCell": "{total} ({withFile} з файлом)"
 }

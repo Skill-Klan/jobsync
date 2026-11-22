@@ -10,11 +10,8 @@
   "useTitle": "What people have made",
   "useHint": "How many people have at least one.",
   "withJobs": "Vacancies in the job bank",
-  "withApplied": "Applied to a vacancy",
   "withResume": "A resume",
   "withResumeFile": "A resume with a file",
-  "withTask": "A task",
-  "withStage": "An interview stage",
   "withPlanProgress": "Study plan points ticked",
   "outOf": "{count} of {total}",
   "medianJobs": "Median vacancies per person: {count}",
@@ -25,10 +22,7 @@
   "lastSignIn": "Last sign-in",
   "never": "never",
   "jobs": "Vacancies",
-  "applied": "Applied",
   "resumes": "Resumes",
-  "tasks": "Tasks",
-  "stages": "Stages",
   "planDone": "Plan points",
   "resumesCell": "{total} ({withFile} with a file)"
 }

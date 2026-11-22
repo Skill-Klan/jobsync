@@ -14,13 +14,10 @@ export default async function UsageStats({ summary, people }: { summary: UsageSu
     { key: "active7", value: summary.active7 },
     { key: "active30", value: summary.active30 },
   ];
-  const use: { key: "withJobs" | "withApplied" | "withResume" | "withResumeFile" | "withTask" | "withStage" | "withPlanProgress"; value: number }[] = [
+  const use: { key: "withJobs" | "withResume" | "withResumeFile" | "withPlanProgress"; value: number }[] = [
     { key: "withJobs", value: summary.withJobs },
-    { key: "withApplied", value: summary.withApplied },
     { key: "withResume", value: summary.withResume },
     { key: "withResumeFile", value: summary.withResumeFile },
-    { key: "withTask", value: summary.withTask },
-    { key: "withStage", value: summary.withStage },
     { key: "withPlanProgress", value: summary.withPlanProgress },
   ];
   return (
@@ -71,10 +68,7 @@ export default async function UsageStats({ summary, people }: { summary: UsageSu
                     <th className="py-2 pr-3 font-medium">{t("name")}</th>
                     <th className="py-2 pr-3 font-medium">{t("lastSignIn")}</th>
                     <th className="py-2 pr-3 text-right font-medium">{t("jobs")}</th>
-                    <th className="py-2 pr-3 text-right font-medium">{t("applied")}</th>
                     <th className="py-2 pr-3 text-right font-medium">{t("resumes")}</th>
-                    <th className="py-2 pr-3 text-right font-medium">{t("tasks")}</th>
-                    <th className="py-2 pr-3 text-right font-medium">{t("stages")}</th>
                     <th className="py-2 text-right font-medium">{t("planDone")}</th>
                   </tr>
                 </thead>
@@ -90,12 +84,9 @@ export default async function UsageStats({ summary, people }: { summary: UsageSu
                         )}
                       </td>
                       <td className="py-2 pr-3 text-right tabular-nums">{p.jobs}</td>
-                      <td className="py-2 pr-3 text-right tabular-nums">{p.applied}</td>
                       <td className="py-2 pr-3 text-right tabular-nums">
                         {t("resumesCell", { total: p.resumes, withFile: p.resumesWithFile })}
                       </td>
-                      <td className="py-2 pr-3 text-right tabular-nums">{p.tasks}</td>
-                      <td className="py-2 pr-3 text-right tabular-nums">{p.stages}</td>
                       <td className="py-2 text-right tabular-nums">{p.planDone}</td>
                     </tr>
                   ))}

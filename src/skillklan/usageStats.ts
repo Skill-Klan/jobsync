@@ -19,11 +19,8 @@ export type UsageRow = {
   createdAt: Date;
   lastLoginAt: Date | null;
   jobs: number;
-  applied: number;
   resumes: number;
   resumesWithFile: number;
-  tasks: number;
-  stages: number;
   planDone: number;
 };
 
@@ -35,11 +32,8 @@ export type UsageSummary = {
   active30: number;
   // How many people have at least one of each.
   withJobs: number;
-  withApplied: number;
   withResume: number;
   withResumeFile: number;
-  withTask: number;
-  withStage: number;
   withPlanProgress: number;
   medianJobs: number;
 };
@@ -55,17 +49,11 @@ export async function collectUsage(): Promise<UsageRow[]> {
     select: { id: true, name: true, cabinetUserId: true, createdAt: true, lastLoginAt: true },
   });
   const ids = users.map((u) => u.id);
-  const [jobs, applied, tasks, resumes, stages, planDone] = await Promise.all([
+  const [jobs, resumes, planDone] = await Promise.all([
     prisma.job.groupBy({ by: ["userId"], where: { userId: { in: ids } }, _count: { _all: true } }),
-    prisma.job.groupBy({ by: ["userId"], where: { userId: { in: ids }, applied: true }, _count: { _all: true } }),
-    prisma.task.groupBy({ by: ["userId"], where: { userId: { in: ids } }, _count: { _all: true } }),
     prisma.resume.findMany({
       where: { profile: { userId: { in: ids } } },
       select: { FileId: true, profile: { select: { userId: true } } },
-    }),
-    prisma.jobStage.findMany({
-      where: { Job: { userId: { in: ids } } },
-      select: { Job: { select: { userId: true } } },
     }),
     prisma.planItem.groupBy({
       by: ["planId"],
@@ -81,16 +69,12 @@ export async function collectUsage(): Promise<UsageRow[]> {
   const tally = (map: Map<string, number>, userId: string, by = 1) => map.set(userId, (map.get(userId) ?? 0) + by);
 
   const jobCount = counts(jobs);
-  const appliedCount = counts(applied);
-  const taskCount = counts(tasks);
   const resumeCount = new Map<string, number>();
   const resumeFileCount = new Map<string, number>();
   for (const r of resumes) {
     tally(resumeCount, r.profile.userId);
     if (r.FileId) tally(resumeFileCount, r.profile.userId);
   }
-  const stageCount = new Map<string, number>();
-  for (const s of stages) tally(stageCount, s.Job.userId);
   const planCount = new Map<string, number>();
   for (const g of planDone) {
     const userId = owner.get(g.planId);
@@ -104,11 +88,8 @@ export async function collectUsage(): Promise<UsageRow[]> {
     createdAt: u.createdAt,
     lastLoginAt: u.lastLoginAt,
     jobs: jobCount.get(u.id) ?? 0,
-    applied: appliedCount.get(u.id) ?? 0,
     resumes: resumeCount.get(u.id) ?? 0,
     resumesWithFile: resumeFileCount.get(u.id) ?? 0,
-    tasks: taskCount.get(u.id) ?? 0,
-    stages: stageCount.get(u.id) ?? 0,
     planDone: planCount.get(u.id) ?? 0,
   }));
 }
@@ -133,11 +114,8 @@ export function summarizeUsage(rows: UsageRow[], now: Date): UsageSummary {
     active7: within(7),
     active30: within(30),
     withJobs: has((r) => r.jobs),
-    withApplied: has((r) => r.applied),
     withResume: has((r) => r.resumes),
     withResumeFile: has((r) => r.resumesWithFile),
-    withTask: has((r) => r.tasks),
-    withStage: has((r) => r.stages),
     withPlanProgress: has((r) => r.planDone),
     medianJobs: median(rows.map((r) => r.jobs)),
   };
