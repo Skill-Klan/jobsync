@@ -17,6 +17,7 @@ import SidebarToggle from "./SidebarToggle";
 import { AgentChatTrigger } from "./AgentChatTrigger";
 import { NotificationBell } from "./notifications/NotificationBell";
 import { LocaleButtons } from "./LocaleSwitcher";
+import { OnboardingReplayButton } from "./onboarding/OnboardingProvider";
 import { getTranslations } from "@/i18n/server";
 
 // On a phone the side menu is hidden, and with it the user menu (avatar →
@@ -85,6 +86,9 @@ async function Header({ signOutAction }: { signOutAction?: () => Promise<void> }
                   <Settings className="h-5 w-5" />
                   {ta("settings")}
                 </Link>
+              </SheetClose>
+              <SheetClose asChild>
+                <OnboardingReplayButton className="flex w-full items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground" />
               </SheetClose>
               <LocaleButtons className="px-2.5" />
               {signOutAction && (

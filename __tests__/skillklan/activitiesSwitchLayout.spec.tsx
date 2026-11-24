@@ -13,6 +13,8 @@ vi.mock("@/auth", () => ({ signOut: vi.fn() }));
 vi.mock("@/skillklan/cabinetAdmin", () => ({ isAdminSession: async () => admin.value }));
 vi.mock("@/utils/user.utils", () => ({ getCurrentUser: async () => ({ id: "u1", name: "A", email: "a@example.invalid" }) }));
 vi.mock("@/actions/agentChat.actions", () => ({ getChatConversation: async () => ({ data: [] }) }));
+// The onboarding video's own check reads the database: not this test's subject (onboardingLayout.spec.tsx).
+vi.mock("@/skillklan/onboarding/state", () => ({ onboardingRequired: async () => false }));
 const passthrough = vi.hoisted(() => ({ children }: { children: unknown }) => children);
 vi.mock("@/context/ActivityContext", () => ({ ActivityProvider: passthrough }));
 vi.mock("@/context/NotificationContext", () => ({ NotificationProvider: passthrough }));
