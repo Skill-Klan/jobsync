@@ -11,6 +11,7 @@ and [CONTRIBUTING.md](../CONTRIBUTING.md) (setup and pull requests).
 | [contracts/local-backend.md](./contracts/local-backend.md) | A local stand-in for the backend: cabinet sign-in, roles, access |
 | [feature-switches.md](./feature-switches.md) | Settings → «Функції»: what each switch hides, how to add one |
 | [interview-recordings.md](./interview-recordings.md) | «Співбесіди»: how the recordings library works and how it is set up |
+| [backups.md](./backups.md) | The daily copy of `/data` for the owner's Mac: who may take it, how it is proved whole, how to restore it |
 | [onboarding.md](./onboarding.md) | The onboarding video at the first sign-in: who sees which, how it is recorded as watched, how to replace a video |
 
 The [README](../README.md) says what is on, where things are and how a release reaches production.

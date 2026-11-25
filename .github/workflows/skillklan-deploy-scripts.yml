@@ -29,10 +29,26 @@ jobs:
           shellcheck -S warning skillklan/deploy/*.sh skillklan/server/*.sh \
             skillklan/tests/deploy-wrapper.test.sh skillklan/tests/cloudflare-sync.test.sh \
             skillklan/tests/deploy-who.test.sh skillklan/tests/deploy-gate.test.sh \
-            skillklan/tests/deploy-is-head.test.sh
+            skillklan/tests/deploy-is-head.test.sh \
+            skillklan/tests/backup.test.sh skillklan/tests/backup-sshd.test.sh
 
       - name: Deploy wrapper (W1–W11)
         run: bash skillklan/tests/deploy-wrapper.test.sh
+
+      # The copy of /data for the owner's Mac runs its snapshot in Node (node:sqlite): the same
+      # major as the image.
+      - uses: actions/setup-node@v4
+        if: ${{ !cancelled() }}
+        with:
+          node-version: 24
+
+      - name: Copy of /data for the Mac (B1–B8)
+        if: ${{ !cancelled() }}
+        run: bash skillklan/tests/backup.test.sh
+
+      - name: Copy of /data — install and key separation through a real sshd (S1–S8)
+        if: ${{ !cancelled() }}
+        run: docker run --rm -v "$PWD:/repo:ro" ubuntu:24.04 bash /repo/skillklan/tests/backup-sshd.test.sh
 
       - name: Cloudflare sync (C1–C7)
         if: ${{ !cancelled() }}

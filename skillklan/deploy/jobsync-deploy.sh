@@ -18,6 +18,11 @@
 #
 # Вивід іде в лог GitHub Actions, а репозиторій публічний: логів застосунку тут
 # не друкуємо — там можуть бути дані студентів. Дивитись їх — на сервері.
+#
+# The owner's Mac pulls a copy of /data with a key of its own (D11). sshd tells which key
+# signed in (ExposeAuthInfo → $SSH_USER_AUTH); the backup key goes to jobsync-backup and can do
+# nothing else, every other key stays here and cannot take a copy. A deploy waits for a copy
+# that is being taken (.backup.lock) instead of failing.
 set -euo pipefail
 umask 027
 
@@ -33,6 +38,19 @@ export DOCKER_HOST="${DOCKER_HOST:-unix://$XDG_RUNTIME_DIR/docker.sock}"
 
 say() { printf '%s %s\n' "$(date -u +%H:%M:%S)" "$*"; }
 die() { say "FAIL: $*"; exit 1; }
+
+# Signed in with the backup key → the copy, and only the copy. Anything unexpected — no auth
+# info, no key file, more than one method or key — counts as "not the backup key".
+BACKUP_KEY_FILE="${JOBSYNC_BACKUP_KEY_FILE:-/etc/jobsync/backup-key.pub}"
+BACKUP_BIN="${JOBSYNC_BACKUP_BIN:-/usr/local/bin/jobsync-backup}"
+signed_in_with_backup_key() {
+  local want got
+  [ -n "${SSH_USER_AUTH:-}" ] && [ -r "$SSH_USER_AUTH" ] && [ -r "$BACKUP_KEY_FILE" ] || return 1
+  want="$(awk 'NF >= 2 { print $1, $2; exit }' "$BACKUP_KEY_FILE")"
+  got="$(cat "$SSH_USER_AUTH")" # exactly one line, exactly "publickey <type> <key>"
+  [ -n "$want" ] && [ "$got" = "publickey $want" ]
+}
+if signed_in_with_backup_key; then exec "$BACKUP_BIN"; fi
 
 # Команда — з SSH (примусова команда) або з аргументів (тести, svc-jobsync руками).
 # Сам рядок назад не друкуємо: це чужий ввід.
@@ -86,6 +104,10 @@ if [ "${args[0]}" = status ]; then
   if healthy; then say "health: ok"; else say "health: FAIL"; exit 1; fi
   exit 0
 fi
+
+# A copy for the Mac may be under way (jobsync-backup): wait for it instead of failing the release.
+exec 8>"$APP_DIR/.backup.lock"
+flock -w "${JOBSYNC_BACKUP_WAIT_S:-300}" 8 || die "a copy of /data is still being taken — nothing changed, deploy again"
 
 old="$(current_digest)"
 if [ "$old" = "$digest" ] && healthy; then
