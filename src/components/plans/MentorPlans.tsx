@@ -152,6 +152,28 @@ export default function MentorPlans({
               <p className="text-sm text-muted-foreground">{t("mentor.pickStudent")}</p>
             )}
             {studentId !== null && pending && !plans && <p className="text-sm text-muted-foreground">{t("mentor.loading")}</p>}
+            {plans?.applications && (
+              <div className="mb-4 space-y-2">
+                <div>
+                  <h2 className="text-sm font-medium">{t("mentor.applications")}</h2>
+                  <p className="text-xs text-muted-foreground">{t("mentor.applicationsHint")}</p>
+                </div>
+                <dl aria-label={t("mentor.applications")} className="grid grid-cols-3 gap-2 text-center">
+                  {(
+                    [
+                      ["today", plans.applications.today],
+                      ["last7", plans.applications.last7],
+                      ["last30", plans.applications.last30],
+                    ] as const
+                  ).map(([key, count]) => (
+                    <div key={key} className="rounded-md border p-3">
+                      <dd className="text-2xl font-semibold">{count}</dd>
+                      <dt className="text-xs text-muted-foreground">{t(`mentor.applied.${key}`)}</dt>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            )}
             {plans && !plans.hasAccount && <p className="text-sm text-muted-foreground">{t("mentor.noAccount")}</p>}
             {plans && plans.hasAccount && plans.plans.length === 0 && (
               <p className="text-sm text-muted-foreground">{t("mentor.noPlans")}</p>

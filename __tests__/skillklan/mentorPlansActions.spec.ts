@@ -160,7 +160,7 @@ describe("a student's plan (view only)", () => {
     ctx.students.mockResolvedValue([{ userId: 7777, name: "Ще не входив" }]);
     expect(await getStudentPlans(mentorEntry, 7777)).toEqual({
       success: true,
-      data: { name: "Ще не входив", hasAccount: false, plans: [] },
+      data: { name: "Ще не входив", hasAccount: false, applications: null, plans: [] },
     });
   });
 

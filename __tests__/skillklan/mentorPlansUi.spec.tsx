@@ -75,7 +75,7 @@ beforeEach(() => {
   lookup.value = { canPick: false, mentors: [], me: null };
   vi.mocked(getMyPlans).mockResolvedValue({ success: true, data: [] });
   vi.mocked(getEntryStudents).mockResolvedValue({ success: true, data: { students: [{ userId: 1001, name: "Марія Бондар" }, { userId: 1002, name: "" }] } });
-  vi.mocked(getStudentPlans).mockResolvedValue({ success: true, data: { name: "Марія Бондар", hasAccount: true, plans: [plan] as never } });
+  vi.mocked(getStudentPlans).mockResolvedValue({ success: true, data: { name: "Марія Бондар", hasAccount: true, applications: null, plans: [plan] as never } });
 });
 
 describe("the screen", () => {
@@ -177,11 +177,11 @@ describe("the screen", () => {
     const u = userEvent.setup();
     await u.click(screen.getByRole("button", { name: "Олена Коваль · QA" }));
 
-    vi.mocked(getStudentPlans).mockResolvedValueOnce({ success: true, data: { name: "Марія", hasAccount: false, plans: [] } });
+    vi.mocked(getStudentPlans).mockResolvedValueOnce({ success: true, data: { name: "Марія", hasAccount: false, applications: null, plans: [] } });
     await u.click(await screen.findByRole("button", { name: "Марія Бондар" }));
     expect(await screen.findByText(/has not signed in/i)).toBeInTheDocument();
 
-    vi.mocked(getStudentPlans).mockResolvedValueOnce({ success: true, data: { name: "Марія", hasAccount: true, plans: [] } });
+    vi.mocked(getStudentPlans).mockResolvedValueOnce({ success: true, data: { name: "Марія", hasAccount: true, applications: null, plans: [] } });
     await u.click(screen.getByRole("button", { name: "No name (no. 1002)" }));
     expect(await screen.findByText(/no plan yet/i)).toBeInTheDocument();
     expect(screen.queryByText(/has not signed in/i)).not.toBeInTheDocument();
@@ -189,6 +189,45 @@ describe("the screen", () => {
     vi.mocked(getStudentPlans).mockResolvedValueOnce({ success: false, message: "This student's plan is not available." });
     await u.click(screen.getByRole("button", { name: "Марія Бондар" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("not available");
+  });
+
+  // SKD-62 (owner, 2026-11-25): next to the student's plan, how many jobs they
+  // applied for — today, in the last 7 days, in the last 30; counts only.
+  it("a student's applications are shown above the plan: today, 7 days, 30 days", async () => {
+    vi.mocked(getStudentPlans).mockResolvedValueOnce({
+      success: true,
+      data: { name: "Марія Бондар", hasAccount: true, applications: { today: 2, last7: 9, last30: 31 }, plans: [plan] as never },
+    });
+    render(<MentorPlans mentors={mentors} me={null} canPick />);
+    const u = userEvent.setup();
+    await u.click(screen.getByRole("button", { name: "Олена Коваль · QA" }));
+    await u.click(await screen.findByRole("button", { name: "Марія Бондар" }));
+    const group = (await screen.findByText("Today")).closest("dl")!;
+    expect(group).toHaveAccessibleName("Applications");
+    // the box says what it is and what it counts — visible, not only for a screen reader
+    expect(screen.getByRole("heading", { name: "Applications" })).toBeVisible();
+    expect(screen.getByText("How many jobs the student applied for, over time")).toBeVisible();
+    expect(within(group).getByText("Today").previousSibling).toHaveTextContent("2");
+    expect(within(group).getByText("Last 7 days").previousSibling).toHaveTextContent("9");
+    expect(within(group).getByText("Last 30 days").previousSibling).toHaveTextContent("31");
+  });
+
+  it("a student with no account has no applications box (and zero is shown as 0, not hidden)", async () => {
+    render(<MentorPlans mentors={mentors} me={null} canPick />);
+    const u = userEvent.setup();
+    await u.click(screen.getByRole("button", { name: "Олена Коваль · QA" }));
+    vi.mocked(getStudentPlans).mockResolvedValueOnce({ success: true, data: { name: "Марія", hasAccount: false, applications: null, plans: [] } });
+    await u.click(await screen.findByRole("button", { name: "Марія Бондар" }));
+    expect(await screen.findByText(/has not signed in/i)).toBeInTheDocument();
+    expect(screen.queryByText("Last 7 days")).not.toBeInTheDocument();
+
+    vi.mocked(getStudentPlans).mockResolvedValueOnce({
+      success: true,
+      data: { name: "Марія", hasAccount: true, applications: { today: 0, last7: 0, last30: 0 }, plans: [] },
+    });
+    await u.click(screen.getByRole("button", { name: "No name (no. 1002)" }));
+    expect(await screen.findByText("Last 7 days")).toBeInTheDocument();
+    expect(screen.getByText("Last 7 days").previousSibling).toHaveTextContent("0");
   });
 
   it("switching to another student does not keep the first one's plan on screen", async () => {
