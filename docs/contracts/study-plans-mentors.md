@@ -18,8 +18,9 @@ student's plan and progress** ([decisions](../decisions.md) D89–D93, D95):
 
 They may tick points and write notes in a student's plan like the student (D92; this app's SQLite only, no new
 backend call: the same lists decide whose plan they may write to), and giving or taking back a plan stays on
-«Плани студентів» (D93). Mentors don't sign in yet (D89) — **the sign-in contract does not change**: no new
-role, no new field.
+«Плани студентів» (D93). ~~Mentors don't sign in yet (D89)~~ — since 2026-11-25 every mentor signs in (the
+[sign-in contract](./backend-login.md) lets in the `mentor` role) and these requests answer for them as for any
+viewer: their own students only. No new field.
 
 SkillKlan Job keeps no copy of who mentors whom (rule 8 in the [README](./README.md)), so it asks the
 backend three things below.
@@ -149,8 +150,8 @@ No phone numbers, no emails, no groups, no payment or contract data.
 
 ## Not in this contract
 
-- Mentors signing in (D89): only the test mentor comes in (D99); opening SkillKlan Job to all mentors is a
-  separate decision of the owner. The requests above already answer for any mentor who is a viewer.
+- ~~Mentors signing in (D89)~~ — done 2026-11-25 in the sign-in contract; the requests above already answered
+  for any mentor who is a viewer.
 - Students whose only mentor has been excluded: they have a mentor in the records, so they are not "without
   a mentor", and an excluded mentor is not listed.
 - Changing a student's plan or progress (D92, D93).

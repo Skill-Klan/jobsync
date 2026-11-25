@@ -26,14 +26,14 @@ SkillKlan Job's `/auth/cabinet`, the way the real cabinet does.
 | 1003 | Test QA Moderator | `qa_moderator` | yes — manages SkillKlan Job too |
 | 1004 | Test Mentor | `mentor` | yes — a test account (D99); mentors the QA students 1001, 1006; has no admin rights |
 | 1005 | Excluded Student | `student`, excluded | no — gets no code |
-| 1006–1009 | Maria Bondar, Ihor Melnyk, two students without a mentor | `student` | no — students don't come in before D48 (they only appear in the mentor lists) |
+| 1006–1009 | Maria Bondar, Ihor Melnyk, two students without a mentor | `student` | yes — students come in since D48 (2026-11-25) |
 
 «Exclude» / «Restore» changes a person on the fly. A signed-in person who is excluded loses the session at
 the next access check — at most 5 minutes later.
 
-The stand-in follows the real backend's rule since the study-plans PR (D99–D102): it lets in the admin, the QA
-moderator and the test accounts (`testAccounts`, by default 1001 and 1004), and refuses other students until
-D48 ([sign-in contract](./backend-login.md)). It also answers the mentor lists and «My students»
+The stand-in follows the real backend's rule (D99–D102, and D48/D89 since 2026-11-25): it lets in every active
+admin, QA moderator, student and mentor, and an account of any other role only if it is a test account
+(`testAccounts`, by default 1001 and 1004) ([sign-in contract](./backend-login.md)). It also answers the mentor lists and «My students»
 ([study plans](./study-plans-mentors.md)): the admin sees every mentor, the QA moderator the QA ones, a mentor
 their own students. Mentors and their students are `DEFAULT_MENTORS` in the stand-in; the answers match
 [`examples/study-plans-mentors.json`](./examples/study-plans-mentors.json).

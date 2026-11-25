@@ -1,6 +1,6 @@
 # Cabinet sign-in and access check
 
-**Status:** in production since 2026-10-14; who may come in changed on 2026-11-05 (D99–D101), also in production.
+**Status:** in production since 2026-10-14; who may come in changed on 2026-11-05 (D99–D101) and on 2026-11-25 (students and mentors, D48, D89), also in production.
 **Direction:** SkillKlan Job → SkillKlan backend.
 **Client:** `src/skillklan/cabinetApi.ts`. **Examples:** [`examples/backend-login.json`](./examples/backend-login.json).
 
@@ -17,14 +17,15 @@
 4. While the session lives, the app **re-checks access** at least every 5 minutes. A "no", an error or a
    timeout ends the session. An excluded student is out within 5 minutes — that is a requirement.
 
-**Who may come in** is decided by the backend only: role `admin` or `qa_moderator`, **or** one of the test
-accounts listed in the backend's configuration, whatever its role (D99 — a test mentor and a test student, for
-building the mentor's own view); an active account, not on a temporary password. Students come in only after the
-owner opens SkillKlan Job to them (D48) — until then the backend refuses them too (D101). The cabinet shows its
-button by the same rule (D100). This app never repeats that rule; it only trusts the answer.
+**Who may come in** is decided by the backend only: role `admin`, `qa_moderator`, `student` or `mentor` (students
+and mentors since 2026-11-25 — D48, D89), **or** one of the test accounts listed in the backend's configuration,
+whatever its role (D99); an active account (an excluded student is not), not on a temporary password. Any other
+role, or none, comes in only as a test account. The cabinet shows its button by the same rule (D100). This app
+never repeats that rule; it only trusts the answer.
 
-So `role` can be `admin`, `qa_moderator`, or the role of a test account — `mentor` or `student`. A `mentor` has
-no admin rights here (no Settings → «Функції»).
+So `role` can be `admin`, `qa_moderator`, `student`, `mentor`, or the role of a test account. A `student` or a
+`mentor` has no admin rights here (no Settings → «Функції»); what a mentor sees is the
+[study plans](./study-plans-mentors.md) contract — their own students only.
 
 Configuration: `SKILLKLAN_API_URL` (base URL), `JOBSYNC_API_SECRET` (the shared secret), `CABINET_URL` (where
 the form comes from). Any of them missing → nobody signs in.
