@@ -109,6 +109,9 @@
     "loading": "Loading…",
     "back": "Back to the list",
     "myPlan": "My own plan",
-    "pickMine": "Press «My students»."
+    "pickMine": "Press «My students».",
+    "applications": "Applications",
+    "applicationsHint": "How many jobs the student applied for, over time",
+    "applied": { "today": "Today", "last7": "Last 7 days", "last30": "Last 30 days" }
   }
 }

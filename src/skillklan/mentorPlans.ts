@@ -11,6 +11,7 @@ import {
 } from "./cabinetApi";
 import { ACCESS_SHARE_MS } from "./accessRecheck";
 import { buildPlanTree } from "./plans/tree";
+import { getLocalDayRange } from "@/actions/dashboard/shared";
 
 // «Навчальний план» for the admin, the QA moderator and a mentor: mentor → their
 // students → a student's plan (D89–D93, D98); the viewer may tick and annotate it. Which mentors and
@@ -88,10 +89,16 @@ export function loadEntryStudents(viewer: number, entry: MentorEntry): Promise<M
     : sharedAnswer(`${viewer}:mentor:${entry.mentorId}`, () => listMentorStudents(viewer, entry.mentorId));
 }
 
+// How many jobs a student applied for: today, in the last 7 days and in the last
+// 30 (local days, today included — the dashboard's own windows).
+export type StudentApplications = { today: number; last7: number; last30: number };
+
 export type StudentPlans = {
   name: string;
   // The student has no account here yet (never signed in): no plan to show.
   hasAccount: boolean;
+  // `null` — the student has no account here, so no jobs.
+  applications: StudentApplications | null;
   plans: { id: string; track: string; title: string; modules: ReturnType<typeof buildPlanTree> }[];
 };
 
@@ -112,20 +119,33 @@ export async function resolveStudent(
   return { name: student.name, userId: user?.id ?? null };
 }
 
-// One student's plans.
+async function applicationsOf(userId: string): Promise<StudentApplications> {
+  const since = (daysBack: number) => {
+    const { start, end } = getLocalDayRange(daysBack);
+    return prisma.job.count({ where: { userId, applied: true, appliedDate: { gte: start, lte: end } } });
+  };
+  const [today, last7, last30] = await Promise.all([since(0), since(6), since(29)]);
+  return { today, last7, last30 };
+}
+
+// One student's plans, and how many jobs they applied for (counts only).
 export async function loadStudentPlans(viewer: number, entry: MentorEntry, studentId: unknown): Promise<StudentPlans | null> {
   const student = await resolveStudent(viewer, entry, studentId);
   if (!student) return null;
   const user = student.userId ? { id: student.userId } : null;
-  if (!user) return { name: student.name, hasAccount: false, plans: [] };
-  const plans = await prisma.plan.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: "asc" },
-    include: { items: true },
-  });
+  if (!user) return { name: student.name, hasAccount: false, applications: null, plans: [] };
+  const [plans, applications] = await Promise.all([
+    prisma.plan.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "asc" },
+      include: { items: true },
+    }),
+    applicationsOf(user.id),
+  ]);
   return {
     name: student.name,
     hasAccount: true,
+    applications,
     plans: plans.map((p) => ({ id: p.id, track: p.track, title: p.title, modules: buildPlanTree(p.items) })),
   };
 }
