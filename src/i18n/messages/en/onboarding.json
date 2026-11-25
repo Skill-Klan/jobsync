@@ -1,0 +1,10 @@
+{
+  "title": "SkillKlan Job video tour",
+  "play": "Watch",
+  "pause": "Pause",
+  "resume": "Resume",
+  "done": "Got it",
+  "mustWatch": "You can close this window once the video ends.",
+  "unavailable": "The video tour is not available right now. Try again later.",
+  "close": "Close"
+}

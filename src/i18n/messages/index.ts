@@ -13,6 +13,7 @@ import enLabels from "./en/labels.json";
 import enLibrary from "./en/library.json";
 import enNav from "./en/nav.json";
 import enNotifications from "./en/notifications.json";
+import enOnboarding from "./en/onboarding.json";
 import enPlans from "./en/plans.json";
 import enProfile from "./en/profile.json";
 import enQuestions from "./en/questions.json";
@@ -34,6 +35,7 @@ import ukLabels from "./uk/labels.json";
 import ukLibrary from "./uk/library.json";
 import ukNav from "./uk/nav.json";
 import ukNotifications from "./uk/notifications.json";
+import ukOnboarding from "./uk/onboarding.json";
 import ukPlans from "./uk/plans.json";
 import ukProfile from "./uk/profile.json";
 import ukQuestions from "./uk/questions.json";
@@ -61,6 +63,7 @@ const en = {
   library: enLibrary,
   nav: enNav,
   notifications: enNotifications,
+  onboarding: enOnboarding,
   plans: enPlans,
   profile: enProfile,
   questions: enQuestions,
@@ -85,6 +88,7 @@ const uk: typeof en = {
   library: ukLibrary,
   nav: ukNav,
   notifications: ukNotifications,
+  onboarding: ukOnboarding,
   plans: ukPlans,
   profile: ukProfile,
   questions: ukQuestions,

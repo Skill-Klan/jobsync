@@ -20,6 +20,8 @@ import { cabinetLink } from "@/skillklan/cabinetLink";
 import { isAdminSession } from "@/skillklan/cabinetAdmin";
 import { CatalogProvider } from "@/context/CatalogContext";
 import { listCatalog, listMyPendingValues } from "@/skillklan/catalog/catalog";
+import { onboardingRequired } from "@/skillklan/onboarding/state";
+import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 
 export default async function RootLayout({
   children,
@@ -53,10 +55,14 @@ export default async function RootLayout({
   if (!user) {
     return <StaleSessionSignOut signOutAction={signOutAction} />;
   }
+  // The onboarding video (D118): on until it is watched to the end and closed; never for the admin or the QA
+  // moderator. Read from this app's own settings — which video (student or mentor) the browser asks later.
+  const mustWatch = await onboardingRequired(user.id, isAdmin);
 
   return (
     <FeaturesProvider value={features}>
       <CatalogProvider value={catalog} pending={pending}>
+      <OnboardingProvider required={mustWatch}>
       <ActivityProvider>
         <SidebarProvider initialExpanded={initialExpanded}>
           <RightRailProvider>
@@ -84,6 +90,7 @@ export default async function RootLayout({
           </RightRailProvider>
         </SidebarProvider>
       </ActivityProvider>
+      </OnboardingProvider>
       </CatalogProvider>
     </FeaturesProvider>
   );

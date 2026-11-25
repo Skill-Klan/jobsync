@@ -1,5 +1,6 @@
 import { AiProvider } from "./ai.model";
 import type { GoalTargetsByMonth } from "./dailyGoals.model";
+import type { OnboardingRecord } from "@/skillklan/onboarding/videos";
 
 export interface AiSettings {
   provider: AiProvider;
@@ -18,6 +19,8 @@ export interface UserSettingsData {
   ai: AiSettings;
   display: DisplaySettings;
   goals?: GoalSettings;
+  // The onboarding video watched to the end and closed (D118) — written by src/skillklan/onboarding/state.ts only.
+  onboarding?: OnboardingRecord;
 }
 
 export interface UserSettings {

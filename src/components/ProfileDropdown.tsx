@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { PowerIcon, Settings, Info, Bell } from "lucide-react";
+import { PowerIcon, Settings, Info, Bell, PlayCircle } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -19,6 +19,7 @@ import { useFeatures } from "@/context/FeaturesContext";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "@/i18n/client";
 import { LocaleSwitcher } from "./LocaleSwitcher";
+import { useOnboarding } from "./onboarding/OnboardingProvider";
 
 interface ProfileDropdownProps {
   user: any;
@@ -32,6 +33,8 @@ export function ProfileDropdown({
   signOutAction,
 }: ProfileDropdownProps) {
   const [supportDialogOpen, setSupportDialogOpen] = useState(false);
+  // «Відео-огляд»: the onboarding video again, any time (D118).
+  const { openReplay } = useOnboarding();
   const { summary } = useNotifications();
   // Notifications go with the Automations switch (D75).
   const { automations } = useFeatures();
@@ -113,6 +116,10 @@ export function ProfileDropdown({
           >
             <Info className="w-5 mr-2" />
             {t("support")}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={openReplay} className="cursor-pointer">
+            <PlayCircle className="w-5 mr-2" />
+            {t("videoTour")}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <LocaleSwitcher />

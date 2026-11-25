@@ -70,6 +70,13 @@ Only decisions that matter for code are listed.
 | D112 | The balance can't be read (the key may not read the account, ElevenLabs is down) → **the log only**, no alert; transcripts go on. |
 | D114 | **Asked before transcribing** (2026-11-21): a recruiter interview — «Це рекрутерська співбесіда. Точно хочете її транскрибувати?»; a technical one — one question to confirm (a manager one the same — the agent's assumption); a recording already transcribed asks nothing and shows its text. |
 
+## Onboarding video
+
+| # | Decision |
+|---|---|
+| D115 | The onboarding is a **recorded video** (2026-11-24), one for a student and one for a mentor, voiced, the parts being talked about highlighted in the picture — not a tour over the live interface. |
+| D118 | **The first sign-in: the person's video must be watched to the end** — no way to close or skip it before; then **«Все зрозуміло» in the middle of the screen** closes it. **Never again by itself** after that (2026-11-24). Which video: the mentor's for a mentor (the backend's answer, as for the study plans), the student's for anyone else; the admin and the QA moderator are not made to watch (the agent's assumption, not objected to). Watched again any time from the menu, «Відео-огляд». |
+
 ## Study plans («Навчальний план»)
 
 | # | Decision |
