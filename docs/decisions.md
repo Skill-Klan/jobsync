@@ -97,6 +97,7 @@ Only decisions that matter for code are listed.
 | D16 | Own code base: nothing is taken from upstream JobSync; `LICENSE` and attribution stay (MIT). |
 | D19 | Node 24 in the image and CI. |
 | D21 | The repository and the image are public during development and become private at the end. |
+| D11 | **A copy of `/data` lives off Server2, on the owner's Mac** (2026-11-25: «На Mac, як прод» — like the backups of the main production server; not Contabo's storage). The Mac pulls it every day with a key of its own that can take the copy and nothing else; the deploy keys cannot take it. Taken without stopping the app, proved whole on arrival — [backups.md](./backups.md). |
 | D82 | **A push into `main` is a release**: tests and the image in parallel → production. The owner's pushes deploy without a button; anyone else's wait for the owner's approval in Telegram. |
 | D84 | Contributors don't push to `main`: pull requests only. Ordinary PRs the contributor merges after green checks; ~~PRs touching CODEOWNERS paths need the owner's review~~ — replaced by D103. |
 | D85 | Agent instructions, commits and PRs are in **English**. |

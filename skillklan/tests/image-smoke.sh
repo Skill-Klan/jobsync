@@ -12,6 +12,7 @@
 #   R7  вхід лише з кабінету: серед провайдерів NextAuth тільки «cabinet» — навіть
 #       коли контейнеру передано JOBSYNC_DEV_PASSWORD_LOGIN=1 (у production-збірці
 #       вхід за паролем не вмикається нічим)
+#   R8  the copy for the owner's Mac (D11) can be taken in this image (node:sqlite, tar)
 #
 # Використання: skillklan/tests/image-smoke.sh <image>
 # Код виходу: 0 — усі вимоги виконано, 1 — хоч одна ні.
@@ -73,11 +74,22 @@ if $healthy; then
   providers=$(docker exec "$PREFIX-ok" wget -q -O - http://127.0.0.1:3737/api/auth/providers 2>/dev/null | tr -d ' \n')
   ids=$(echo "$providers" | grep -o '"id":"[^"]*"' | sort -u | tr '\n' ' ')
   [ "$ids" = '"id":"cabinet" ' ] && pass "R7 cabinet-only sign-in (providers: $ids)" || fail "R7 cabinet-only sign-in (providers: ${ids:-none})"
+  # R8 — the copy for the owner's Mac (D11) works in this image: the snapshot code of
+  # skillklan/deploy/jobsync-backup.sh, run by the image's own Node against the migrated database,
+  # and the image's tar sends it. A base image without node:sqlite would break it only on the server.
+  snapshot_js="$(sed -n "/^  cat <<'JS'\$/,/^JS\$/p" "$(dirname "$0")/../deploy/jobsync-backup.sh" | sed '1d;$d')"
+  if [ -n "$snapshot_js" ] && printf '%s\n' "$snapshot_js" | docker exec -i "$PREFIX-ok" node --input-type=module - > /dev/null 2>&1 \
+     && docker exec "$PREFIX-ok" tar -C /data/.snapshot -cf - . 2> /dev/null | tar -tf - 2> /dev/null | grep -qx './dev.db' \
+     && docker exec "$PREFIX-ok" cat /data/.snapshot/.backup-tables 2> /dev/null | grep -qE "^User$(printf '\t')[0-9]+\$"; then
+    pass "R8 the copy for the Mac: online backup of the database, sent by the image's tar"
+  else fail "R8 the copy for the Mac (node:sqlite backup or tar in this image)"; fi
+  docker exec "$PREFIX-ok" rm -rf /data/.snapshot > /dev/null 2>&1 || true
 else
   fail "R2b PID 1 runs as uid 1001 (not reached: R1 failed)"
   fail "R3 migrations applied (not reached: R1 failed)"
   fail "R6 no sign-up (not reached: R1 failed)"
   fail "R7 cabinet-only sign-in (not reached: R1 failed)"
+  fail "R8 the copy for the Mac (not reached: R1 failed)"
 fi
 
 # --- R4, R5: мережа є (щоб падіння було саме через секрет, а не через мережу) --
