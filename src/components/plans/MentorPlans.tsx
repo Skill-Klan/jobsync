@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { getEntryStudents, getStudentPlans, setStudentPlanItemDone, setStudentPlanItemNote } from "@/actions/plan.actions";
+import { getEntryStudents, getStudentPlans, setStudentPlanItemDone, setStudentPlanItemNote, setStudentPlanSectionDone } from "@/actions/plan.actions";
 import type { MentorEntry, StudentPlans } from "@/skillklan/mentorPlans";
 import type { Mentor, MentorStudent } from "@/skillklan/cabinetApi";
 import { useTranslations } from "@/i18n/client";
@@ -185,6 +185,7 @@ export default function MentorPlans({
                 writer={{
                   done: (itemId, done) => setStudentPlanItemDone(entry!.entry, studentId, itemId, done),
                   note: (itemId, note) => setStudentPlanItemNote(entry!.entry, studentId, itemId, note),
+                  section: (sectionId, done) => setStudentPlanSectionDone(entry!.entry, studentId, sectionId, done),
                 }}
                 title={t("mentor.planOf", { name: plans.name || t("mentor.noName", { id: studentId ?? 0 }) })}
               />

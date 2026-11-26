@@ -10,6 +10,9 @@
 //   · the manager takes a plan back (a mistake, or a graduate): the copy goes
 //     with its ticks and notes, nobody else's plan is touched, and the same plan
 //     can be given again; the same refusals as for giving;
+//   · SKD-73 (owner, 2026-11-26): a whole module, topic, group or homework is ticked — or
+//     unticked — in one call: every point and task under it and nothing else (not
+//     another topic or module, not someone else's plan, not a single point);
 //   · the study plan is behind its own switch `plans`, off at launch: while off,
 //     every action refuses — and another switch being on does not help;
 //   · the list of students shows names and plan tracks, no e-mail, no password.
@@ -47,6 +50,7 @@ import {
   removeStudentPlan,
   setPlanItemDone,
   setPlanItemNote,
+  setPlanSectionDone,
 } from "@/actions/plan.actions";
 import { assignPlan } from "@/skillklan/plans/assignPlan";
 import { PLAN_NOTE_MAX } from "@/skillklan/plans/tree";
@@ -400,5 +404,129 @@ describe("taking a plan back — the backend is asked now", () => {
     ctx.access.mockResolvedValue({ allowed: true, role: "admin" });
     await expect(removeStudentPlan(id, track)).resolves.toMatchObject({ success: false });
     expect(await prisma.plan.count({ where: { userId: { in: [ann, bob] } } })).toBe(2);
+  });
+});
+
+// SKD-73: one call ticks or unticks every point and task under a topic, a group
+// or a homework. The expected sets are counted by hand from the tree: a point is
+// "under" a container when the container is one of its ancestors.
+describe("a whole module, topic, group or homework at once", () => {
+  const under = async (userId: string, containerId: string): Promise<string[]> => {
+    const all = await prisma.planItem.findMany({ where: { plan: { userId } } });
+    const found: string[] = [];
+    const walk = (id: string) =>
+      all.filter((i) => i.parentId === id).forEach((i) => {
+        if (i.kind === "item" || i.kind === "homework_task") found.push(i.id);
+        walk(i.id);
+      });
+    walk(containerId);
+    return found;
+  };
+  const doneIds = async (userId: string) =>
+    (await prisma.planItem.findMany({ where: { plan: { userId }, done: true }, select: { id: true } })).map((i) => i.id).sort();
+  const topicWithGroup = async (userId: string) => {
+    const group = await prisma.planItem.findFirstOrThrow({ where: { plan: { userId }, kind: "group" }, orderBy: { id: "asc" } });
+    return { group, topicId: group.parentId! };
+  };
+
+  it("a topic: every point, group point and homework task under it is ticked, and only those", async () => {
+    const { topicId } = await topicWithGroup(ann);
+    const expected = (await under(ann, topicId)).sort();
+    expect(expected.length).toBeGreaterThan(3); // a real topic, not a stub
+    await expect(setPlanSectionDone(topicId, true)).resolves.toEqual({ success: true });
+    expect(await doneIds(ann)).toEqual(expected);
+    // ticked with the time, like a single tick
+    const one = await prisma.planItem.findUniqueOrThrow({ where: { id: expected[0] } });
+    expect(one.doneAt).toEqual(expect.any(Date));
+  });
+
+  it("untick: every point under it goes back, with no date — the rest of the plan stays ticked", async () => {
+    const { topicId } = await topicWithGroup(ann);
+    const inside = await under(ann, topicId);
+    const outside = await prisma.planItem.findFirstOrThrow({
+      where: { plan: { userId: ann }, kind: "item", id: { notIn: inside } },
+    });
+    await prisma.planItem.updateMany({ where: { id: { in: [...inside, outside.id] } }, data: { done: true, doneAt: new Date() } });
+    await expect(setPlanSectionDone(topicId, false)).resolves.toEqual({ success: true });
+    expect(await doneIds(ann)).toEqual([outside.id]);
+    expect((await prisma.planItem.findUniqueOrThrow({ where: { id: inside[0] } })).doneAt).toBeNull();
+  });
+
+  it("a module: every point of every topic in it — and no other module", async () => {
+    const { topicId } = await topicWithGroup(ann);
+    const moduleId = (await prisma.planItem.findUniqueOrThrow({ where: { id: topicId } })).parentId!;
+    const expected = (await under(ann, moduleId)).sort();
+    const all = await prisma.planItem.count({ where: { plan: { userId: ann }, kind: { in: ["item", "homework_task"] } } });
+    expect(expected.length).toBeGreaterThan((await under(ann, topicId)).length); // more than one topic
+    expect(expected.length).toBeLessThan(all); // and not the whole plan
+    await expect(setPlanSectionDone(moduleId, true)).resolves.toEqual({ success: true });
+    expect(await doneIds(ann)).toEqual(expected);
+    await expect(setPlanSectionDone(moduleId, false)).resolves.toEqual({ success: true });
+    expect(await doneIds(ann)).toEqual([]);
+  });
+
+  it("a group: only its own points, not the rest of the topic", async () => {
+    const { group } = await topicWithGroup(ann);
+    const expected = (await under(ann, group.id)).sort();
+    expect(expected.length).toBeGreaterThan(0);
+    await expect(setPlanSectionDone(group.id, true)).resolves.toEqual({ success: true });
+    expect(await doneIds(ann)).toEqual(expected);
+  });
+
+  it("a homework: its tasks", async () => {
+    const homework = await prisma.planItem.findFirstOrThrow({ where: { plan: { userId: ann }, kind: "homework" }, orderBy: { id: "asc" } });
+    const expected = (await under(ann, homework.id)).sort();
+    expect(expected.length).toBeGreaterThan(0);
+    await expect(setPlanSectionDone(homework.id, true)).resolves.toEqual({ success: true });
+    expect(await doneIds(ann)).toEqual(expected);
+  });
+
+  it("points that are already ticked keep the date they were passed on", async () => {
+    const { topicId } = await topicWithGroup(ann);
+    const [first] = await under(ann, topicId);
+    const passed = new Date("2026-01-05T10:00:00Z");
+    await prisma.planItem.update({ where: { id: first }, data: { done: true, doneAt: passed } });
+    await setPlanSectionDone(topicId, true);
+    expect((await prisma.planItem.findUniqueOrThrow({ where: { id: first } })).doneAt).toEqual(passed);
+  });
+
+  it("notes are not touched", async () => {
+    const { topicId } = await topicWithGroup(ann);
+    const [first] = await under(ann, topicId);
+    await prisma.planItem.update({ where: { id: first }, data: { note: "моя нотатка" } });
+    await setPlanSectionDone(topicId, true);
+    expect((await prisma.planItem.findUniqueOrThrow({ where: { id: first } })).note).toBe("моя нотатка");
+  });
+
+  it("someone else's topic: not found, nothing changes in Bob's plan", async () => {
+    const { topicId } = await topicWithGroup(bob);
+    await expect(setPlanSectionDone(topicId, true)).resolves.toMatchObject({ success: false });
+    expect(await doneIds(bob)).toEqual([]);
+  });
+
+  it.each(["item", "homework_task", "homework_ref"])("a %s is not a section: refused, nothing changes", async (kind) => {
+    const row = await prisma.planItem.findFirstOrThrow({ where: { plan: { userId: ann }, kind }, orderBy: { id: "asc" } });
+    await expect(setPlanSectionDone(row.id, true)).resolves.toMatchObject({ success: false });
+    expect(await doneIds(ann)).toEqual([]);
+  });
+
+  it("not an id, or `done` not a boolean: refused", async () => {
+    const { topicId } = await topicWithGroup(ann);
+    await expect(setPlanSectionDone(undefined, true)).resolves.toMatchObject({ success: false });
+    await expect(setPlanSectionDone(topicId, "yes")).resolves.toMatchObject({ success: false });
+    expect(await doneIds(ann)).toEqual([]);
+  });
+
+  it("no session: nothing is written; the switch off: refused — and on, the same call works", async () => {
+    const { topicId } = await topicWithGroup(ann);
+    ctx.session.value = null;
+    await expect(setPlanSectionDone(topicId, true)).resolves.toMatchObject({ success: false });
+    asStudent(ann);
+    await setSwitch("plans", false);
+    await expect(setPlanSectionDone(topicId, true)).resolves.toMatchObject({ success: false });
+    expect(await doneIds(ann)).toEqual([]);
+    await setSwitch("plans", true);
+    await expect(setPlanSectionDone(topicId, true)).resolves.toEqual({ success: true });
+    expect((await doneIds(ann)).length).toBeGreaterThan(0);
   });
 });

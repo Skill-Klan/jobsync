@@ -10,6 +10,9 @@
 //     fields the student uses (a chosen product decision, 2026-11-18, replaces
 //     D92/D93 view-only) — and only there: not a student the backend's list
 //     does not hold, not a point of another student's plan, not a module/topic;
+//   · SKD-73 (owner, 2026-11-26): the same viewer ticks or unticks a whole topic,
+//     group or homework of that student in one call, with the same limits: only a
+//     student of the backend's list, only that student's rows;
 //   · reading a plan writes nothing;
 //   · a student who never signed in has no plan here — said so, not an error;
 //   · calls within 30 s share one answer; a failed answer is not kept;
@@ -49,6 +52,7 @@ import {
   getEntryStudents,
   getStudentPlans,
   setStudentPlanItemDone,
+  setStudentPlanSectionDone,
   setStudentPlanItemNote,
 } from "@/actions/plan.actions";
 import { assignPlan } from "@/skillklan/plans/assignPlan";
@@ -313,5 +317,71 @@ describe("a viewer ticks and annotates a student's plan", () => {
     await expect(setStudentPlanItemDone(mentorEntry, 1001, item.id, true)).resolves.toMatchObject({ success: false });
     await expect(setStudentPlanItemNote(mentorEntry, 1001, item.id, "x")).resolves.toMatchObject({ success: false });
     expect((await row(item.id)).done).toBe(false);
+  });
+});
+
+// SKD-73: a whole topic at once, for a student the viewer looks at.
+describe("a viewer ticks a whole topic of a student's plan", () => {
+  let bobId: string;
+  const topicOf = async (userId: string) =>
+    (await prisma.planItem.findFirstOrThrow({ where: { plan: { userId }, kind: "group" }, orderBy: { id: "asc" } })).parentId!;
+  const doneCount = (userId: string) => prisma.planItem.count({ where: { plan: { userId }, done: true } });
+
+  beforeEach(async () => {
+    bobId = (await prisma.user.findFirstOrThrow({ where: { cabinetUserId: 1002 } })).id;
+    await assignPlan(prisma, bobId, "java");
+  });
+
+  it("ticks every point under the topic of a student from the backend's list, and unticks them again", async () => {
+    const topic = await topicOf(ann);
+    await expect(setStudentPlanSectionDone(mentorEntry, 1001, topic, true)).resolves.toEqual({ success: true });
+    const ticked = await doneCount(ann);
+    expect(ticked).toBeGreaterThan(3);
+    expect(await doneCount(bobId)).toBe(0);
+    await expect(setStudentPlanSectionDone(mentorEntry, 1001, topic, false)).resolves.toEqual({ success: true });
+    expect(await doneCount(ann)).toBe(0);
+  });
+
+  it("a student the backend's list does not hold — refused, nothing written", async () => {
+    await expect(setStudentPlanSectionDone(mentorEntry, 1002, await topicOf(bobId), true)).resolves.toMatchObject({ success: false });
+    expect(await doneCount(bobId)).toBe(0);
+  });
+
+  it("a topic of ANOTHER student's plan, named under an allowed student — not found", async () => {
+    await expect(setStudentPlanSectionDone(mentorEntry, 1001, await topicOf(bobId), true)).resolves.toMatchObject({ success: false });
+    expect(await doneCount(bobId)).toBe(0);
+    expect(await doneCount(ann)).toBe(0);
+  });
+
+  it("a whole module of the student's plan, in one call — and only theirs", async () => {
+    const moduleId = (await prisma.planItem.findFirstOrThrow({ where: { plan: { userId: ann }, kind: "module" }, orderBy: { id: "asc" } })).id;
+    await expect(setStudentPlanSectionDone(mentorEntry, 1001, moduleId, true)).resolves.toEqual({ success: true });
+    expect(await doneCount(ann)).toBeGreaterThan(10);
+    expect(await doneCount(bobId)).toBe(0);
+  });
+
+  it("the backend did not answer — fail closed", async () => {
+    ctx.students.mockResolvedValue(null);
+    await expect(setStudentPlanSectionDone(mentorEntry, 1001, await topicOf(ann), true)).resolves.toMatchObject({ success: false });
+    expect(await doneCount(ann)).toBe(0);
+  });
+
+  it("no session, a bad entry, `done` not a boolean — nothing is written", async () => {
+    const topic = await topicOf(ann);
+    as(null);
+    await expect(setStudentPlanSectionDone(mentorEntry, 1001, topic, true)).resolves.toMatchObject({ success: false });
+    as(viewerUser);
+    await expect(setStudentPlanSectionDone({ kind: "x" }, 1001, topic, true)).resolves.toMatchObject({ success: false });
+    await expect(setStudentPlanSectionDone(mentorEntry, 1001, topic, "yes")).resolves.toMatchObject({ success: false });
+    expect(await doneCount(ann)).toBe(0);
+  });
+
+  it("the plans switch off → refused, and on, the same call works", async () => {
+    const topic = await topicOf(ann);
+    await setSwitch(false);
+    await expect(setStudentPlanSectionDone(mentorEntry, 1001, topic, true)).resolves.toMatchObject({ success: false });
+    expect(await doneCount(ann)).toBe(0);
+    await setSwitch(true);
+    await expect(setStudentPlanSectionDone(mentorEntry, 1001, topic, true)).resolves.toEqual({ success: true });
   });
 });
