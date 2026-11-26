@@ -9,9 +9,9 @@
 //   S3  no secret configured → 503; a missing or wrong secret → 401, and the code is not spent
 //   S4  the person lost access after the code was issued → 403 JOBSYNC_ACCESS_DENIED, and the code is spent
 //   S5  a code older than 60 s → 401 JOBSYNC_CODE_INVALID; a new code for the same person kills the old one
-//   A1  access (D99–D101): the admin, the QA moderator and the test accounts (a test student, a test mentor) →
-//       allowed with their role; any other student, excluded, unknown and malformed ids → 200
-//       { allowed: false, role: null } — never 404
+//   A1  access (D99–D101; students and mentors since 2026-11-25, D48 and D89): the admin, the QA moderator,
+//       any active student or mentor, and the test accounts → allowed with their role; an excluded student,
+//       unknown and malformed ids → 200 { allowed: false, role: null } — never 404
 //   A2  access with a missing or wrong secret → 401; no secret configured → 503
 //   C1  the app's real client (src/skillklan/cabinetApi.ts) agrees with it: signs in, reads roles, refuses
 import type { AddressInfo } from "node:net";
@@ -113,10 +113,10 @@ describe("S exchange of the one-time code", () => {
     expect((await exchange(base, { code: newer })).status).toBe(200);
   });
 
-  it("nobody but the admin, the QA moderator and the test accounts gets a code from the cabinet (D99–D101)", async () => {
-    const { stub } = await start();
-    expect(stub.issueCode(1004)).toMatch(/^[A-Za-z0-9_-]{43}$/); // the test mentor
-    expect(stub.issueCode(1006)).toBeNull(); // an ordinary student: not before D48
+  it("the cabinet gives a code to any active student or mentor, not to an excluded one (D48, D89)", async () => {
+    const { stub } = await start({ secret: SECRET, testAccounts: [] });
+    expect(stub.issueCode(1004)).toMatch(/^[A-Za-z0-9_-]{43}$/); // a mentor, not on the test list
+    expect(stub.issueCode(1006)).toMatch(/^[A-Za-z0-9_-]{43}$/); // an ordinary student, since 2026-11-25
     expect(stub.issueCode(1005)).toBeNull(); // excluded student
     expect(stub.issueCode(999999)).toBeNull();
     expect(stub.issueCode(QA_MODERATOR)).toMatch(/^[A-Za-z0-9_-]{43}$/);
@@ -133,7 +133,9 @@ describe("A access check", () => {
     expect((await access(base, 1004)).body.data).toEqual({ allowed: true, role: "mentor" });
     expect((await access(base, QA_MODERATOR)).body.data).toEqual({ allowed: true, role: "qa_moderator" });
 
-    for (const id of [1005, 1006, 999999, "abc", "0", "-5", "1e3", "99999999999999999999"]) {
+    expect((await access(base, 1006)).body.data).toEqual({ allowed: true, role: "student" }); // since 2026-11-25
+
+    for (const id of [1005, 999999, "abc", "0", "-5", "1e3", "99999999999999999999"]) {
       expect(answer(await access(base, id))).toEqual(examples.access.notAllowed);
     }
   });

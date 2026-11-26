@@ -205,8 +205,9 @@ describe("the test mentor signs in (D99)", () => {
     vi.stubEnv("JOBSYNC_API_SECRET", SECRET);
     expect(await exchangeLoginCode(stub.issueCode(MENTOR)!)).toEqual({ userId: MENTOR, role: "mentor", name: "Test Mentor" });
     expect(await getCabinetAccess(MENTOR)).toEqual({ allowed: true, role: "mentor" });
-    // an ordinary student does not come in before D48
-    expect(await getCabinetAccess(1006)).toEqual({ allowed: false, role: null });
+    // an ordinary student comes in since 2026-11-25 (D48); an excluded one does not
+    expect(await getCabinetAccess(1006)).toEqual({ allowed: true, role: "student" });
+    expect(await getCabinetAccess(1005)).toEqual({ allowed: false, role: null });
   });
 });
 

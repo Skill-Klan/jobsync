@@ -42,10 +42,10 @@ export const DEFAULT_MENTORS = Object.freeze([
   { mentorId: 1002, name: "Test Admin", direction: "BA", students: [1007] },
 ]);
 
-// The backend's rule (D99–D101): the admin and the QA moderator, or a test account of any role (ids in the
-// backend's configuration); an active account. Other students do not come in before D48. (It also refuses a
+// The backend's rule (D99–D101; students and mentors since 2026-11-25 — D48, D89): any of the four cabinet roles,
+// or a test account of any role (ids in the backend's configuration); an active account. (It also refuses a
 // temporary password; the stand-in has no passwords.)
-const ROLES_ALLOWED = ["admin", "qa_moderator"];
+const ROLES_ALLOWED = ["admin", "qa_moderator", "student", "mentor"];
 export const DEFAULT_TEST_ACCOUNTS = Object.freeze([1001, 1004]);
 const CODE_FORMAT = /^[A-Za-z0-9_-]{43}$/;
 export const CODE_TTL_MS = 60 * 1000;

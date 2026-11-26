@@ -11,11 +11,11 @@ Only decisions that matter for code are listed.
 | D4, D22 | Users are SkillKlan **students and graduates**: every account with role `student` that is not excluded, whatever the stage of study. |
 | D5a | Served at its own origin, `jobs.skillklan.com.ua` — never under a path of the cabinet. |
 | D5b | **One sign-in** with the cabinet: the cabinet's one-time code; own sign-up and passwords are off in production. |
-| D23, D81 | The admin and the **QA moderator** come in too, and both manage SkillKlan Job (Settings → «Функції»). Mentors and other roles don't — except the test accounts (D99). |
-| D48 | Students get the cabinet button **last**, after everything else is done. Until then only the admin, the QA moderator and the test accounts see it. |
+| D23, D81 | The admin and the **QA moderator** come in too, and both manage SkillKlan Job (Settings → «Функції»). Since 2026-11-25 students and mentors come in as well (D48, D89), without those rights; other roles don't — except the test accounts (D99). |
+| D48 | Students get the cabinet button **last**, after everything else is done. **Done 2026-11-25** — the owner: «Відкривай доступ для студентів і менторів». |
 | D99 | Two **test accounts** — a test mentor and a test student — come in whatever their role; the backend keeps their ids in its configuration. |
 | D100 | **The backend decides who sees the cabinet button**, by the same rule as sign-in. |
-| D101 | Until D48 the backend **refuses students too**, not only the cabinet hiding the button (D22 applies after D48). |
+| D101 | Until D48 the backend **refused students too**, not only the cabinet hiding the button — until 2026-11-25, when D48 was done. |
 | D71, D72 | The cabinet opens SkillKlan Job **in the same tab**; the menu item «Кабінет» goes back to `CABINET_URL`. |
 | Rule | Revoked access takes effect **within 5 minutes**. |
 | D14 | An excluded student loses access at once (≤ 5 min); their data is **deleted 30 days later**; until then they may ask for an export. |
@@ -81,12 +81,12 @@ Only decisions that matter for code are listed.
 
 | # | Decision |
 |---|---|
-| D89 | Mentors **don't sign in yet**. The first stage is for the admin and the QA moderator: mentor → their students → a student's plan. |
+| D89 | ~~Mentors don't sign in yet~~ — **mentors sign in since 2026-11-25** (with students, D48) and see only themselves: their own students and their plans, no other mentor, no mentor list, no «Без ментора». The first stage was for the admin and the QA moderator: mentor → their students → a student's plan. |
 | D90, D95 | The admin sees every mentor and every student without a mentor; the QA moderator — **QA mentors and QA students without a mentor only**. |
 | D91 | Students without a mentor are a separate entry, «Без ментора». |
 | D92 | The admin, the QA moderator and a mentor **work in** a student's plan like the student: they tick points and write notes in the same fields, no author is kept (changed 2026-11-18 from view-only; usually only the mentor does it, for the student it is optional). |
 | D93 | Giving and taking back a plan stays on «Плани студентів»; the mentor path only ticks and annotates, it never gives or takes back. |
-| D98 | An admin or a QA moderator who is a mentor sees **their own students** and their plans («My students»); the test mentor too. Other mentors still don't sign in (D89). |
+| D98 | An admin or a QA moderator who is a mentor sees **their own students** and their plans («My students»); since 2026-11-25 every mentor does (D89). |
 | D102 | The colleague builds this app's side of «My students» and the test mentor's sign-in; the agent — the backend, the cabinet and the contracts. |
 
 ## Engineering
