@@ -35,8 +35,10 @@ vi.mock("@/actions/plan.actions", () => ({
   getStudentPlans: vi.fn(),
   setPlanItemDone: vi.fn(),
   setPlanItemNote: vi.fn(),
+  setPlanSectionDone: vi.fn(),
   setStudentPlanItemDone: vi.fn(async () => ({ success: true })),
   setStudentPlanItemNote: vi.fn(async () => ({ success: true })),
+  setStudentPlanSectionDone: vi.fn(async () => ({ success: true })),
 }));
 
 import PlanPage from "@/app/dashboard/plan/page";
@@ -49,6 +51,7 @@ import {
   setPlanItemNote,
   setStudentPlanItemDone,
   setStudentPlanItemNote,
+  setStudentPlanSectionDone,
 } from "@/actions/plan.actions";
 
 const mentors = [
@@ -150,7 +153,8 @@ describe("the screen", () => {
 
     expect(await screen.findByRole("heading", { name: "Plan of Марія Бондар" })).toBeInTheDocument();
     await u.click(await screen.findByText("Тема 1"));
-    const boxes = await screen.findAllByRole("checkbox");
+    // the points' own boxes; the topic's heading has one more (SKD-73, below)
+    const boxes = (await screen.findAllByRole("checkbox")).filter((b) => /^Mark as done:/.test(b.getAttribute("aria-label") ?? ""));
     expect(boxes).toHaveLength(2);
     for (const box of boxes) expect(box).toBeEnabled();
     expect(boxes[0]).toBeChecked();
@@ -170,6 +174,11 @@ describe("the screen", () => {
     );
     expect(setPlanItemDone).not.toHaveBeenCalled();
     expect(setPlanItemNote).not.toHaveBeenCalled();
+
+    // SKD-73: the topic's own checkbox writes to the same student, for the whole topic
+    await u.click(screen.getByRole("checkbox", { name: "Mark all as done: Тема 1" }));
+    await u.click(await screen.findByRole("button", { name: "Confirm" }));
+    await waitFor(() => expect(setStudentPlanSectionDone).toHaveBeenCalledWith({ kind: "mentor", mentorId: 1004 }, 1001, expect.any(String), expect.any(Boolean)));
   });
 
   it("a student who never signed in, a student with no plan, a plan that cannot be opened — each said, none an empty page", async () => {

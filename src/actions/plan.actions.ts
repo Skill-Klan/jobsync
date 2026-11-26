@@ -105,6 +105,53 @@ async function writeDone(itemId: string, done: boolean, t: Awaited<ReturnType<ty
   return { success: true };
 }
 
+// SKD-73: a module, a topic, a group or a homework of the person's plan, with every
+// point and task under it. A single point or someone else's row is not a section.
+const SECTION_KINDS = ["module", "topic", "group", "homework"];
+
+async function tickableIdsUnder(userId: string, sectionId: unknown): Promise<string[] | null> {
+  if (typeof sectionId !== "string" || sectionId === "") return null;
+  const rows = await prisma.planItem.findMany({
+    where: { plan: { userId } },
+    select: { id: true, parentId: true, kind: true },
+  });
+  const section = rows.find((r) => r.id === sectionId);
+  if (!section || !SECTION_KINDS.includes(section.kind)) return null;
+  const ids: string[] = [];
+  const walk = (parentId: string) => {
+    for (const row of rows) {
+      if (row.parentId !== parentId) continue;
+      if (TICKABLE_KINDS.includes(row.kind as never)) ids.push(row.id);
+      walk(row.id);
+    }
+  };
+  walk(section.id);
+  return ids;
+}
+
+async function writeSectionDone(ids: string[], done: boolean, t: Awaited<ReturnType<typeof getTranslations>>): Promise<Result> {
+  try {
+    // Like a single tick: only a change is written, so a point already passed keeps its date.
+    await prisma.planItem.updateMany({ where: { id: { in: ids }, done: !done }, data: { done, doneAt: done ? new Date() : null } });
+  } catch (error) {
+    console.error("[plans] section tick failed", error);
+    return { success: false, message: t("errors.saveFailed") };
+  }
+  revalidatePath("/dashboard/plan");
+  revalidatePath("/dashboard/student-plans");
+  return { success: true };
+}
+
+export async function setPlanSectionDone(sectionId: unknown, done: unknown): Promise<Result> {
+  if (await isFeatureOff("plans")) return unavailable();
+  const t = await getTranslations("plans");
+  if (typeof done !== "boolean") return { success: false, message: t("errors.invalid") };
+  const user = await getCurrentUser();
+  const ids = user ? await tickableIdsUnder(user.id, sectionId) : null;
+  if (!ids) return { success: false, message: t("errors.notFound") };
+  return writeSectionDone(ids, done, t);
+}
+
 export async function setPlanItemDone(itemId: unknown, done: unknown): Promise<Result> {
   if (await isFeatureOff("plans")) return unavailable();
   const t = await getTranslations("plans");
@@ -241,6 +288,19 @@ export async function setStudentPlanItemDone(entry: unknown, studentId: unknown,
   const target = await viewedStudentItem(entry, studentId, itemId);
   if (!target.ok) return { success: false, message: target.message };
   return writeDone(target.item.id, done, target.t);
+}
+
+export async function setStudentPlanSectionDone(entry: unknown, studentId: unknown, sectionId: unknown, done: unknown): Promise<Result> {
+  if (await isFeatureOff("plans")) return unavailable();
+  const who = await mentorViewer();
+  if (!who.ok) return { success: false, message: who.message };
+  if (typeof done !== "boolean") return { success: false, message: who.t("errors.invalid") };
+  const parsed = parseEntry(entry);
+  if (!parsed) return { success: false, message: who.t("errors.invalid") };
+  const student = await resolveStudent(who.viewer, parsed, studentId);
+  const ids = student?.userId ? await tickableIdsUnder(student.userId, sectionId) : null;
+  if (!ids) return { success: false, message: who.t("errors.notFound") };
+  return writeSectionDone(ids, done, who.t);
 }
 
 export async function setStudentPlanItemNote(entry: unknown, studentId: unknown, itemId: unknown, note: unknown): Promise<Result> {

@@ -1,24 +1,37 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { ChevronDown, ExternalLink, StickyNote } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { setPlanItemDone, setPlanItemNote, type PlanView as PlanData } from "@/actions/plan.actions";
+import { setPlanItemDone, setPlanItemNote, setPlanSectionDone, type PlanView as PlanData } from "@/actions/plan.actions";
 
 // Where a tick or a note goes: the student's own actions by default; a mentor
 // (or the admin) looking at a student's plan passes actions bound to that student.
 export type PlanWriter = {
   done: (itemId: string, done: boolean) => ReturnType<typeof setPlanItemDone>;
   note: (itemId: string, note: string) => ReturnType<typeof setPlanItemNote>;
+  // A whole topic or group at once (SKD-73).
+  section: (sectionId: string, done: boolean) => ReturnType<typeof setPlanSectionDone>;
 };
-const OWN_WRITER: PlanWriter = { done: setPlanItemDone, note: setPlanItemNote };
+const OWN_WRITER: PlanWriter = { done: setPlanItemDone, note: setPlanItemNote, section: setPlanSectionDone };
 import { useTranslations } from "@/i18n/client";
 import { toastError, toastSuccess } from "@/lib/toast";
 import { cn } from "@/lib/utils";
+import { TICKABLE_KINDS } from "@/skillklan/plans/kinds";
 import { PLAN_NOTE_MAX, progressOf, type PlanItemView } from "@/skillklan/plans/tree";
 
 // «Навчальний план»: a student's copy of a course plan — a tab per module
@@ -35,6 +48,15 @@ function patchTree(items: PlanItemView[], id: string, change: (item: PlanItemVie
 function shortModuleTitle(title: string): string {
   const head = title.split(/[.:]/)[0].trim();
   return head === "" ? title : head;
+}
+
+// Every point and task under `item` set to `done`; the rest of the tree as it was.
+function withSubtreeDone(item: PlanItemView, done: boolean): PlanItemView {
+  return {
+    ...item,
+    done: TICKABLE_KINDS.includes(item.kind) ? done : item.done,
+    children: item.children.map((child) => withSubtreeDone(child, done)),
+  };
 }
 
 type Edit = (id: string, change: (item: PlanItemView) => PlanItemView) => void;
@@ -83,7 +105,10 @@ function PlanSection({ plan, edit, writer }: { plan: PlanData; edit: Edit; write
         </TabsList>
         {plan.modules.map((module) => (
           <TabsContent key={module.id} value={module.id} className="space-y-3 pt-2">
-            <h3 className="font-medium">{module.title}</h3>
+            <div className="flex items-center gap-2">
+              <SectionTick section={module} edit={edit} writer={writer} />
+              <h3 className="font-medium">{module.title}</h3>
+            </div>
             {module.children.map((topic) => (
               <Topic key={topic.id} topic={topic} edit={edit} writer={writer} />
             ))}
@@ -99,18 +124,81 @@ function Counter({ item }: { item: PlanItemView }) {
   return <span className="text-sm text-muted-foreground">{`${done}/${total}`}</span>;
 }
 
+// SKD-73: a checkbox in the heading of a module, a topic or a group that ticks every point
+// under it — or unticks them all when they are all done. It asks first: one
+// click changes many points. Ticked = all done, half-ticked = some.
+function SectionTick({ section, edit, writer }: { section: PlanItemView; edit: Edit; writer: PlanWriter }) {
+  const t = useTranslations("plans");
+  const [, startTransition] = useTransition();
+  const [asking, setAsking] = useState(false);
+  const box = useRef<HTMLInputElement>(null);
+  const { done, total } = progressOf(section);
+  const all = total > 0 && done === total;
+  useEffect(() => {
+    if (box.current) box.current.indeterminate = done > 0 && done < total;
+  }, [done, total]);
+  if (total === 0) return null;
+
+  // All done → the click takes the ticks off; otherwise it ticks what is left.
+  const target = !all;
+  const confirm = () => {
+    startTransition(async () => {
+      const result = await writer.section(section.id, target).catch(() => null);
+      if (result?.success) {
+        edit(section.id, (i) => withSubtreeDone(i, target));
+      } else {
+        toastError(result?.message);
+      }
+    });
+  };
+
+  return (
+    <>
+      <input
+        ref={box}
+        type="checkbox"
+        checked={all}
+        onChange={() => setAsking(true)}
+        aria-label={t("student.sectionTickLabel", { title: section.title })}
+        className="h-4 w-4 shrink-0 accent-primary"
+      />
+      <AlertDialog open={asking} onOpenChange={setAsking}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t(target ? "student.sectionTickTitle" : "student.sectionUntickTitle", { title: section.title })}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {target
+                ? t("student.sectionTickDescription", { count: total - done })
+                : t("student.sectionUntickDescription", { count: done })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("student.noteCancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirm}>{t("student.sectionConfirm")}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
+
 function Topic({ topic, edit, writer }: { topic: PlanItemView; edit: Edit; writer: PlanWriter }) {
   const t = useTranslations("plans");
   const [open, setOpen] = useState(false);
   return (
     <Collapsible open={open} onOpenChange={setOpen} className="rounded-md border">
-      <CollapsibleTrigger className="flex w-full items-center justify-between gap-3 p-3 text-left">
-        <span className="font-medium">{topic.title}</span>
-        <span className="flex shrink-0 items-center gap-2">
-          <Counter item={topic} />
-          <ChevronDown className={cn("h-4 w-4 transition-transform", open && "rotate-180")} />
-        </span>
-      </CollapsibleTrigger>
+      <div className="flex items-center gap-3 p-3">
+        <SectionTick section={topic} edit={edit} writer={writer} />
+        <CollapsibleTrigger className="flex flex-1 items-center justify-between gap-3 text-left">
+          <span className="font-medium">{topic.title}</span>
+          <span className="flex shrink-0 items-center gap-2">
+            <Counter item={topic} />
+            <ChevronDown className={cn("h-4 w-4 transition-transform", open && "rotate-180")} />
+          </span>
+        </CollapsibleTrigger>
+      </div>
       <CollapsibleContent className="space-y-4 border-t p-3">
         {topic.materialUrl && (
           <a
@@ -127,7 +215,10 @@ function Topic({ topic, edit, writer }: { topic: PlanItemView; edit: Edit; write
           if (child.kind === "group") {
             return (
               <div key={child.id} className="space-y-1">
-                <h4 className="text-sm font-medium">{child.title}</h4>
+                <div className="flex items-center gap-2">
+                  <SectionTick section={child} edit={edit} writer={writer} />
+                  <h4 className="text-sm font-medium">{child.title}</h4>
+                </div>
                 {child.children.map((point) => (
                   <Point key={point.id} item={point} edit={edit} writer={writer} />
                 ))}

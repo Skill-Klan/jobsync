@@ -2,6 +2,10 @@
 // tab per module and its percent, topics that open, a tick and a note on each
 // point and homework task; the progress follows the ticks at once and goes
 // back when saving fails. The admin sees the students and the plans each
+// SKD-73 (owner, 2026-11-26): a checkbox in the heading of a module, a topic and a group
+// ticks all its points at once, after a confirmation; it is ticked when all are
+// done (a click then unticks them), half-ticked when some are; a refused save
+// changes nothing.
 // holds, and gives a plan with a button — a plan already given has none, and offers to take it back.
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -10,6 +14,7 @@ import { setTestLocale } from "../helpers/i18n";
 const actions = vi.hoisted(() => ({
   setPlanItemDone: vi.fn(),
   setPlanItemNote: vi.fn(),
+  setPlanSectionDone: vi.fn(),
   assignStudentPlan: vi.fn(),
   removeStudentPlan: vi.fn(),
 }));
@@ -47,6 +52,7 @@ const plan = () => ({
 beforeEach(() => {
   actions.setPlanItemDone.mockResolvedValue({ success: true });
   actions.setPlanItemNote.mockResolvedValue({ success: true });
+  actions.setPlanSectionDone.mockResolvedValue({ success: true });
   actions.assignStudentPlan.mockResolvedValue({ success: true });
 });
 
@@ -64,7 +70,8 @@ describe("the student's page", () => {
     render(<PlanView plans={[plan()]} />);
     expect(screen.queryByText("T-b")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /T-t1/ }));
-    expect(screen.getAllByRole("checkbox")).toHaveLength(5);
+    // 5 points and tasks, and the checkboxes of the module, of the topic and of its group
+    expect(screen.getAllByRole("checkbox")).toHaveLength(8);
     expect(screen.getByText("ДЗ 1 — завдання в іншій темі")).toBeInTheDocument();
     const link = screen.getByRole("link", { name: "Material for the topic" });
     expect(link).toHaveAttribute("href", "https://docs.example.test/t1");
@@ -101,6 +108,117 @@ describe("the student's page", () => {
     await waitFor(() => expect(toasts.toastError).toHaveBeenCalledWith("Не вдалося зберегти."));
     expect(screen.getByRole("checkbox", { name: "Mark as done: T-b" })).not.toBeChecked();
     expect(screen.getByRole("tab", { name: /Модуль 1\s*40%/ })).toBeInTheDocument();
+  });
+
+  describe("a whole topic or group at once (SKD-73)", () => {
+    const openTopic = async () => {
+      const user = userEvent.setup();
+      render(<PlanView plans={[plan()]} />);
+      await user.click(screen.getByRole("button", { name: /T-t1/ }));
+      return user;
+    };
+
+    it("the topic's checkbox is half-ticked while some points are done, and the heading is not a tick", async () => {
+      await openTopic();
+      const box = screen.getByRole("checkbox", { name: "Mark all as done: T-t1" });
+      expect(box).toBePartiallyChecked();
+      expect(screen.getByRole("checkbox", { name: "Mark all as done: T-g" })).not.toBeChecked();
+      expect(actions.setPlanSectionDone).not.toHaveBeenCalled();
+    });
+
+    it("a click asks first and saves nothing until confirmed; cancel leaves everything as it was", async () => {
+      const user = await openTopic();
+      await user.click(screen.getByRole("checkbox", { name: "Mark all as done: T-t1" }));
+      expect(await screen.findByText("Mark “T-t1” as done?")).toBeInTheDocument();
+      expect(screen.getByText(/Points to be marked as done: 3/)).toBeInTheDocument();
+      expect(actions.setPlanSectionDone).not.toHaveBeenCalled();
+      await user.click(screen.getByRole("button", { name: "Cancel" }));
+      expect(actions.setPlanSectionDone).not.toHaveBeenCalled();
+      expect(screen.getByText("2/5")).toBeInTheDocument();
+    });
+
+    it("confirmed: the server is asked for the topic, every point shows ticked and the counters move", async () => {
+      const user = await openTopic();
+      await user.click(screen.getByRole("checkbox", { name: "Mark all as done: T-t1" }));
+      await user.click(await screen.findByRole("button", { name: "Confirm" }));
+      await waitFor(() => expect(actions.setPlanSectionDone).toHaveBeenCalledWith("t1", true));
+      await waitFor(() => expect(screen.getByRole("checkbox", { name: "Mark as done: T-b" })).toBeChecked());
+      for (const id of ["a", "b", "c", "h1", "h2"]) {
+        expect(screen.getByRole("checkbox", { name: `Mark as done: T-${id}` })).toBeChecked();
+      }
+      expect(screen.getByRole("checkbox", { name: "Mark all as done: T-t1" })).toBeChecked();
+      expect(screen.getByRole("tab", { name: /Модуль 1\s*100%/ })).toBeInTheDocument();
+      // another module is not touched
+      expect(screen.getByRole("tab", { name: /Модуль 2\s*0%/ })).toBeInTheDocument();
+    });
+
+    it("when everything is done a click unticks: asked first, then false is saved", async () => {
+      const user = await openTopic();
+      await user.click(screen.getByRole("checkbox", { name: "Mark all as done: T-t1" }));
+      await user.click(await screen.findByRole("button", { name: "Confirm" }));
+      await waitFor(() => expect(screen.getByRole("checkbox", { name: "Mark all as done: T-t1" })).toBeChecked());
+      await user.click(screen.getByRole("checkbox", { name: "Mark all as done: T-t1" }));
+      expect(await screen.findByText("Unmark “T-t1”?")).toBeInTheDocument();
+      expect(screen.getByText(/Points to be unmarked: 5/)).toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: "Confirm" }));
+      await waitFor(() => expect(actions.setPlanSectionDone).toHaveBeenLastCalledWith("t1", false));
+      await waitFor(() => expect(screen.getByRole("checkbox", { name: "Mark as done: T-a" })).not.toBeChecked());
+      expect(screen.getByText("0/5")).toBeInTheDocument();
+    });
+
+    it("a module has its own, in its heading: the server is asked for the module, and only its tab changes", async () => {
+      const user = userEvent.setup();
+      render(<PlanView plans={[plan()]} />);
+      expect(screen.getByRole("checkbox", { name: "Mark all as done: Модуль 1. Основи" })).toBePartiallyChecked();
+      await user.click(screen.getByRole("checkbox", { name: "Mark all as done: Модуль 1. Основи" }));
+      expect(await screen.findByText("Mark “Модуль 1. Основи” as done?")).toBeInTheDocument();
+      expect(screen.getByText(/Points to be marked as done: 3/)).toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: "Confirm" }));
+      await waitFor(() => expect(actions.setPlanSectionDone).toHaveBeenCalledWith("m1", true));
+      await waitFor(() => expect(screen.getByRole("tab", { name: /Модуль 1\s*100%/ })).toBeInTheDocument());
+      expect(screen.getByRole("tab", { name: /Модуль 2\s*0%/ })).toBeInTheDocument();
+    });
+
+    it("a group has its own: only its points, not the rest of the topic", async () => {
+      const user = await openTopic();
+      await user.click(screen.getByRole("checkbox", { name: "Mark all as done: T-g" }));
+      await user.click(await screen.findByRole("button", { name: "Confirm" }));
+      await waitFor(() => expect(actions.setPlanSectionDone).toHaveBeenCalledWith("g", true));
+      await waitFor(() => expect(screen.getByRole("checkbox", { name: "Mark as done: T-c" })).toBeChecked());
+      expect(screen.getByRole("checkbox", { name: "Mark as done: T-b" })).not.toBeChecked();
+      expect(screen.getByText("3/5")).toBeInTheDocument();
+    });
+
+    it("a refused save changes nothing and says why", async () => {
+      actions.setPlanSectionDone.mockResolvedValue({ success: false, message: "Не вдалося зберегти." });
+      const user = await openTopic();
+      await user.click(screen.getByRole("checkbox", { name: "Mark all as done: T-t1" }));
+      await user.click(await screen.findByRole("button", { name: "Confirm" }));
+      await waitFor(() => expect(toasts.toastError).toHaveBeenCalledWith("Не вдалося зберегти."));
+      expect(screen.getByText("2/5")).toBeInTheDocument();
+      expect(screen.getByRole("checkbox", { name: "Mark as done: T-b" })).not.toBeChecked();
+    });
+
+    it("a mentor's writer is the one asked, not the student's own action", async () => {
+      const writer = {
+        done: vi.fn().mockResolvedValue({ success: true }),
+        note: vi.fn().mockResolvedValue({ success: true }),
+        section: vi.fn().mockResolvedValue({ success: true }),
+      };
+      const user = userEvent.setup();
+      render(<PlanView plans={[plan()]} writer={writer} />);
+      await user.click(screen.getByRole("button", { name: /T-t1/ }));
+      await user.click(screen.getByRole("checkbox", { name: "Mark all as done: T-t1" }));
+      await user.click(await screen.findByRole("button", { name: "Confirm" }));
+      await waitFor(() => expect(writer.section).toHaveBeenCalledWith("t1", true));
+      expect(actions.setPlanSectionDone).not.toHaveBeenCalled();
+    });
+
+    it("in Ukrainian too", async () => {
+      setTestLocale("uk");
+      await openTopic();
+      expect(screen.getByRole("checkbox", { name: "Позначити все виконаним: T-t1" })).toBeInTheDocument();
+    });
   });
 
   it("a note: open the editor, type, save — it is stored and shown", async () => {

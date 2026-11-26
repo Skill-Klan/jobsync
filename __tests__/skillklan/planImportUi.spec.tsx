@@ -16,8 +16,10 @@ vi.mock("@/actions/plan.actions", () => ({
   getStudentPlans: vi.fn(),
   setPlanItemDone: vi.fn(),
   setPlanItemNote: vi.fn(),
+  setPlanSectionDone: vi.fn(),
   setStudentPlanItemDone: vi.fn(),
   setStudentPlanItemNote: vi.fn(),
+  setStudentPlanSectionDone: vi.fn(),
 }));
 
 // The import talks to a route now: the two steps are mocked behind fetch.
